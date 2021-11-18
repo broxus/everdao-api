@@ -1,0 +1,1476 @@
+{
+  "db": "PostgreSQL",
+  "004855de9ffe4e7c6a2890ad05425f4fedc13abde99bd8eed6de67a954c18575": {
+    "query": "INSERT INTO reward_rounds (num_round, start_time, end_time, reward_tokens, total_reward) \n        VALUES ($1, $2, $3, $4, $5)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Int4",
+          "Int4",
+          "Numeric",
+          "Numeric"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "08812e12dc61e02639df59501a278edffcf9f40070744d0587c5e58c5553b3d3": {
+    "query": "SELECT * FROM user_keys WHERE user_address = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "user_address",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 1,
+          "name": "ton_pubkey",
+          "type_info": "Bytea"
+        },
+        {
+          "ordinal": 2,
+          "name": "ton_pubkey_is_confirmed",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 3,
+          "name": "eth_address",
+          "type_info": "Bytea"
+        },
+        {
+          "ordinal": 4,
+          "name": "eth_address_is_confirmed",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 5,
+          "name": "until_frozen",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 6,
+          "name": "updated_at",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 7,
+          "name": "created_at",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "0a35847cf12d8b1b4c67f60c24c2b0d9284dff16004eac82a634ab801b4fff50": {
+    "query": "SELECT * FROM vault_info WHERE chain_id = $1 AND proxy = $2",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "vault_address",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 1,
+          "name": "ton_token_address",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "eth_token_address",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "ton_currency_scale",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 4,
+          "name": "ton_currency",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 5,
+          "name": "chain_id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 6,
+          "name": "proxy",
+          "type_info": "Varchar"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "1038020ab7c98a427732c1aea5ac9299943d57fe260c13a162f22751f2b5b87a": {
+    "query": "UPDATE reward_rounds SET end_time = $1 WHERE num_round = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Int4"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "1b17702c1fbedfeb5a9a6449eea9cff4bef328ad13738299b93301d4442eacab": {
+    "query": "SELECT ton_pubkey_is_confirmed, eth_address_is_confirmed, until_frozen FROM user_keys WHERE user_address = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "ton_pubkey_is_confirmed",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 1,
+          "name": "eth_address_is_confirmed",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 2,
+          "name": "until_frozen",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "1d35684089dcfac5e799af367482f96b7bf0fbec1994c37e91bab7f34a78a935": {
+    "query": "SELECT * FROM unknown_user_keys WHERE address = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "address",
+          "type_info": "Bytea"
+        },
+        {
+          "ordinal": 1,
+          "name": "kind",
+          "type_info": "Varchar"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Bytea"
+        ]
+      },
+      "nullable": [
+        false,
+        false
+      ]
+    }
+  },
+  "1e04944c7167d93dbbb2406b48643cb07f9eea74c670f9c57db8763d956f0bcc": {
+    "query": "UPDATE transfers SET confirm_votes = $1, reject_votes = $2, status = $3,\n        timestamp_block_updated_at = $4 WHERE contract_address = $5",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Int4",
+          "Varchar",
+          "Int4",
+          "Text"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "263683ba917e13f9a5aa63242ef6dfadea09c47702ae4672717c71f4db8961a2": {
+    "query": "UPDATE transfers SET ton_message_hash = $1, ton_transaction_hash = $2, contract_address = $3, timestamp_block_updated_at = $4 WHERE event_index = $5 and eth_transaction_hash = $6",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Bytea",
+          "Bytea",
+          "Varchar",
+          "Int4",
+          "Int4",
+          "Text"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "287c44d221203ae8a870d72eb4e45273cdd1d8f0243d80efb1cfdaedde71e06d": {
+    "query": "INSERT INTO bridge_balances (message_hash, transaction_hash, transaction_kind,\n                      user_address, user_balance, reward,\n                      bridge_balance, stakeholders, average_apr, bridge_reward,\n                      timestamp_block, created_at)\n                      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Bytea",
+          "Bytea",
+          "Varchar",
+          "Varchar",
+          "Numeric",
+          "Numeric",
+          "Numeric",
+          "Int4",
+          "Numeric",
+          "Numeric",
+          "Int4",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "2fff14ef5d71b9b9f4c761238d6d23f3e3c2f50669b2ccdc7e76af30783b1c47": {
+    "query": "SELECT user_address FROM user_keys WHERE  ton_pubkey = $1 AND eth_address = $2",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "user_address",
+          "type_info": "Varchar"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Bytea",
+          "Bytea"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "3332839eb998d54e5e648dcf41c6b1c6eb392a7f10958429435ca43b9513cfa9": {
+    "query": "SELECT * FROM graph_data WHERE timestamp >= $1 AND timestamp < $2 AND kind = $3 ORDER BY timestamp",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "kind",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 1,
+          "name": "balance",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 2,
+          "name": "apr",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 3,
+          "name": "reward",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 4,
+          "name": "timestamp",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "4206629cd27fd1182608eb0477d698c45b708fdd4e1b6e29aa9d896bd0d46a75": {
+    "query": "UPDATE transfers SET ton_message_hash = $1, ton_transaction_hash = $2, contract_address = $3, timestamp_block_updated_at = $4, graphql_timestamp = $6 WHERE event_index = $5 and eth_transaction_hash = $7",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Bytea",
+          "Bytea",
+          "Varchar",
+          "Int4",
+          "Int4",
+          "Int4",
+          "Text"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "4d334fcbfa80d42f24930cbde760665487c538b205c3fce9a91dbcbb5b033251": {
+    "query": "UPDATE user_keys SET ton_pubkey_is_confirmed = true WHERE ton_pubkey = $1 RETURNING eth_address_is_confirmed, user_address, until_frozen",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "eth_address_is_confirmed",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 1,
+          "name": "user_address",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "until_frozen",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Bytea"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "4dac5e553e9bdf9bdd601e2a528f5c1b505ad7eec4f90d634bb51b649e563461": {
+    "query": "SELECT * FROM bridge_balances ORDER BY created_at DESC LIMIT 1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "message_hash",
+          "type_info": "Bytea"
+        },
+        {
+          "ordinal": 1,
+          "name": "transaction_hash",
+          "type_info": "Bytea"
+        },
+        {
+          "ordinal": 2,
+          "name": "transaction_kind",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "user_address",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 4,
+          "name": "user_balance",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 5,
+          "name": "reward",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 6,
+          "name": "bridge_balance",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 7,
+          "name": "stakeholders",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 8,
+          "name": "average_apr",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 9,
+          "name": "bridge_reward",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 10,
+          "name": "timestamp_block",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 11,
+          "name": "created_at",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "4e6a85fee9c9317eab8b9c222b44cec120e89268bd5b57806fbb6982abba4fe8": {
+    "query": "INSERT INTO user_keys (user_address, ton_pubkey, ton_pubkey_is_confirmed, eth_address, eth_address_is_confirmed, until_frozen) \n        VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (user_address) DO \n            UPDATE SET ton_pubkey = $2, ton_pubkey_is_confirmed = $3, eth_address = $4, eth_address_is_confirmed = $5, until_frozen = $6, updated_at = Default",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Bytea",
+          "Bool",
+          "Bytea",
+          "Bool",
+          "Int4"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "5e3b535133dc2f27597774d66172f4feeec520072bb834731c20f841fbcfeca4": {
+    "query": "UPDATE user_keys SET eth_address_is_confirmed = true WHERE eth_address = $1 RETURNING ton_pubkey_is_confirmed, user_address, until_frozen",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "ton_pubkey_is_confirmed",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 1,
+          "name": "user_address",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "until_frozen",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Bytea"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "5ff1deada9df5cc7f216aad4ec018e230c38bb94c624cbc6f613e8245949e6ca": {
+    "query": "UPDATE user_balances SET user_kind = $1, until_frozen = $3 WHERE user_address = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Text",
+          "Int4"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "61bffd2b19735487461d07aaf35df363a499f5b0b1e94ccfbb135907cf7fc364": {
+    "query": "SELECT * FROM user_balances WHERE user_address = $1 ORDER BY created_at DESC LIMIT 1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "user_address",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 1,
+          "name": "user_kind",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "stake_balance",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 3,
+          "name": "frozen_stake",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 4,
+          "name": "last_reward",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 5,
+          "name": "total_reward",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 6,
+          "name": "until_frozen",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 7,
+          "name": "updated_at",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 8,
+          "name": "created_at",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "654958aa78431f0dc61591b6782e7185d3c9a6a6b8a5559abc1b73c432c498f0": {
+    "query": "INSERT INTO unknown_user_keys (address, kind) VALUES ($1, $2)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Bytea",
+          "Varchar"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "731bfe9a64758f0a717b112ab5fd099c0b42d1cc1c20833f7237ff76b0080be4": {
+    "query": "INSERT INTO user_balances (user_address, user_kind, stake_balance, frozen_stake, last_reward, total_reward, until_frozen, updated_at, created_at)\n        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $8) ON CONFLICT (user_address) DO UPDATE\n        SET user_kind = $2, stake_balance = $3, last_reward = $5, total_reward = $6, updated_at = $8",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Varchar",
+          "Numeric",
+          "Numeric",
+          "Numeric",
+          "Numeric",
+          "Int4",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "73831e92b341bcdb574715b5738167eaa83f2ab0c3e72c5e0d949555bd7e10d8": {
+    "query": "UPDATE user_balances SET frozen_stake = stake_balance WHERE until_frozen >= $1 AND frozen_stake != user_balances.stake_balance",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "746ba05011caad573879d82f4f627e11d3d72e0f46c51a1d829b35ad4344eb2f": {
+    "query": "SELECT * FROM transfers WHERE contract_address = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "ton_message_hash",
+          "type_info": "Bytea"
+        },
+        {
+          "ordinal": 1,
+          "name": "ton_transaction_hash",
+          "type_info": "Bytea"
+        },
+        {
+          "ordinal": 2,
+          "name": "contract_address",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "event_index",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 4,
+          "name": "eth_transaction_hash",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 5,
+          "name": "user_address",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 6,
+          "name": "volume_exec",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 7,
+          "name": "ton_token_address",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 8,
+          "name": "eth_token_address",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 9,
+          "name": "transfer_kind",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 10,
+          "name": "status",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 11,
+          "name": "required_votes",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 12,
+          "name": "confirm_votes",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 13,
+          "name": "reject_votes",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 14,
+          "name": "burn_callback_timestamp_lt",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 15,
+          "name": "timestamp_block_updated_at",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 16,
+          "name": "timestamp_block_created_at",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 17,
+          "name": "graphql_timestamp",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 18,
+          "name": "chain_id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 19,
+          "name": "updated_at",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 20,
+          "name": "created_at",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "7974d19fd4f2b23caae0537325954025fcda4f20f3e6407f441a3fd94d69e34a": {
+    "query": "SELECT * FROM raw_transactions ORDER BY timestamp_block, timestamp_lt LIMIT $1 OFFSET $2",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "transaction",
+          "type_info": "Bytea"
+        },
+        {
+          "ordinal": 1,
+          "name": "transaction_hash",
+          "type_info": "Bytea"
+        },
+        {
+          "ordinal": 2,
+          "name": "timestamp_block",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 3,
+          "name": "timestamp_lt",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 4,
+          "name": "created_at",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "8eaf4ccb8493a06fb6791a7b459ad8b43a4ffeb704fcf31f853bcfc3de039fee": {
+    "query": "SELECT chain_id, max(graphql_timestamp) FROM transfers WHERE event_index IS NOT NULL GROUP BY chain_id",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "chain_id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "max",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        null
+      ]
+    }
+  },
+  "9539bdff83dad8373c9c2ca9577cd56fe7181cfb467a92dabc33d4fa9a171278": {
+    "query": "INSERT INTO transfers (ton_message_hash, ton_transaction_hash, contract_address, event_index, user_address,\n                       volume_exec, ton_token_address, eth_token_address, transfer_kind, status, required_votes, confirm_votes, reject_votes, \n                       timestamp_block_updated_at, timestamp_block_created_at, graphql_timestamp, chain_id, eth_transaction_hash)\n                       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Bytea",
+          "Bytea",
+          "Varchar",
+          "Int4",
+          "Varchar",
+          "Numeric",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Int4",
+          "Int4",
+          "Int4",
+          "Int4",
+          "Int4",
+          "Int4",
+          "Int4",
+          "Varchar"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "953e2bd219fcd6a98b5e8ab3becb36999479ea12fea2e79dd0b09f5ef7a02bbf": {
+    "query": "INSERT INTO raw_transactions (transaction, transaction_hash, timestamp_block, timestamp_lt) VALUES($1, $2, $3, $4) ON CONFLICT DO NOTHING",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Bytea",
+          "Bytea",
+          "Int4",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "a2ebbf74096083d61a6f425ed223a5cd23c53a3d0b90669c2c33a0edcc038995": {
+    "query": "SELECT bridge_balance FROM bridge_balances WHERE timestamp_block < $1 ORDER BY timestamp_block DESC LIMIT 1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "bridge_balance",
+          "type_info": "Numeric"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "a534e7653b140899648eace14776f32e44c1d7e85f1a014c6a6bba38c1faf657": {
+    "query": "SELECT COUNT(*) FROM raw_transactions",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "count",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        null
+      ]
+    }
+  },
+  "aa772b587b8579d369cf4ceda4614afa141f56ae915f353eccc5a2df0c569f2a": {
+    "query": "INSERT INTO transfers (ton_message_hash, ton_transaction_hash, contract_address, event_index, user_address,\n                       volume_exec, ton_token_address, eth_token_address, transfer_kind, status, required_votes, confirm_votes, reject_votes,\n                       timestamp_block_updated_at, timestamp_block_created_at, chain_id, burn_callback_timestamp_lt)\n                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Bytea",
+          "Bytea",
+          "Varchar",
+          "Int4",
+          "Varchar",
+          "Numeric",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Int4",
+          "Int4",
+          "Int4",
+          "Int4",
+          "Int4",
+          "Int4",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "b09d967f384a283a87a9afd0b02747ab517a4f0f4e87830bed026b4e8778521d": {
+    "query": "SELECT * FROM vault_info WHERE chain_id = $1 AND eth_token_address = $2",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "vault_address",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 1,
+          "name": "ton_token_address",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "eth_token_address",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "ton_currency_scale",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 4,
+          "name": "ton_currency",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 5,
+          "name": "chain_id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 6,
+          "name": "proxy",
+          "type_info": "Varchar"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "b93432f56f9820c34ed3b4258d540150264768a83735d44b3943abb02ec6239c": {
+    "query": "UPDATE user_balances SET frozen_stake = 0 WHERE until_frozen < $1 AND frozen_stake != 0",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "b995b951fbdf8b1f0c37776f5045ab1c4a05b407280229f637ca12c520f8ccd1": {
+    "query": "SELECT * FROM graph_data WHERE timestamp < $1 AND kind = $2 ORDER BY timestamp DESC LIMIT 1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "kind",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 1,
+          "name": "balance",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 2,
+          "name": "apr",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 3,
+          "name": "reward",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 4,
+          "name": "timestamp",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "bd233de0fb9d851be9618b42588b7db4c4ebfd9e97e64229e1b9e9eb331250c2": {
+    "query": "INSERT INTO relay_events (relay_user_address, contract_address, ton_pub_key, transfer_user_address, \n        status, volume_exec, transfer_kind, currency_address, timestamp_block) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Varchar",
+          "Bytea",
+          "Varchar",
+          "Varchar",
+          "Numeric",
+          "Varchar",
+          "Varchar",
+          "Int4"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "bd38ae2591984b0e5c4fe5628ae866081bf0a02d066fa3bb246976c43f3e3db3": {
+    "query": "SELECT * FROM graphql_endpoints",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "chain_id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "url",
+          "type_info": "Varchar"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        false
+      ]
+    }
+  },
+  "c07bbad6955bd83ba469f365e7dd2e8234854b9dff2743a691bb016a72d93f95": {
+    "query": "SELECT * FROM user_balances WHERE user_address = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "user_address",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 1,
+          "name": "user_kind",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "stake_balance",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 3,
+          "name": "frozen_stake",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 4,
+          "name": "last_reward",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 5,
+          "name": "total_reward",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 6,
+          "name": "until_frozen",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 7,
+          "name": "updated_at",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 8,
+          "name": "created_at",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "c9338d62760ee947a0026b32a6925ad422f5919220548b95830c82133ac8adb9": {
+    "query": "SELECT COUNT(*) FROM transactions",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "count",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        null
+      ]
+    }
+  },
+  "c95b09a5993d22714d429bd5e7630541c5d6b6d6536ee45e061550f831f74c11": {
+    "query": "UPDATE transfers SET required_votes = $1 WHERE contract_address = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Text"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "d47418ae0214506032977684b875558207242c3577d64f285e175ad38ab90ed0": {
+    "query": "INSERT INTO vault_info (vault_address, ton_token_address, eth_token_address,\n                        ton_currency_scale, ton_currency, chain_id, proxy) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Int4",
+          "Varchar",
+          "Int4",
+          "Varchar"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "d4c49fc220ca0da5d0dc708a3c4db2f2e8980c9d8aba561fd9a577280c0049c7": {
+    "query": "SELECT user_address, ton_pubkey FROM user_keys WHERE ton_pubkey = $1 or eth_address = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "user_address",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 1,
+          "name": "ton_pubkey",
+          "type_info": "Bytea"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Bytea"
+        ]
+      },
+      "nullable": [
+        false,
+        false
+      ]
+    }
+  },
+  "d99cc7c7e755f4f7e5298abfecbc64a8ad5f4f3c7f8a0ec86fcf8a55adc07bb0": {
+    "query": "SELECT * FROM vault_info WHERE vault_address = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "vault_address",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 1,
+          "name": "ton_token_address",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "eth_token_address",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "ton_currency_scale",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 4,
+          "name": "ton_currency",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 5,
+          "name": "chain_id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 6,
+          "name": "proxy",
+          "type_info": "Varchar"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "de5573b75c6976640d927efd3195dba9d473b52f2489c260c91ded5544f47380": {
+    "query": "INSERT INTO user_balances (user_address, user_kind, stake_balance, frozen_stake, last_reward, total_reward, until_frozen, updated_at, created_at)\n        VALUES ($1, $2, 0, 0, 0, 0, $3, $4, $4) ON CONFLICT (user_address) DO UPDATE\n        SET user_kind = $2, until_frozen = $3,  updated_at = $4, frozen_stake = $5",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Varchar",
+          "Int4",
+          "Int8",
+          "Numeric"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "e417f132547235fbba2688d28a0e4080de86120e328451b315d48962ede5e70d": {
+    "query": "SELECT * FROM vault_info",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "vault_address",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 1,
+          "name": "ton_token_address",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "eth_token_address",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "ton_currency_scale",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 4,
+          "name": "ton_currency",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 5,
+          "name": "chain_id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 6,
+          "name": "proxy",
+          "type_info": "Varchar"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "eaa87119038c826e2b27df19f8c310b862f59b386eeac5cf66cdcb3f7ba4db63": {
+    "query": "INSERT INTO transactions (message_hash, transaction_hash, \n                          transaction_kind, user_address, user_public_key, bridge_exec, timestamp_block) \n                          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING created_at",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "created_at",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Bytea",
+          "Bytea",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Numeric",
+          "Int4"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "f984126c7bec6f166cf68ce5467ffd829be0eeb2549695adadb42486a7e493cd": {
+    "query": "SELECT * FROM reward_rounds ORDER BY num_round",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "num_round",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "start_time",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 2,
+          "name": "end_time",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 3,
+          "name": "reward_tokens",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 4,
+          "name": "total_reward",
+          "type_info": "Numeric"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "fb0e9202886329b9ed930d54ef71c8844a7f3e6a49455451e62f253060730148": {
+    "query": "SELECT user_balance FROM bridge_balances WHERE user_address = $1 AND timestamp_block <= $2 ORDER BY timestamp_block DESC limit 1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "user_balance",
+          "type_info": "Numeric"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Int4"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  }
+}

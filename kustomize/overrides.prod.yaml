@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: __APPLICATION__
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: __APPLICATION__
+          args:
+            - server
+          ports:
+            - containerPort: __APPLICATION_PORT__
+          resources:
+            limits:
+              cpu: 1.0
+              memory: 256Mi
+            requests:
+              cpu: 0.1
+              memory: 256Mi
+          env:
+            - name: RUST_LOG
+              value: "bridge_dao_indexer=info,dexpa=debug,warp=debug"
+            - name: NODE_ADDR
+              value: "44.192.25.57:3031"
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-db-credentials
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-db-credentials
+                  key: password
+            - name: DATABASE_URL
+              value: "postgresql://$(DB_USER):$(DB_PASSWORD)@127.0.0.1:5432/bridge_dao_indexer"
+            - name: DB_POOL_SIZE
+              value: "5"
+            - name: TONSWAP_INDEXER_URL
+              value: "https://ton-swap-indexer.broxus.com"
+            - name: KAFKA_USER
+              valueFrom:
+                secretKeyRef:
+                  name: ton-kafka-credentials
+                  key: ton_kafka_user
+            - name: KAFKA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ton-kafka-credentials
+                  key: ton_kafka_password
+            - name: STATES_RPC_ENDPOINT
+              value: "http://35.240.13.113:8081"
+            - name: KAFKA_GROUP_ID
+              value: "ton-bridge-dao-indexer-prod-0"
+            - name: KAFKA_CLIENT_ID
+              value: "ton-bridge-dao-indexer-prod-client"
