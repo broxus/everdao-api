@@ -6,7 +6,6 @@ use chrono::Utc;
 use reqwest::{Client, Response, Url};
 use tokio::time::sleep;
 
-use crate::graphql_client::EVMGraphqlClient;
 use crate::models::reqwest::requests::CurrencyInfoRequest;
 use crate::models::reqwest::responses::{CurrencyInfoResponse, TokensInfoResponse};
 use crate::models::sqlx::VaultInfoFromDb;
@@ -140,14 +139,12 @@ impl ReqwestClient {
 }
 
 pub async fn loop_update_vault_info(
-    graphql_client: EVMGraphqlClient,
     sqlx_client: SqlxClient,
     reqwest_client: ReqwestClient,
 ) {
     loop {
         sleep(Duration::from_secs(60 * 15)).await; // 15 min
         update_vault_info(
-            graphql_client.clone(),
             sqlx_client.clone(),
             reqwest_client.clone(),
         )
@@ -156,13 +153,12 @@ pub async fn loop_update_vault_info(
 }
 
 pub async fn update_vault_info(
-    graphql_client: EVMGraphqlClient,
     sqlx_client: SqlxClient,
     reqwest_client: ReqwestClient,
 ) {
     let old_vaults_info = sqlx_client.get_old_vaults().await.unwrap_or_default();
     let new_vaults_info = reqwest_client
-        .get_vault_info(graphql_client.clone(), sqlx_client.clone())
+        .get_vault_info(sqlx_client.clone())
         .await
         .into_iter()
         .filter(|x| !old_vaults_info.contains(x))
@@ -183,13 +179,12 @@ pub mod test {
         env_logger::init();
         let reqwest_client =
             ReqwestClient::new("https://ton-swap-indexer-test.broxus.com".to_string());
-        let graphql_client = EVMGraphqlClient::default();
         let pool = PgPoolOptions::new()
             .max_connections(5)
             .connect("postgresql://postgres:postgres@localhost:5432/bridge_dao_indexer")
             .await
             .expect("fail pg pool");
         let sqlx_client = SqlxClient::new(pool);
-        update_vault_info(graphql_client, sqlx_client, reqwest_client).await;
+        update_vault_info(sqlx_client, reqwest_client).await;
     }
 }
