@@ -1,4 +1,4 @@
-use crate::models::sqlx::RawTransactionFromDb;
+use crate::models::sqlx::RawTransactionsFromDb;
 use crate::sqlx_client::SqlxClient;
 
 impl SqlxClient {
@@ -14,7 +14,7 @@ impl SqlxClient {
             .unwrap_or_default()
     }
 
-    pub async fn new_raw_transaction(&self, transaction: RawTransactionFromDb) {
+    pub async fn new_raw_transaction(&self, transaction: RawTransactionsFromDb) {
         if let Err(e) = sqlx::query!(
             r#"INSERT INTO raw_transactions (transaction, transaction_hash, timestamp_block, timestamp_lt) VALUES($1, $2, $3, $4) ON CONFLICT DO NOTHING"#,
             transaction.transaction,
@@ -32,9 +32,9 @@ impl SqlxClient {
         &self,
         limit: i64,
         offset: i64,
-    ) -> Result<Vec<RawTransactionFromDb>, anyhow::Error> {
+    ) -> Result<Vec<RawTransactionsFromDb>, anyhow::Error> {
         sqlx::query_as!(
-            RawTransactionFromDb,
+            RawTransactionsFromDb,
             r#"SELECT * FROM raw_transactions ORDER BY timestamp_block, timestamp_lt LIMIT $1 OFFSET $2"#,
             limit,
             offset

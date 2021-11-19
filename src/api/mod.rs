@@ -76,10 +76,7 @@ mod filters {
 
     pub fn proposals(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
         warp::path("proposals")
-            .and(
-                post_search_proposals(ctx.clone())
-                    .or(post_proposal_votes(ctx.clone()))
-            )
+            .and(post_search_proposals(ctx.clone()).or(post_proposal_votes(ctx.clone())))
             .boxed()
     }
 
@@ -87,7 +84,8 @@ mod filters {
         warp::path("voters")
             .and(
                 post_voters_votes(ctx.clone())
-                    .or(post_voters_proposals(ctx.clone()))
+                    .or(post_voter_votes(ctx.clone()))
+                    .or(post_voters_proposals(ctx.clone())),
             )
             .boxed()
     }
@@ -114,13 +112,23 @@ mod filters {
     }
 
     pub fn post_voters_votes(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
+        warp::path("votes")
+            .and(warp::path::end())
+            .and(warp::post())
+            .and(with_ctx(ctx))
+            .and(json_body())
+            .and_then(controllers::proposals::post_voters_votes)
+            .boxed()
+    }
+
+    pub fn post_voter_votes(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
         warp::path::param()
             .and(warp::path("votes"))
             .and(warp::path::end())
             .and(warp::post())
             .and(with_ctx(ctx))
             .and(json_body())
-            .and_then(controllers::proposals::post_voters_votes)
+            .and_then(controllers::proposals::post_voter_votes)
             .boxed()
     }
 

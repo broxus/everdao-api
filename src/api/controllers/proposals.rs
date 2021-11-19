@@ -1,13 +1,13 @@
 use futures::prelude::future::*;
 
+use crate::api::filters::proposals;
+
 use super::Context;
 use crate::api::requests::{
-    GraphRequest, SearchProposalsRequest, SearchTransactionsRequest, SearchTransfersRequest,
-    UserPageStakingRequest,
+    GraphRequest, SearchProposalRequest, SearchProposalVotesRequest, SearchProposalsRequest,
+    SearchVotesRequest,
 };
-use crate::api::responses::{
-    GraphDataResponse, ProposalsResponse, TransactionsTableResponse, TransfersTableResponse,
-};
+use crate::api::responses::{ProposalsResponse, VotesResponse};
 use crate::api::utils::*;
 
 pub fn post_search_proposals(
@@ -15,111 +15,93 @@ pub fn post_search_proposals(
     input: SearchProposalsRequest,
 ) -> BoxFuture<'static, Result<impl warp::Reply, warp::Rejection>> {
     async move {
-        let (user_balances, total_count) = ctx
+        let (proposals, total_count) = ctx
             .services
-            .search_proposals(input.clone())
+            .search_proposals(input)
             .await
             .map_err(|e| warp::reject::custom(BadRequestError { 0: e.to_string() }))?;
 
-        let res = ProposalsResponse::from((user_balances, total_count));
+        let res = ProposalsResponse::from((proposals, total_count));
 
         Ok(warp::reply::json(&res))
     }
     .boxed()
 }
 
-pub fn search_transfers(
+pub fn post_proposal_votes(
+    address: String,
     ctx: Context,
-    input: SearchTransfersRequest,
+    input: SearchProposalVotesRequest,
 ) -> BoxFuture<'static, Result<impl warp::Reply, warp::Rejection>> {
     async move {
-        let (user_balances, total_count) = ctx
+        let mut search = SearchVotesRequest::from(input);
+        search.proposal_address = Some(address);
+        let (votes, total_count) = ctx
             .services
-            .search_transfers(input.clone())
+            .search_votes(search)
             .await
             .map_err(|e| warp::reject::custom(BadRequestError { 0: e.to_string() }))?;
 
-        let res = TransfersTableResponse::from((user_balances, total_count));
+        let res = VotesResponse::from((votes, total_count));
 
         Ok(warp::reply::json(&res))
     }
     .boxed()
 }
 
-pub fn search_transactions(
+pub fn post_voter_votes(
+    address: String,
     ctx: Context,
-    input: SearchTransactionsRequest,
+    mut input: SearchVotesRequest,
 ) -> BoxFuture<'static, Result<impl warp::Reply, warp::Rejection>> {
     async move {
-        let (transactions, total_count) = ctx
+        input.voter_address = Some(address);
+        let (votes, total_count) = ctx
             .services
-            .search_transactions(input.clone())
+            .search_votes(input)
             .await
             .map_err(|e| warp::reject::custom(BadRequestError { 0: e.to_string() }))?;
 
-        let res = TransactionsTableResponse::from((transactions, total_count));
+        let res = VotesResponse::from((votes, total_count));
 
-        Ok(warp::reply::json(&(res)))
-    }
-    .boxed()
-}
-
-pub fn post_graph_tvl(
-    ctx: Context,
-    input: GraphRequest,
-) -> BoxFuture<'static, Result<impl warp::Reply, warp::Rejection>> {
-    async move {
-        let graph_data = ctx.services.post_graph(input).await;
-
-        let res = graph_data
-            .into_iter()
-            .map(|x| GraphDataResponse {
-                data: x.balance,
-                timestamp: x.timestamp as i64 * 1000,
-            })
-            .collect::<Vec<_>>();
-
-        Ok(warp::reply::json(&(res)))
-    }
-    .boxed()
-}
-
-pub fn post_graph_apr(
-    ctx: Context,
-    input: GraphRequest,
-) -> BoxFuture<'static, Result<impl warp::Reply, warp::Rejection>> {
-    async move {
-        let graph_data = ctx.services.post_graph(input).await;
-
-        let res = graph_data
-            .into_iter()
-            .map(|x| GraphDataResponse {
-                data: x.apr,
-                timestamp: x.timestamp as i64 * 1000,
-            })
-            .collect::<Vec<_>>();
-
-        Ok(warp::reply::json(&(res)))
-    }
-    .boxed()
-}
-
-pub fn get_main_staking(
-    ctx: Context,
-) -> BoxFuture<'static, Result<impl warp::Reply, warp::Rejection>> {
-    async move {
-        let res = ctx.services.get_main_page_staking().await;
         Ok(warp::reply::json(&res))
     }
     .boxed()
 }
 
-pub fn post_user_staking(
+pub fn post_voters_votes(
     ctx: Context,
-    input: UserPageStakingRequest,
+    input: SearchVotesRequest,
 ) -> BoxFuture<'static, Result<impl warp::Reply, warp::Rejection>> {
     async move {
-        let res = ctx.services.post_user_page_staking(input).await;
+        let (votes, total_count) = ctx
+            .services
+            .search_votes(input)
+            .await
+            .map_err(|e| warp::reject::custom(BadRequestError { 0: e.to_string() }))?;
+
+        let res = VotesResponse::from((votes, total_count));
+
+        Ok(warp::reply::json(&res))
+    }
+    .boxed()
+}
+
+pub fn post_voters_proposals(
+    address: String,
+    ctx: Context,
+    mut input: SearchProposalsRequest,
+) -> BoxFuture<'static, Result<impl warp::Reply, warp::Rejection>> {
+    async move {
+        input.voter_address = Some(address);
+        let (proposals, total_count) = ctx
+            .services
+            .search_proposals(input)
+            .await
+            .map_err(|e| warp::reject::custom(BadRequestError { 0: e.to_string() }))?;
+
+        let res = ProposalsResponse::from((proposals, total_count));
+
         Ok(warp::reply::json(&res))
     }
     .boxed()

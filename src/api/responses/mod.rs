@@ -1,4 +1,4 @@
-use crate::models::sqlx::{TransactionFromDb, TransferFromDb, ProposalFromDb};
+use crate::models::sqlx::{ProposalFromDb, TransferFromDb, VoteFromDb};
 use serde::{Deserialize, Serialize};
 use sqlx::types::Decimal;
 
@@ -68,12 +68,12 @@ impl From<(Vec<ProposalFromDb>, i32)> for ProposalsResponse {
 #[derive(Debug, Deserialize, Serialize, Clone, opg::OpgModel)]
 #[serde(rename_all = "camelCase")]
 #[opg("Stakeholders table response")]
-pub struct TransfersTableResponse {
+pub struct VotesResponse {
     pub transfers: Vec<TransferResponse>,
     pub total_count: i64,
 }
 
-impl From<(Vec<TransferFromDb>, i64)> for TransfersTableResponse {
+impl From<(Vec<TransferFromDb>, i64)> for VotesResponse {
     fn from((transfers, total_count): (Vec<TransferFromDb>, i64)) -> Self {
         Self {
             transfers: transfers
@@ -116,8 +116,8 @@ pub struct TransactionsTableResponse {
     pub total_count: i32,
 }
 
-impl From<(Vec<TransactionFromDb>, i32)> for TransactionsTableResponse {
-    fn from((transactions, total_count): (Vec<TransactionFromDb>, i32)) -> Self {
+impl From<(Vec<VoteFromDb>, i32)> for TransactionsTableResponse {
+    fn from((transactions, total_count): (Vec<VoteFromDb>, i32)) -> Self {
         Self {
             transactions: transactions
                 .into_iter()

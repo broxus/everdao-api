@@ -1,5 +1,5 @@
 use crate::models::raw_transactions::create_raw_transaction_from_db;
-use crate::models::sqlx::RawTransactionFromDb;
+use crate::models::sqlx::RawTransactionsFromDb;
 use crate::sqlx_client::SqlxClient;
 use chrono::Utc;
 use indexer_lib::TransactionExt;
@@ -31,7 +31,7 @@ pub fn build_answer_id_camel() -> ton_abi::Token {
 
 pub fn from_transaction_to_raws_transactions(
     transaction: Transaction,
-) -> (RawTransaction, RawTransactionFromDb) {
+) -> (RawTransaction, RawTransactionsFromDb) {
     let raw_transaction = RawTransaction {
         hash: transaction.tx_hash().unwrap(),
         data: transaction,

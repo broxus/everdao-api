@@ -1,6 +1,6 @@
 use crate::api::requests::SearchProposalsRequest;
+use crate::models::proposals_ordering::StakeholdersOrdering;
 use crate::models::sqlx::ProposalFromDb;
-use crate::models::stakeholders_ordering::StakeholdersOrdering;
 use crate::sqlx_client::SqlxClient;
 use itertools::Itertools;
 use sqlx::postgres::PgArguments;
@@ -12,7 +12,7 @@ impl SqlxClient {
         &self,
         input: SearchProposalsRequest,
     ) -> Result<(Vec<ProposalFromDb>, i32), anyhow::Error> {
-        let (updates, args_len, args, mut args_clone) = filter_stakeholders_query(&input);
+        let (updates, args_len, args, mut args_clone) = filter_proposals_query(&input);
 
         let mut query = "SELECT user_address, user_kind, stake_balance, frozen_stake, last_reward, 
             total_reward, until_frozen, updated_at, created_at FROM user_balances"
@@ -83,15 +83,34 @@ impl SqlxClient {
 
         Ok((res, total_count))
     }
+
+    pub async fn new_proposal(&self, proposal: ProposalFromDb) -> Result<i64, anyhow::Error> {
+        let created_at: i64 = sqlx::query!(
+            r#"INSERT INTO votes (message_hash, vote_hash,
+                          vote_kind, user_address, user_public_key, bridge_exec, timestamp_block)
+                          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING created_at"#,
+            vote.message_hash,
+            vote.vote_hash,
+            vote.vote_kind,
+            vote.user_address,
+            vote.user_public_key,
+            vote.bridge_exec,
+            vote.timestamp_block
+        )
+        .fetch_one(&self.pool)
+        .await
+        .map(|x| x.created_at)?;
+        Ok(created_at)
+    }
 }
 
-pub fn filter_stakeholders_query(
+pub fn filter_proposals_query(
     input: &SearchProposalsRequest,
 ) -> (Vec<String>, i32, PgArguments, PgArguments) {
     let SearchProposalsRequest {
         user_balance_ge,
         user_balance_le,
-        stakeholder_kind,
+        proposal_kind,
         until_frozen_ge,
         until_frozen_le,
         last_reward_ge,
@@ -124,11 +143,11 @@ pub fn filter_stakeholders_query(
         args_clone.add(user_balance_le)
     }
 
-    if let Some(stakeholder_kind) = stakeholder_kind {
+    if let Some(proposal_kind) = proposal_kind {
         updates.push(format!("user_kind = ${}", args_len + 1,));
         args_len += 1;
-        args.add(stakeholder_kind.to_string());
-        args_clone.add(stakeholder_kind.to_string())
+        args.add(proposal_kind.to_string());
+        args_clone.add(proposal_kind.to_string())
     }
 
     if let Some(until_frozen_ge) = until_frozen_ge {

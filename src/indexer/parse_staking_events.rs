@@ -16,8 +16,8 @@ use crate::models::abi::user_data::{RelayKeysUpdated, RelayMembershipRequested};
 use crate::models::address_type::UserAddressType;
 use crate::models::event_type::{BalanceEvent, EventType};
 use crate::models::sqlx::{
-    BridgeBalanceFromDb, RewardRoundInfoFromDb, TransactionFromDb, UnknownUserKeysFromDb,
-    ProposalFromDb, UserKeysFromDb,
+    BridgeBalanceFromDb, ProposalFromDb, RewardRoundInfoFromDb, UnknownUserKeysFromDb,
+    UserKeysFromDb, VoteFromDb,
 };
 use crate::sqlx_client::SqlxClient;
 
@@ -49,7 +49,7 @@ pub async fn parse_freeze_stake_event(
             &user_address,
             frozen_event.lock_until as i32,
             last_user_info.stake_balance,
-            TransactionFromDb {
+            VoteFromDb {
                 message_hash,
                 transaction_hash,
                 transaction_kind: EventType::Freeze.to_string(),
@@ -138,7 +138,7 @@ pub async fn parse_balance_event(
     balance_diff.set_scale(BRIDGE_SCALE).unwrap();
     reward_diff.set_scale(BRIDGE_SCALE).unwrap();
 
-    let transaction = TransactionFromDb {
+    let transaction = VoteFromDb {
         message_hash: message_hash.clone(),
         transaction_hash: transaction_hash.clone(),
         transaction_kind: event_type.to_string(),

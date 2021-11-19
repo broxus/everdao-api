@@ -138,24 +138,14 @@ impl ReqwestClient {
     }
 }
 
-pub async fn loop_update_vault_info(
-    sqlx_client: SqlxClient,
-    reqwest_client: ReqwestClient,
-) {
+pub async fn loop_update_vault_info(sqlx_client: SqlxClient, reqwest_client: ReqwestClient) {
     loop {
         sleep(Duration::from_secs(60 * 15)).await; // 15 min
-        update_vault_info(
-            sqlx_client.clone(),
-            reqwest_client.clone(),
-        )
-        .await;
+        update_vault_info(sqlx_client.clone(), reqwest_client.clone()).await;
     }
 }
 
-pub async fn update_vault_info(
-    sqlx_client: SqlxClient,
-    reqwest_client: ReqwestClient,
-) {
+pub async fn update_vault_info(sqlx_client: SqlxClient, reqwest_client: ReqwestClient) {
     let old_vaults_info = sqlx_client.get_old_vaults().await.unwrap_or_default();
     let new_vaults_info = reqwest_client
         .get_vault_info(sqlx_client.clone())

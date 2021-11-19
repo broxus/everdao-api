@@ -9,8 +9,6 @@ pub struct Services {
 
 impl Services {
     pub fn new(_config: &Config, sqlx_client: SqlxClient) -> Self {
-        Self {
-            sqlx_client,
-        }
+        Self { sqlx_client }
     }
 }

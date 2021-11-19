@@ -1,17 +1,8 @@
 use sqlx::PgPool;
 
-mod balances;
-pub mod graph_data;
+mod proposals;
 mod raw_transactions;
-mod relay_events;
-mod rounds_info;
-mod stakeholders;
-mod transactions;
-mod transfers;
-mod unknown_user_keys;
-mod user_keys;
-mod vault_info;
-mod graphql_endpoints;
+mod votes;
 
 #[derive(Clone)]
 pub struct SqlxClient {

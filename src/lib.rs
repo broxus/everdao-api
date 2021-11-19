@@ -5,13 +5,17 @@
 
 use std::sync::Arc;
 
+use chrono::Utc;
 use dexpa::prelude::StdResult;
 use dexpa::utils::handle_panic;
 use futures::prelude::*;
+use indexer_lib::TransactionExt;
 use sqlx::postgres::PgPoolOptions;
+use std::collections::HashMap;
+use ton_block::Transaction;
+use ton_consumer::TransactionProducer;
 
 use crate::api::http_service;
-use crate::graphql_client::{graphql_polling, EVMGraphqlClient};
 use crate::indexer::utils::{from_transaction_to_raws_transactions, update_frozen_staking};
 use crate::indexer::{bridge_dao_indexer, extract_events, parse_history};
 use crate::models::events::AllEvents;
@@ -19,11 +23,6 @@ use crate::reqwest_client::{loop_update_vault_info, update_vault_info, ReqwestCl
 use crate::services::Services;
 use crate::settings::Config;
 use crate::sqlx_client::SqlxClient;
-use chrono::Utc;
-use indexer_lib::TransactionExt;
-use std::collections::HashMap;
-use ton_block::Transaction;
-use ton_consumer::TransactionProducer;
 
 pub mod api;
 pub mod indexer;
@@ -74,12 +73,8 @@ pub async fn start_server() -> StdResult<()> {
     {
         let sqlx_client = sqlx_client.clone();
         let reqwest_client = reqwest_client.clone();
-        tokio::spawn(loop_update_vault_info(
-            sqlx_client,
-            reqwest_client,
-        ));
+        tokio::spawn(loop_update_vault_info(sqlx_client, reqwest_client));
     }
-
 
     let mut stream_transactions = transaction_producer.clone().stream_blocks().await.unwrap();
     let all_events = AllEvents::new();

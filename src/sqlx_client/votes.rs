@@ -1,5 +1,5 @@
-use crate::api::requests::SearchTransactionsRequest;
-use crate::models::sqlx::TransactionFromDb;
+use crate::api::requests::{SearchTransactionsRequest, SearchVotesRequest};
+use crate::models::sqlx::VoteFromDb;
 use crate::sqlx_client::SqlxClient;
 
 use crate::models::transaction_ordering::TransactionOrdering;
@@ -9,17 +9,10 @@ use sqlx::Row;
 use sqlx::{Arguments, Postgres, Transaction};
 
 impl SqlxClient {
-    pub async fn count_transaction(&self) -> i64 {
-        sqlx::query!(r#"SELECT COUNT(*) FROM transactions"#)
-            .fetch_one(&self.pool)
-            .await
-            .map(|x| x.count.unwrap_or_default())
-            .unwrap_or_default()
-    }
-    pub async fn search_transactions(
+    pub async fn search_votes(
         &self,
-        input: SearchTransactionsRequest,
-    ) -> Result<(Vec<TransactionFromDb>, i32), anyhow::Error> {
+        input: SearchVotesRequest,
+    ) -> Result<(Vec<VoteFromDb>, i32), anyhow::Error> {
         let (updates, args_len, args, mut args_clone) = filter_transactions_query(&input);
 
         let mut query = "SELECT message_hash, transaction_hash, transaction_kind, user_address, user_public_key, 
@@ -68,7 +61,7 @@ impl SqlxClient {
 
         let res = transactions
             .into_iter()
-            .map(|x| TransactionFromDb {
+            .map(|x| VoteFromDb {
                 message_hash: x.get(0),
                 transaction_hash: x.get(1),
                 transaction_kind: x.get(2),
@@ -81,6 +74,25 @@ impl SqlxClient {
             .collect::<Vec<_>>();
 
         Ok((res, total_count))
+    }
+
+    pub async fn new_vote(&self, vote: VoteFromDb) -> Result<i64, anyhow::Error> {
+        let created_at: i64 = sqlx::query!(
+            r#"INSERT INTO votes (message_hash, vote_hash,
+                          vote_kind, user_address, user_public_key, bridge_exec, timestamp_block)
+                          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING created_at"#,
+            vote.message_hash,
+            vote.vote_hash,
+            vote.vote_kind,
+            vote.user_address,
+            vote.user_public_key,
+            vote.bridge_exec,
+            vote.timestamp_block
+        )
+        .fetch_one(&self.pool)
+        .await
+        .map(|x| x.created_at)?;
+        Ok(created_at)
     }
 }
 
@@ -137,21 +149,4 @@ pub fn filter_transactions_query(
     }
 
     (updates, args_len, args, args_clone)
-}
-
-pub async fn new_transaction(
-    transaction: TransactionFromDb,
-    tx: &mut Transaction<'_, Postgres>,
-) -> Result<i64, anyhow::Error> {
-    let created_at: i64 = sqlx::query!(r#"INSERT INTO transactions (message_hash, transaction_hash, 
-                          transaction_kind, user_address, user_public_key, bridge_exec, timestamp_block) 
-                          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING created_at"#,
-        transaction.message_hash,
-        transaction.transaction_hash,
-        transaction.transaction_kind,
-        transaction.user_address,
-        transaction.user_public_key,
-        transaction.bridge_exec,
-        transaction.timestamp_block).fetch_one(tx).await.map(|x| x.created_at)?;
-    Ok(created_at)
 }

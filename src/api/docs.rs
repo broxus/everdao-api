@@ -78,8 +78,8 @@ pub fn swagger() -> String {
                     tags: { transfers },
                     summary: "Transfers search",
                     description: "Get transfers data.",
-                    body: requests::SearchTransfersRequest,
-                    200: responses::TransfersTableResponse,
+                    body: requests::SearchProposalRequest,
+                    200: responses::VotesResponse,
                 }
             },
         }
