@@ -9,77 +9,60 @@ pub fn swagger() -> String {
         info: {
             title: "Farming",
             version: "1.0.0",
-            description: r##"This API allows you to get the information on farm for farming pool"##,
+            description: r##"This API allows you to get the information of bridge"##,
         },
         servers: {
-            "https://farming-pool-indexer-test.broxus.com/v1",
-            "https://farming-pool-indexer.broxus.com/v1"
+            "https://bridge-dao-indexer-test.broxus.com/v1",
+            "https://bridge-dao-indexer.broxus.com/v1"
         },
         tags: {
-            staking,
-            transfers
+            voters,
+            proposals
         },
         paths: {
-            ("staking" / "search" / "stakeholders"): {
+            ("proposals" / "search" ): {
                 POST: {
-                    tags: { staking },
-                    summary: "Stakeholders search",
-                    description: "Get stakeholders data.",
+                    tags: { proposals },
+                    summary: "Proposals search",
+                    description: "Get proposals data.",
                     body: requests::SearchProposalsRequest,
                     200: responses::ProposalsResponse,
                 }
             },
-            ("staking" / "search" / "transactions"): {
+            ("proposals" / String / "votes"): {
                 POST: {
-                    tags: { staking },
-                    summary: "Transactions search",
-                    description: "Get transactions data.",
-                    body: requests::SearchTransactionsRequest,
-                    200: responses::TransactionsTableResponse,
-                }
-            },
-            ("staking" / "graph" / "tvl"): {
-                POST: {
-                    tags: { staking },
-                    summary: "Graph tvl",
-                    description: "Get tvl graph data.",
-                    body: requests::GraphRequest,
-                    200: responses::GraphDataResponse,
-                }
-            },
-            ("staking" / "graph" / "apr"): {
-                POST: {
-                    tags: { staking },
-                    summary: "Graph apr",
-                    description: "Get apr graph data.",
-                    body: requests::GraphRequest,
-                    200: responses::GraphDataResponse,
-                }
-            },
-            ("staking"): {
-                GET: {
-                    tags: { staking },
-                    summary: "Main page staking",
-                    description: "Get main page data.",
-                    200: responses::MainPageStakingResponse,
-                }
-            },
-            ("staking"): {
-                POST: {
-                    tags: { staking },
-                    summary: "User page staking",
-                    description: "Post user page data.",
-                    body: requests::UserPageStakingRequest,
-                    200: responses::UserPageStakingResponse,
-                }
-            },
-            ("transfers" / "search"): {
-                POST: {
-                    tags: { transfers },
-                    summary: "Transfers search",
-                    description: "Get transfers data.",
-                    body: requests::SearchProposalRequest,
+                    tags: { proposals },
+                    summary: "Proposal votes search",
+                    description: "Get proposal votes data.",
+                    body: requests::SearchProposalVotesRequest,
                     200: responses::VotesResponse,
+                }
+            },
+            ("voters" / "votes" ): {
+                POST: {
+                    tags: { voters },
+                    summary: "All votes search",
+                    description: "Get votes data.",
+                    body: requests::SearchVotesRequest,
+                    200: responses::VotesResponse,
+                }
+            },
+            ("voters" / String /"votes" ): {
+                POST: {
+                    tags: { voters },
+                    summary: "Voter votes search",
+                    description: "Get voter votes data.",
+                    body: requests::SearchVotesRequest,
+                    200: responses::VotesResponse,
+                }
+            },
+            ("voters" / String /"proposals" ): {
+                POST: {
+                    tags: { voters, proposals },
+                    summary: "Voter proposals search",
+                    description: "Get voter proposals data.",
+                    body: requests::SearchProposalsRequest,
+                    200: responses::ProposalsResponse,
                 }
             },
         }

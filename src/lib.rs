@@ -27,7 +27,6 @@ use crate::sqlx_client::SqlxClient;
 pub mod api;
 pub mod indexer;
 pub mod models;
-mod reqwest_client;
 mod services;
 mod settings;
 mod sqlx_client;
@@ -49,7 +48,6 @@ pub async fn start_server() -> StdResult<()> {
         .await
         .expect("fail pg pool");
     let sqlx_client = SqlxClient::new(pool);
-    let reqwest_client = ReqwestClient::new(config.tonswap_indexer_url.clone());
 
     // kafka connection
     let (group_id, topic, states_rpc_endpoint, options) = get_kafka_settings(&config);
@@ -63,18 +61,6 @@ pub async fn start_server() -> StdResult<()> {
             .collect::<HashMap<_, _>>(),
     )
     .expect("fail get transaction producer");
-
-    update_vault_info(
-        graphql_client.clone(),
-        sqlx_client.clone(),
-        reqwest_client.clone(),
-    )
-    .await;
-    {
-        let sqlx_client = sqlx_client.clone();
-        let reqwest_client = reqwest_client.clone();
-        tokio::spawn(loop_update_vault_info(sqlx_client, reqwest_client));
-    }
 
     let mut stream_transactions = transaction_producer.clone().stream_blocks().await.unwrap();
     let all_events = AllEvents::new();
@@ -123,8 +109,8 @@ pub async fn start_server() -> StdResult<()> {
         ));
     }
 
-    let pairs_service = Arc::new(Services::new(&config, sqlx_client.clone()));
-    tokio::spawn(http_service(config.server_addr, pairs_service, sqlx_client));
+    let service = Arc::new(Services::new(&config, sqlx_client.clone()));
+    tokio::spawn(http_service(config.server_addr, service, sqlx_client));
 
     future::pending().await
 }
