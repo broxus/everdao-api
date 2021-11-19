@@ -1,27 +1,27 @@
+use futures::prelude::future::*;
+
 use super::Context;
 use crate::api::requests::{
-    GraphRequest, SearchStakeholdersRequest, SearchTransactionsRequest, SearchTransfersRequest,
+    GraphRequest, SearchProposalsRequest, SearchTransactionsRequest, SearchTransfersRequest,
     UserPageStakingRequest,
 };
 use crate::api::responses::{
-    GraphDataResponse, StakeholdersTableResponse, TransactionsTableResponse, TransfersTableResponse,
+    GraphDataResponse, ProposalsResponse, TransactionsTableResponse, TransfersTableResponse,
 };
 use crate::api::utils::*;
-use dexpa::net::futures::future::BoxFuture;
-use dexpa::net::futures::FutureExt;
 
-pub fn search_stakeholders(
+pub fn post_search_proposals(
     ctx: Context,
-    input: SearchStakeholdersRequest,
+    input: SearchProposalsRequest,
 ) -> BoxFuture<'static, Result<impl warp::Reply, warp::Rejection>> {
     async move {
         let (user_balances, total_count) = ctx
             .services
-            .search_stakeholders(input.clone())
+            .search_proposals(input.clone())
             .await
             .map_err(|e| warp::reject::custom(BadRequestError { 0: e.to_string() }))?;
 
-        let res = StakeholdersTableResponse::from((user_balances, total_count));
+        let res = ProposalsResponse::from((user_balances, total_count));
 
         Ok(warp::reply::json(&res))
     }

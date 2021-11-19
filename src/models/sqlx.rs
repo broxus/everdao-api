@@ -75,7 +75,7 @@ pub struct RewardRoundInfoFromDb {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize, Clone, derive_more::Constructor)]
-pub struct UserBalanceFromDb {
+pub struct ProposalFromDb {
     pub user_address: String,
     pub user_kind: String,
     pub stake_balance: Decimal,
@@ -87,7 +87,7 @@ pub struct UserBalanceFromDb {
     pub created_at: i64,
 }
 
-impl Default for UserBalanceFromDb {
+impl Default for ProposalFromDb {
     fn default() -> Self {
         Self {
             user_address: "".to_string(),

@@ -17,7 +17,7 @@ use crate::models::address_type::UserAddressType;
 use crate::models::event_type::{BalanceEvent, EventType};
 use crate::models::sqlx::{
     BridgeBalanceFromDb, RewardRoundInfoFromDb, TransactionFromDb, UnknownUserKeysFromDb,
-    UserBalanceFromDb, UserKeysFromDb,
+    ProposalFromDb, UserKeysFromDb,
 };
 use crate::sqlx_client::SqlxClient;
 
@@ -183,7 +183,7 @@ pub async fn parse_balance_event(
         created_at: 0,
     };
 
-    let user_balance = UserBalanceFromDb {
+    let user_balance = ProposalFromDb {
         user_address,
         user_kind: last_user_info.user_kind,
         stake_balance: new_user_balance,

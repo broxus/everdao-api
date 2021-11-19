@@ -1,4 +1,4 @@
-pub mod staking;
+pub mod proposals;
 
 use std::sync::Arc;
 

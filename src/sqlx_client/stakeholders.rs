@@ -1,5 +1,5 @@
-use crate::api::requests::SearchStakeholdersRequest;
-use crate::models::sqlx::UserBalanceFromDb;
+use crate::api::requests::SearchProposalsRequest;
+use crate::models::sqlx::ProposalFromDb;
 use crate::models::stakeholders_ordering::StakeholdersOrdering;
 use crate::sqlx_client::SqlxClient;
 use itertools::Itertools;
@@ -8,10 +8,10 @@ use sqlx::Arguments;
 use sqlx::Row;
 
 impl SqlxClient {
-    pub async fn search_stakeholders(
+    pub async fn search_proposals(
         &self,
-        input: SearchStakeholdersRequest,
-    ) -> Result<(Vec<UserBalanceFromDb>, i32), anyhow::Error> {
+        input: SearchProposalsRequest,
+    ) -> Result<(Vec<ProposalFromDb>, i32), anyhow::Error> {
         let (updates, args_len, args, mut args_clone) = filter_stakeholders_query(&input);
 
         let mut query = "SELECT user_address, user_kind, stake_balance, frozen_stake, last_reward, 
@@ -68,7 +68,7 @@ impl SqlxClient {
 
         let res = transactions
             .into_iter()
-            .map(|x| UserBalanceFromDb {
+            .map(|x| ProposalFromDb {
                 user_address: x.get(0),
                 user_kind: x.get(1),
                 stake_balance: x.get(2),
@@ -86,9 +86,9 @@ impl SqlxClient {
 }
 
 pub fn filter_stakeholders_query(
-    input: &SearchStakeholdersRequest,
+    input: &SearchProposalsRequest,
 ) -> (Vec<String>, i32, PgArguments, PgArguments) {
-    let SearchStakeholdersRequest {
+    let SearchProposalsRequest {
         user_balance_ge,
         user_balance_le,
         stakeholder_kind,

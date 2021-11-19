@@ -1,4 +1,4 @@
-use crate::models::sqlx::{BridgeBalanceFromDb, TransactionFromDb, UserBalanceFromDb};
+use crate::models::sqlx::{BridgeBalanceFromDb, TransactionFromDb, ProposalFromDb};
 use crate::models::user_type::UserType;
 use crate::sqlx_client::transactions::new_transaction;
 use crate::sqlx_client::SqlxClient;
@@ -18,8 +18,8 @@ impl SqlxClient {
     pub async fn get_last_user_info(
         &self,
         user_address: &str,
-    ) -> Result<UserBalanceFromDb, anyhow::Error> {
-        sqlx::query_as!(UserBalanceFromDb,
+    ) -> Result<ProposalFromDb, anyhow::Error> {
+        sqlx::query_as!(ProposalFromDb,
             r#"SELECT * FROM user_balances WHERE user_address = $1 ORDER BY created_at DESC LIMIT 1"#,
             user_address
         )
@@ -30,9 +30,9 @@ impl SqlxClient {
     pub async fn get_stakeholder(
         &self,
         user_address: &str,
-    ) -> Result<UserBalanceFromDb, anyhow::Error> {
+    ) -> Result<ProposalFromDb, anyhow::Error> {
         sqlx::query_as!(
-            UserBalanceFromDb,
+            ProposalFromDb,
             r#"SELECT * FROM user_balances WHERE user_address = $1"#,
             user_address
         )
@@ -54,7 +54,7 @@ impl SqlxClient {
         &self,
         transaction: TransactionFromDb,
         bridge_balance: BridgeBalanceFromDb,
-        user_balance: UserBalanceFromDb,
+        user_balance: ProposalFromDb,
     ) -> Result<(), anyhow::Error> {
         let mut tx = self.pool.begin().await?;
 

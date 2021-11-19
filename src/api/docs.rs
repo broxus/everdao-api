@@ -25,8 +25,8 @@ pub fn swagger() -> String {
                     tags: { staking },
                     summary: "Stakeholders search",
                     description: "Get stakeholders data.",
-                    body: requests::SearchStakeholdersRequest,
-                    200: responses::StakeholdersTableResponse,
+                    body: requests::SearchProposalsRequest,
+                    200: responses::ProposalsResponse,
                 }
             },
             ("staking" / "search" / "transactions"): {

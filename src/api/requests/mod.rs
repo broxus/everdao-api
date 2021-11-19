@@ -11,7 +11,7 @@ use sqlx::types::Decimal;
 #[derive(Debug, Deserialize, Clone, opg::OpgModel)]
 #[serde(rename_all = "camelCase")]
 #[opg("Search stakeholders")]
-pub struct SearchStakeholdersRequest {
+pub struct SearchProposalsRequest {
     pub limit: i32,
     pub offset: i32,
     #[opg("user_balance_ge", string)]

@@ -62,7 +62,7 @@ mod filters {
 
     pub fn api_v1(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
         warp::path("v1")
-            .and(swagger().or(staking(ctx.clone())).or(transfers(ctx)))
+            .and(swagger().or(proposals(ctx.clone())).or(voters(ctx)))
             .boxed()
     }
 
@@ -74,94 +74,64 @@ mod filters {
             .boxed()
     }
 
-    // /v1/staking get get_lp_price
-    pub fn staking(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
-        warp::path("staking")
+    pub fn proposals(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
+        warp::path("proposals")
             .and(
-                search_stakeholders(ctx.clone())
-                    .or(get_main_page_staking(ctx.clone()))
-                    .or(post_user_page_staking(ctx.clone()))
-                    .or(search_transactions(ctx.clone()))
-                    .or(post_graph_tvl(ctx.clone()))
-                    .or(post_graph_apr(ctx)),
+                post_search_proposals(ctx.clone())
+                    .or(post_proposal_votes(ctx.clone()))
             )
             .boxed()
     }
 
-    pub fn transfers(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
-        warp::path("transfers").and(search_transfers(ctx)).boxed()
-    }
-
-    pub fn get_main_page_staking(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
-        warp::path::end()
-            .and(warp::get())
-            .and(with_ctx(ctx))
-            .and_then(controllers::staking::get_main_staking)
+    pub fn voters(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
+        warp::path("voters")
+            .and(
+                post_voters_votes(ctx.clone())
+                    .or(post_voters_proposals(ctx.clone()))
+            )
             .boxed()
     }
 
-    pub fn post_user_page_staking(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
-        warp::path::end()
-            .and(warp::post())
-            .and(with_ctx(ctx))
-            .and(json_body())
-            .and_then(controllers::staking::post_user_staking)
-            .boxed()
-    }
-
-    pub fn search_stakeholders(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
-        warp::path("search")
-            .and(warp::path("stakeholders"))
-            .and(warp::path::end())
-            .and(warp::post())
-            .and(with_ctx(ctx))
-            .and(json_body())
-            .and_then(controllers::staking::search_stakeholders)
-            .boxed()
-    }
-
-    pub fn search_transfers(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
+    pub fn post_search_proposals(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
         warp::path("search")
             .and(warp::path::end())
             .and(warp::post())
             .and(with_ctx(ctx))
             .and(json_body())
-            .and_then(controllers::staking::search_transfers)
+            .and_then(controllers::proposals::post_search_proposals)
             .boxed()
     }
 
-    pub fn search_transactions(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
-        warp::path("search")
-            .and(warp::path("transactions"))
+    pub fn post_proposal_votes(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
+        warp::path::param()
+            .and(warp::path("votes"))
             .and(warp::path::end())
             .and(warp::post())
             .and(with_ctx(ctx))
             .and(json_body())
-            .and_then(controllers::staking::search_transactions)
+            .and_then(controllers::proposals::post_proposal_votes)
             .boxed()
     }
 
-    pub fn post_graph_tvl(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
-        warp::path("search")
-            .and(warp::path("graph"))
-            .and(warp::path("tvl"))
+    pub fn post_voters_votes(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
+        warp::path::param()
+            .and(warp::path("votes"))
             .and(warp::path::end())
             .and(warp::post())
             .and(with_ctx(ctx))
             .and(json_body())
-            .and_then(controllers::staking::post_graph_tvl)
+            .and_then(controllers::proposals::post_voters_votes)
             .boxed()
     }
 
-    pub fn post_graph_apr(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
-        warp::path("search")
-            .and(warp::path("graph"))
-            .and(warp::path("apr"))
+    pub fn post_voters_proposals(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
+        warp::path::param()
+            .and(warp::path("proposals"))
             .and(warp::path::end())
             .and(warp::post())
             .and(with_ctx(ctx))
             .and(json_body())
-            .and_then(controllers::staking::post_graph_apr)
+            .and_then(controllers::proposals::post_voters_proposals)
             .boxed()
     }
 
