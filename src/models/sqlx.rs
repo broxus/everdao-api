@@ -1,8 +1,9 @@
-use crate::models::user_type::UserType;
-use rust_decimal::Decimal;
+use std::convert::TryFrom;
+use indexer_lib::TransactionExt;
+use ton_block::{Serializable, Transaction};
 
-#[derive(Debug, serde::Deserialize, serde::Serialize, Clone, derive_more::Constructor)]
-pub struct RawTransactionsFromDb {
+#[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
+pub struct RawTransactionFromDb {
     pub transaction: Vec<u8>,
     pub transaction_hash: Vec<u8>,
     pub timestamp_block: i32,
@@ -10,43 +11,26 @@ pub struct RawTransactionsFromDb {
     pub created_at: i64,
 }
 
-#[derive(Debug, serde::Deserialize, serde::Serialize, Clone, derive_more::Constructor)]
-pub struct VoteFromDb {
-    pub message_hash: Vec<u8>,
-    pub transaction_hash: Vec<u8>,
-    pub transaction_kind: String,
-    pub user_address: String,
-    pub user_public_key: Option<String>,
-    pub bridge_exec: Decimal,
-    pub timestamp_block: i32,
-    pub created_at: i64,
-}
+impl TryFrom<Transaction> for RawTransactionFromDb {
+    type Error = anyhow::Error;
 
-#[derive(Debug, serde::Deserialize, serde::Serialize, Clone, derive_more::Constructor)]
-pub struct ProposalFromDb {
-    pub user_address: String,
-    pub user_kind: String,
-    pub stake_balance: Decimal,
-    pub frozen_stake: Decimal,
-    pub last_reward: Decimal,
-    pub total_reward: Decimal,
-    pub until_frozen: i32,
-    pub updated_at: i64,
-    pub created_at: i64,
-}
+    fn try_from(transaction: Transaction) -> Result<Self, Self::Error> {
+        let raw_transaction_hash = transaction.tx_hash()?.as_slice().to_vec();
+        let bytes = transaction.write_to_bytes()?;
 
-impl Default for ProposalFromDb {
-    fn default() -> Self {
-        Self {
-            user_address: "".to_string(),
-            user_kind: UserType::Ordinary.to_string(),
-            stake_balance: Default::default(),
-            frozen_stake: Default::default(),
-            last_reward: Default::default(),
-            total_reward: Default::default(),
-            until_frozen: 0,
-            updated_at: 0,
+        Ok(RawTransactionFromDb {
+            transaction: bytes,
+            transaction_hash: raw_transaction_hash,
+            timestamp_block: transaction.now as i32,
+            timestamp_lt: transaction.lt as i64,
             created_at: 0,
-        }
+        })
     }
+
+    /*fn from(transaction: Transaction) -> Self {
+        RawTransaction {
+            hash: transaction.tx_hash().unwrap(),
+            data: transaction,
+        };
+    }*/
 }

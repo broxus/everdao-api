@@ -1,12 +1,8 @@
 [package]
 name = "bridge-dao-indexer"
 version = "0.1.0"
-edition = "2018"
-publish = false
-
-[lib]
-name = "bridge_dao_indexer_lib"
-path = "src/lib.rs"
+edition = "2021"
+authors = ["Broxus team"]
 
 [dependencies]
 async-trait = "0.1"
@@ -14,7 +10,6 @@ cached = "0.23.0"
 chrono = { version = "*", features = ["serde"] }
 config = { version = "0.9", default-features = false }
 derive_more = "*"
-graphql_client = "0.10.0"
 futures = { version = "0.3" }
 http = "0.2"
 hyper = { version = "0.14" }
@@ -23,7 +18,7 @@ log = { version = "0.4", features = ["std", "serde"] }
 num-traits = "0.2"
 pin-project = "0.4"
 opg = "0.0"
-rust_decimal = "1"
+once_cell = "1.8"
 sentry = { version = "0.22", features = ["log", "debug-logs"] }
 sentry-panic = { version = "0.22" }
 serde = { version = "1.0", features = ["derive"] }
@@ -34,7 +29,6 @@ uuid = { version = "0.8", features = ["v4", "serde"] }
 url = { version = "2.2.0", features = ["serde"] }
 warp = { version = "0.3" }
 anyhow = "1.0.38"
-lazy_static = "1.4.0"
 sqlx = { version = "0.5", features = ["runtime-tokio-native-tls", "postgres", "uuid", "decimal", "offline", "chrono", "json"] }
 itertools = "0.10.0"
 reqwest = "0.11.4"
@@ -54,11 +48,6 @@ ton-consumer = { git = "ssh://git@gitlab.dexpa.io/beton/ton-consumer" }
 ton_abi = { git = "https://github.com/broxus/ton-labs-abi" }
 ton_block = { git = "https://github.com/broxus/ton-labs-block.git" }
 ton_types = { git = "https://github.com/broxus/ton-labs-types" }
-
-[dependencies.ton_api]
-git = "https://github.com/broxus/ton-labs-tl.git"
-package = "ton_api"
-features = ["lite_api", "ton_api"]
 
 [dev-dependencies]
 env_logger = "0.8.4"

@@ -1,4 +1,3 @@
-use crate::settings::Config;
 use crate::sqlx_client::SqlxClient;
 
 mod proposal;
@@ -8,7 +7,7 @@ pub struct Services {
 }
 
 impl Services {
-    pub fn new(_config: &Config, sqlx_client: SqlxClient) -> Self {
+    pub fn new(sqlx_client: SqlxClient) -> Self {
         Self { sqlx_client }
     }
 }
