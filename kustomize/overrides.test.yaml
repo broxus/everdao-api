@@ -22,8 +22,6 @@ spec:
           env:
             - name: RUST_LOG
               value: "bridge_dao_indexer=debug,dexpa=debug,warp=debug,node_indexer=debug,tiny_adnl=info"
-            - name: NODE_ADDR
-              value: "44.192.25.57:3031"
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
@@ -38,8 +36,6 @@ spec:
               value: "postgresql://$(DB_USER):$(DB_PASSWORD)@127.0.0.1:5432/bridge_dao_indexer"
             - name: DB_POOL_SIZE
               value: "5"
-            - name: TONSWAP_INDEXER_URL
-              value: "https://ton-swap-indexer-test.broxus.com"
             - name: KAFKA_USER
               valueFrom:
                 secretKeyRef:
@@ -51,7 +47,7 @@ spec:
                   name: ton-kafka-credentials
                   key: ton_kafka_password
             - name: STATES_RPC_ENDPOINT
-              value: "http://35.240.13.113:8081"
+              value: "http://35.240.13.113:8082"
             - name: KAFKA_GROUP_ID
               value: "ton-bridge-dao-indexer-test-2"
             - name: KAFKA_CLIENT_ID

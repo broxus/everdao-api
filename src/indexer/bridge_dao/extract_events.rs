@@ -17,6 +17,7 @@ pub async fn extract_dao_root_parsed_events(
     let (_, events) = split(events.output);
     let timestamp_block = transaction.time() as i32;
 
+    let contract_address = transaction.contract_address().trust_me();
     for event in events {
         let message_hash = event.message_hash.to_vec();
         let transaction_hash = transaction.tx_hash().trust_me().as_slice().to_vec();
@@ -24,6 +25,19 @@ pub async fn extract_dao_root_parsed_events(
             "ProposalCreated" => {
                 let data: ProposalCreated = event.input.unpack()?;
                 parse_proposal_created_event(
+                    data,
+                    timestamp_block,
+                    message_hash,
+                    transaction_hash,
+                    contract_address.clone(),
+                    sqlx_client,
+                    node,
+                )
+                .await?;
+            },
+            "VoteCast" => {
+                let data: VoteCast = event.input.unpack()?;
+                parse_vote_cast_event(
                     data,
                     timestamp_block,
                     message_hash,

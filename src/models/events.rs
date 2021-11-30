@@ -30,5 +30,9 @@ fn dao_root() -> Vec<AnyExtractable> {
     let events = contract.events();
     let proposal_created = events.get("ProposalCreated").unwrap();
 
-    vec![AnyExtractable::Event(proposal_created.clone())]
+    let contract = ton_abi::Contract::load(std::io::Cursor::new(USERDATA_ABI)).unwrap();
+    let events = contract.events();
+    let vote_cast = events.get("VoteCast").unwrap();
+
+    vec![AnyExtractable::Event(proposal_created.clone()), AnyExtractable::Event(vote_cast.clone())]
 }

@@ -7,10 +7,8 @@ use serde::Deserialize;
 pub struct Config {
     pub server_addr: SocketAddr,
     pub healthcheck_addr: SocketAddr,
-    pub node_addr: SocketAddrV4,
     pub database_url: String,
     pub db_pool_size: u32,
-    pub tonswap_indexer_url: String,
     pub kafka_settings_path: String,
     pub states_rpc_endpoint: String,
     pub kafka_group_id: String,

@@ -3,15 +3,6 @@ use indexer_lib::TransactionExt;
 use rust_decimal::Decimal;
 use ton_block::{Serializable, Transaction};
 
-#[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
-pub struct RawTransactionFromDb {
-    pub transaction: Vec<u8>,
-    pub transaction_hash: Vec<u8>,
-    pub timestamp_block: i32,
-    pub timestamp_lt: i64,
-    pub created_at: i64,
-}
-
 impl TryFrom<Transaction> for RawTransactionFromDb {
     type Error = anyhow::Error;
 
@@ -37,9 +28,8 @@ impl TryFrom<Transaction> for RawTransactionFromDb {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
-pub struct ProposalFromDb {
+pub struct CreateProposal {
     pub proposal_id: i32,
-    pub contract_address: String,
     pub proposer: String,
     pub description: String,
     pub start_time: i32,
@@ -49,20 +39,13 @@ pub struct ProposalFromDb {
     pub against_votes: Decimal,
     pub quorum_votes: Decimal,
     pub state: String,
-    pub message_hash: Vec<u8>,
-    pub transaction_hash: Vec<u8>,
-    pub updated_at: i64,
-    pub created_at: i64,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
-pub struct VoteFromDb {
-    pub proposal_id: i32,
-    pub voter: String,
-    pub support: bool,
-    pub reason: String,
-    pub votes: Decimal,
-    pub message_hash: Vec<u8>,
-    pub transaction_hash: Vec<u8>,
-    pub created_at: i64,
+pub struct UpdateProposal {
+    pub for_votes: Option<Decimal>,
+    pub against_votes: Option<Decimal>,
+    pub quorum_votes: Option<Decimal>,
+    pub state: Option<String>,
 }
+

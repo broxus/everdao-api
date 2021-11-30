@@ -3,6 +3,12 @@ use ton_block::MsgAddressInt;
 use ton_types::UInt256;
 
 #[derive(Debug, Clone, UnpackAbiPlain, KnownParamTypePlain)]
+pub struct ExpectedProposalAddress {
+    #[abi(address)]
+    pub value0: MsgAddressInt,
+}
+
+#[derive(Debug, Clone, UnpackAbiPlain, KnownParamTypePlain)]
 pub struct ProposalCreated {
     #[abi(uint32)]
     pub proposal_id: u32,
