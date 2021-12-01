@@ -34,7 +34,7 @@ pub async fn extract_dao_root_parsed_events(
                     node,
                 )
                 .await?;
-            },
+            }
             "VoteCast" => {
                 let data: VoteCast = event.input.unpack()?;
                 parse_vote_cast_event(
@@ -42,6 +42,7 @@ pub async fn extract_dao_root_parsed_events(
                     timestamp_block,
                     message_hash,
                     transaction_hash,
+                    contract_address.clone(),
                     sqlx_client,
                     node,
                 )

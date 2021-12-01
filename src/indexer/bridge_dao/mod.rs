@@ -32,7 +32,7 @@ pub async fn bridge_dao_indexer(
     while let Some(mut produced_transaction) = stream_transactions.next().await {
         let transaction: Transaction = produced_transaction.transaction.clone();
 
-        if extract_events(&transaction, transaction.tx_hash().trust_me(), &prep_events).is_some() {
+        if extract_events(&transaction, transaction.tx_hash().trust_me(), prep_events).is_some() {
             match transaction.clone().try_into() {
                 Ok(raw_transaction_db) => {
                     if let Err(err) = sqlx_client.create_raw_transaction(raw_transaction_db).await {
@@ -91,7 +91,7 @@ pub async fn parse_transaction(
     if let Some(events) = extract_events(
         &raw_transaction.data,
         raw_transaction.hash,
-        &all_events.dao_root,
+        all_events.get_all_events(),
     ) {
         if let Err(e) = extract_dao_root_parsed_events(sqlx_client, node, events).await {
             log::error!("{}", e);

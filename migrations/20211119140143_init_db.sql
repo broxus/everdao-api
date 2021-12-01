@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS proposals
     state     VARCHAR  NOT NULL,
     message_hash     BYTEA  NOT NULL,
     transaction_hash     BYTEA  NOT NULL,
+    timestamp_block     INTEGER  NOT NULL,
     updated_at       BIGINT  NOT NULL DEFAULT extract(epoch from (CURRENT_TIMESTAMP(3) at time zone 'utc')) * 1000,
     created_at       BIGINT  NOT NULL DEFAULT extract(epoch from (CURRENT_TIMESTAMP(3) at time zone 'utc')) * 1000,
     PRIMARY KEY (proposal_id)
@@ -37,6 +38,7 @@ CREATE TABLE IF NOT EXISTS votes
     reason VARCHAR   NOT NULL,
     message_hash     BYTEA  NOT NULL,
     transaction_hash     BYTEA  NOT NULL,
+    timestamp_block     INTEGER  NOT NULL,
     created_at       BIGINT  NOT NULL DEFAULT extract(epoch from (CURRENT_TIMESTAMP(3) at time zone 'utc')) * 1000,
     PRIMARY KEY (proposal_id, voter)
 );

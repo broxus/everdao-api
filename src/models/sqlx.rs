@@ -1,6 +1,6 @@
-use std::convert::TryFrom;
 use indexer_lib::TransactionExt;
 use rust_decimal::Decimal;
+use std::convert::TryFrom;
 use ton_block::{Serializable, Transaction};
 
 #[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
@@ -51,6 +51,7 @@ pub struct ProposalFromDb {
     pub state: String,
     pub message_hash: Vec<u8>,
     pub transaction_hash: Vec<u8>,
+    pub timestamp_block: i32,
     pub updated_at: i64,
     pub created_at: i64,
 }
@@ -64,5 +65,6 @@ pub struct VoteFromDb {
     pub votes: Decimal,
     pub message_hash: Vec<u8>,
     pub transaction_hash: Vec<u8>,
+    pub timestamp_block: i32,
     pub created_at: i64,
 }
