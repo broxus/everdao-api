@@ -18,7 +18,7 @@ impl AllEvents {
     }
 
     pub fn get_all_events(&self) -> &[AnyExtractable] {
-        [&self.dao_root, &self.user_data, &self.proposal].concat()
+        &[&*self.dao_root, &*self.user_data, &*self.proposal].concat()
     }
 }
 

@@ -2,7 +2,8 @@
 
 use opg::*;
 
-use crate::api::{requests, responses};
+use crate::api::{responses};
+use crate::models;
 
 pub fn swagger() -> String {
     let api = describe_api! {
@@ -25,7 +26,7 @@ pub fn swagger() -> String {
                     tags: { proposals },
                     summary: "Proposals search",
                     description: "Get proposals data.",
-                    body: requests::SearchProposalsRequest,
+                    body: models::SearchProposalsRequest,
                     200: responses::ProposalsResponse,
                 }
             },
@@ -34,7 +35,7 @@ pub fn swagger() -> String {
                     tags: { proposals },
                     summary: "Proposal votes search",
                     description: "Get proposal votes data.",
-                    body: requests::SearchProposalVotesRequest,
+                    body: models::SearchVotesRequest,
                     200: responses::VotesResponse,
                 }
             },
@@ -43,7 +44,7 @@ pub fn swagger() -> String {
                     tags: { voters },
                     summary: "All votes search",
                     description: "Get votes data.",
-                    body: requests::SearchVotesRequest,
+                    body: models::SearchVotesRequest,
                     200: responses::VotesResponse,
                 }
             },
@@ -52,7 +53,7 @@ pub fn swagger() -> String {
                     tags: { voters },
                     summary: "Voter votes search",
                     description: "Get voter votes data.",
-                    body: requests::SearchVotesRequest,
+                    body: models::SearchVotesRequest,
                     200: responses::VotesResponse,
                 }
             },
@@ -61,7 +62,7 @@ pub fn swagger() -> String {
                     tags: { voters, proposals },
                     summary: "Voter proposals search",
                     description: "Get voter proposals data.",
-                    body: requests::SearchProposalsRequest,
+                    body: models::SearchProposalsRequest,
                     200: responses::ProposalsResponse,
                 }
             },

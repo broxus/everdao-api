@@ -1,7 +1,5 @@
 use futures::prelude::future::*;
 
-use crate::api::filters::proposals;
-
 use super::Context;
 use crate::api::responses::{ProposalsResponse, VotesResponse};
 use crate::api::utils::*;
@@ -26,16 +24,15 @@ pub fn post_search_proposals(
 }
 
 pub fn post_proposal_votes(
-    address: String,
+    proposal_id: i32,
     ctx: Context,
-    input: SearchProposalVotesRequest,
+    mut input: SearchVotesRequest,
 ) -> BoxFuture<'static, Result<impl warp::Reply, warp::Rejection>> {
     async move {
-        let mut search = SearchVotesRequest::from(input);
-        search.proposal_address = Some(address);
+        input.proposal_id = Some(proposal_id);
         let (votes, total_count) = ctx
             .services
-            .search_votes(search)
+            .search_votes(input)
             .await
             .map_err(|e| warp::reject::custom(BadRequestError { 0: e.to_string() }))?;
 
@@ -52,7 +49,7 @@ pub fn post_voter_votes(
     mut input: SearchVotesRequest,
 ) -> BoxFuture<'static, Result<impl warp::Reply, warp::Rejection>> {
     async move {
-        input.voter_address = Some(address);
+        input.voter = Some(address);
         let (votes, total_count) = ctx
             .services
             .search_votes(input)
@@ -90,7 +87,7 @@ pub fn post_voters_proposals(
     mut input: SearchProposalsRequest,
 ) -> BoxFuture<'static, Result<impl warp::Reply, warp::Rejection>> {
     async move {
-        input.voter_address = Some(address);
+        input.proposer = Some(address);
         let (proposals, total_count) = ctx
             .services
             .search_proposals(input)

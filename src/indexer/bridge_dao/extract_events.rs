@@ -3,10 +3,9 @@ use nekoton_abi::UnpackAbiPlain;
 use nekoton_utils::TrustMe;
 use ton_consumer::TransactionProducer;
 
+use super::parse_dao_events::*;
 use crate::models::*;
 use crate::sqlx_client::*;
-
-use super::parse_dao_events::*;
 
 pub async fn extract_dao_root_parsed_events(
     sqlx_client: &SqlxClient,

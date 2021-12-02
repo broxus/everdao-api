@@ -1,6 +1,5 @@
 use nekoton_abi::*;
 use ton_block::MsgAddressInt;
-use ton_types::UInt256;
 
 use crate::models::{EthAction, TonAction};
 

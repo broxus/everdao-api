@@ -3,7 +3,7 @@ use ton_block::MsgAddressInt;
 
 use crate::models::{ProposalOrdering, ProposalState};
 
-#[derive(Debug, Deserialize, Clone, opg::OpgModel)]
+#[derive(Debug, serde::Deserialize, Clone, opg::OpgModel)]
 #[serde(rename_all = "camelCase")]
 #[opg("Search proposals request")]
 pub struct SearchProposalsRequest {
@@ -111,9 +111,9 @@ impl From<super::abi::EthAction> for ProposalEthAction {
         Self {
             value: a.value.to_hex_string(),
             chain_id: a.chain_id,
-            target: a.target.to_hex(),
+            target: hex::encode(a.target),
             signature: a.signature,
-            call_data: a.call_data.to_hex(),
+            call_data: hex::encode(a.call_data),
         }
     }
 }
@@ -123,7 +123,7 @@ impl From<super::abi::TonAction> for ProposalTonAction {
         Self {
             value: a.value.to_string(),
             target: a.target.to_hex_string(),
-            payload: a.payload.to_hex_string(),
+            payload: a.payload.to_hex_string(true),
         }
     }
 }

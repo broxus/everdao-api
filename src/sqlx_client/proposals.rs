@@ -5,7 +5,7 @@ use sqlx::Arguments;
 use sqlx::Row;
 
 use crate::models::{
-    ProposalFromDb, ProposalOrdering, ProposalState, SearchProposalsRequest, UpdateProposal,
+    CreateProposal, ProposalFromDb, ProposalOrdering, ProposalState, SearchProposalsRequest,
     UpdateProposalVotes,
 };
 use crate::sqlx_client::SqlxClient;
@@ -91,7 +91,7 @@ impl SqlxClient {
 
     pub async fn create_proposal(
         &self,
-        proposal: CreatePropposal,
+        proposal: CreateProposal,
     ) -> Result<ProposalFromDb, anyhow::Error> {
         sqlx::query!(
             r#"INSERT INTO proposal (
@@ -218,7 +218,7 @@ pub fn filter_proposals_query(
         updates.push(format!("proposal_id = ${}", args_len + 1,));
         args_len += 1;
         args.add(proposal_id);
-        args_clone.add(proposal_kind)
+        args_clone.add(proposal_id)
     }
 
     if let Some(proposer) = proposer {

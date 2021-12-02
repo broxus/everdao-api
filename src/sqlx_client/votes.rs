@@ -1,7 +1,7 @@
 use itertools::Itertools;
 use sqlx::postgres::PgArguments;
+use sqlx::Arguments;
 use sqlx::Row;
-use sqlx::{Arguments, Postgres, Transaction};
 
 use crate::models::{CreateVote, SearchVotesRequest, VoteFromDb, VoteOrdering};
 use crate::sqlx_client::SqlxClient;

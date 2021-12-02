@@ -66,21 +66,21 @@ impl From<(Vec<ProposalFromDb>, i32)> for ProposalsResponse {
                 .into_iter()
                 .map(|x| {
                     let state = if x.canceled {
-                        ProposalState.Canceled
+                        ProposalState::Canceled
                     } else if x.executed {
-                        ProposalState.Executed
+                        ProposalState::Executed
                     } else if now <= x.start_time {
-                        ProposalState.Pending
+                        ProposalState::Pending
                     } else if now <= x.end_time {
-                        ProposalState.Active
+                        ProposalState::Active
                     } else if x.for_votes <= x.against_votes || x.for_votes < x.quorum_votes {
-                        ProposalState.Failed
+                        ProposalState::Failed
                     } else if x.execution_time == 0 {
-                        ProposalState.Succeeded
-                    } else if now > x.execution_time + config.x.grace_period {
-                        ProposalState.Expired
+                        ProposalState::Succeeded
+                    } else if now > x.execution_time + x.grace_period {
+                        ProposalState::Expired
                     } else {
-                        ProposalState.Queued
+                        ProposalState::Queued
                     };
 
                     ProposalResponse {

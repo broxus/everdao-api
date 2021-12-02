@@ -107,7 +107,7 @@ pub async fn parse_vote_cast_event(
         .run_local(
             &dao_root,
             &expected_proposal_address(),
-            &[answer_id(), data.proposal_id],
+            &[answer_id(), id],
         )
         .await?
         .context("none function output")?;
