@@ -1,11 +1,11 @@
-use crate::api::requests::SearchProposalsRequest;
-use crate::models::proposals_ordering::StakeholdersOrdering;
-use crate::models::sqlx::ProposalFromDb;
 use crate::sqlx_client::SqlxClient;
+use chrono::Utc;
 use itertools::Itertools;
 use sqlx::postgres::PgArguments;
 use sqlx::Arguments;
 use sqlx::Row;
+
+use crate::models::{ProposalFromDb, ProposalOrdering, ProposalState, SearchProposalsRequest};
 
 impl SqlxClient {
     pub async fn search_proposals(
@@ -14,14 +14,15 @@ impl SqlxClient {
     ) -> Result<(Vec<ProposalFromDb>, i32), anyhow::Error> {
         let (updates, args_len, args, mut args_clone) = filter_proposals_query(&input);
 
-        let mut query = "SELECT user_address, user_kind, stake_balance, frozen_stake, last_reward, 
-            total_reward, until_frozen, updated_at, created_at FROM user_balances"
+        let mut query = "SELECT proposal_id, proposer, description, start_time, end_time, execution_time, for_votes,
+                  against_votes, quorum_votes, message_hash, transaction_hash, timestamp_block, actions,
+                  executed, canceled, updated_at, created_at FROM proposals"
             .to_string();
         if !updates.is_empty() {
             query = format!("{} WHERE {}", query, updates.iter().format(" AND "));
         }
 
-        let mut query_count = "SELECT COUNT(*) FROM user_balances".to_string();
+        let mut query_count = "SELECT COUNT(*) FROM proposals".to_string();
         if !updates.is_empty() {
             query_count = format!("{} WHERE {}", query_count, updates.iter().format(" AND "));
         }
@@ -34,21 +35,11 @@ impl SqlxClient {
 
         let ordering = if let Some(ordering) = input.ordering {
             match ordering {
-                StakeholdersOrdering::UpdateAtAscending => "ORDER BY updated_at",
-                StakeholdersOrdering::UpdateAtDescending => "ORDER BY updated_at DESC",
-                StakeholdersOrdering::StakeAscending => "ORDER BY stake_balance",
-                StakeholdersOrdering::StakeDescending => "ORDER BY stake_balance DESC",
-                StakeholdersOrdering::FrozenStakeAscending => "ORDER BY frozen_stake",
-                StakeholdersOrdering::FrozenStakeDescending => "ORDER BY frozen_stake DESC",
-                StakeholdersOrdering::LastRewardAscending => "ORDER BY last_reward",
-                StakeholdersOrdering::LastRewardDescending => "ORDER BY last_reward DESC",
-                StakeholdersOrdering::TotalRewardAscending => "ORDER BY total_reward",
-                StakeholdersOrdering::TotalRewardDescending => "ORDER BY total_reward DESC",
-                StakeholdersOrdering::CreatedAtAscending => "ORDER BY created_at",
-                StakeholdersOrdering::CreatedAtDescending => "ORDER BY created_at DESC",
+                ProposalOrdering::CreatedAtDesc => "ORDER BY timestamp_block DESC",
+                ProposalOrdering::CreatedAtAsc => "ORDER BY timestamp_block",
             }
         } else {
-            "ORDER BY updated_at DESC"
+            "ORDER BY timestamp_block DESC"
         };
 
         query = format!(
@@ -69,38 +60,59 @@ impl SqlxClient {
         let res = transactions
             .into_iter()
             .map(|x| ProposalFromDb {
-                user_address: x.get(0),
-                user_kind: x.get(1),
-                stake_balance: x.get(2),
-                frozen_stake: x.get(3),
-                last_reward: x.get(4),
-                total_reward: x.get(5),
-                until_frozen: x.get(6),
-                updated_at: x.get(7),
-                created_at: x.get(8),
+                proposal_id: x.get(0),
+                contract_address: x.get(1),
+                proposer: x.get(2),
+                description: x.get(3),
+                start_time: x.get(4),
+                end_time: x.get(5),
+                execution_time: x.get(6),
+                for_votes: x.get(7),
+                against_votes: x.get(8),
+                quorum_votes: x.get(9),
+                message_hash: x.get(10),
+                transaction_hash: x.get(11),
+                timestamp_block: x.get(12),
+                actions: x.get(13),
+                executed: x.get(14),
+                canceled: x.get(15),
+                updated_at: x.get(16),
+                created_at: x.get(17),
             })
             .collect::<Vec<_>>();
 
         Ok((res, total_count))
     }
 
-    pub async fn new_proposal(&self, proposal: ProposalFromDb) -> Result<i64, anyhow::Error> {
-        let created_at: i64 = sqlx::query!(
-            r#"INSERT INTO votes (message_hash, vote_hash,
-                          vote_kind, user_address, user_public_key, bridge_exec, timestamp_block)
-                          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING created_at"#,
-            vote.message_hash,
-            vote.vote_hash,
-            vote.vote_kind,
-            vote.user_address,
-            vote.user_public_key,
-            vote.bridge_exec,
-            vote.timestamp_block
+    pub async fn create_proposal(
+        &self,
+        proposal: CreatePropposal,
+    ) -> Result<ProposalFromDb, anyhow::Error> {
+        sqlx::query!(
+            r#"INSERT INTO proposal (
+            proposal_id, proposer, description, start_time, end_time, execution_time, for_votes, against_votes,
+            quorum_votes, message_hash, transaction_hash, timestamp_block, actions)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+            RETURNING
+                  proposal_id, proposer, description, start_time, end_time, execution_time, for_votes,
+                  against_votes, quorum_votes, message_hash, transaction_hash, timestamp_block, actions,
+                  executed, canceled, updated_at, created_at"#,
+            proposal.proposal_id,
+            proposal.proposer,
+            proposal.description,
+            proposal.start_time,
+            proposal.end_time,
+            proposal.execution_time,
+            proposal.for_votes,
+            proposal.against_votes,
+            proposal.quorum_votes,
+            proposal.message_hash,
+            proposal.transaction_hash,
+            proposal.timestamp_block,
+            serde_json::to_value(proposal.actions).unwrap(),
         )
         .fetch_one(&self.pool)
         .await
-        .map(|x| x.created_at)?;
-        Ok(created_at)
     }
 }
 
@@ -108,19 +120,13 @@ pub fn filter_proposals_query(
     input: &SearchProposalsRequest,
 ) -> (Vec<String>, i32, PgArguments, PgArguments) {
     let SearchProposalsRequest {
-        user_balance_ge,
-        user_balance_le,
-        proposal_kind,
-        until_frozen_ge,
-        until_frozen_le,
-        last_reward_ge,
-        last_reward_le,
-        total_reward_ge,
-        total_reward_le,
-        frozen_stake_ge,
-        frozen_stake_le,
-        created_at_ge,
-        created_at_le,
+        proposal_id,
+        proposer,
+        start_time_ge,
+        start_time_le,
+        end_time_ge,
+        end_time_le,
+        state,
         ..
     } = input.clone();
 
@@ -129,56 +135,104 @@ pub fn filter_proposals_query(
     let mut updates = Vec::new();
     let mut args_len = 0;
 
-    if let Some(user_balance_ge) = user_balance_ge {
-        updates.push(format!("stake_balance >= ${}", args_len + 1,));
+    if let Some(proposal_id) = proposal_id {
+        updates.push(format!("proposal_id = ${}", args_len + 1,));
         args_len += 1;
-        args.add(user_balance_ge);
-        args_clone.add(user_balance_ge);
+        args.add(proposal_id);
+        args_clone.add(proposal_kind)
     }
 
-    if let Some(user_balance_le) = user_balance_le {
-        updates.push(format!("stake_balance <= ${}", args_len + 1,));
+    if let Some(proposer) = proposer {
+        updates.push(format!("proposer = ${}", args_len + 1,));
         args_len += 1;
-        args.add(user_balance_le);
-        args_clone.add(user_balance_le)
+        args.add(proposer.clone());
+        args_clone.add(proposer);
     }
 
-    if let Some(proposal_kind) = proposal_kind {
-        updates.push(format!("user_kind = ${}", args_len + 1,));
+    if let Some(start_time_ge) = start_time_ge {
+        updates.push(format!("start_time >= ${}", args_len + 1,));
         args_len += 1;
-        args.add(proposal_kind.to_string());
-        args_clone.add(proposal_kind.to_string())
+        args.add(start_time_ge);
+        args_clone.add(start_time_ge)
     }
 
-    if let Some(until_frozen_ge) = until_frozen_ge {
-        updates.push(format!("until_frozen >= ${}", args_len + 1,));
+    if let Some(start_time_le) = start_time_le {
+        updates.push(format!("start_time <= ${}", args_len + 1,));
         args_len += 1;
-        args.add(until_frozen_ge);
-        args_clone.add(until_frozen_ge)
+        args.add(start_time_le);
+        args_clone.add(start_time_le)
     }
 
-    if let Some(until_frozen_le) = until_frozen_le {
-        updates.push(format!("until_frozen <= ${}", args_len + 1,));
+    if let Some(end_time_ge) = end_time_ge {
+        updates.push(format!("end_time >= ${}", args_len + 1,));
         args_len += 1;
-        args.add(until_frozen_le);
-        args_clone.add(until_frozen_le)
+        args.add(end_time_ge);
+        args_clone.add(end_time_ge)
     }
 
-    if let Some(last_reward_ge) = last_reward_ge {
-        updates.push(format!("last_reward >= ${}", args_len + 1,));
+    if let Some(end_time_le) = end_time_le {
+        updates.push(format!("end_time <= ${}", args_len + 1,));
         args_len += 1;
-        args.add(last_reward_ge);
-        args_clone.add(last_reward_ge)
+        args.add(end_time_le);
+        args_clone.add(end_time_le)
     }
 
-    if let Some(last_reward_le) = last_reward_le {
-        updates.push(format!("last_reward <= ${}", args_len + 1,));
-        args_len += 1;
-        args.add(last_reward_le);
-        args_clone.add(last_reward_le)
-    }
+    if let Some(state) = state {
+        let now = Utc::now().timestamp();
+        match state {
+            ProposalState::Pending => {
+                updates.push(format!("start_time >= ${}", args_len + 1,));
+                args_len += 1;
+                args.add(now);
+                args_clone.add(now)
+            }
+            ProposalState::Active => {
+                updates.push(format!("start_time <= ${}", args_len + 1,));
+                args_len += 1;
+                args.add(now);
+                args_clone.add(now);
 
-    if let Some(total_reward_ge) = total_reward_ge {
+                updates.push(format!("end_time > ${}", args_len + 1,));
+                args_len += 1;
+                args.add(now);
+                args_clone.add(now);
+            }
+            ProposalState::Canceled => {
+                updates.push(format!("canceled = ${}", args_len + 1,));
+                args_len += 1;
+                args.add(true);
+                args_clone.add(true);
+            }
+            ProposalState::Executed => {
+                updates.push(format!("executed = ${}", args_len + 1,));
+                args_len += 1;
+                args.add(true);
+                args_clone.add(true);
+            }
+            ProposalState::Failed => {
+                updates.push(format!("end_time < ${}", args_len + 1,));
+                args_len += 1;
+                args.add(now);
+                args_clone.add(now);
+
+                updates.push(format!(
+                    "(for_votes <= against_votes OR for_votes < quorum_votes)"
+                ));
+            }
+            ProposalState::Succeeded => {
+                updates.push(format!("end_time < ${}", args_len + 1,));
+                args_len += 1;
+                args.add(now);
+                args_clone.add(now);
+
+                updates.push(format!(
+                    "(for_votes > against_votes AND for_votes >= quorum_votes)"
+                ));
+            }
+            ProposalState::Expired => {}
+            ProposalState::Queued => {}
+        }
+
         updates.push(format!("total_reward >= ${}", args_len + 1,));
         args_len += 1;
         args.add(total_reward_ge);

@@ -1,28 +1,41 @@
-use crate::models::sqlx::{ProposalFromDb, TransferFromDb, VoteFromDb};
+use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
-use sqlx::types::Decimal;
+
+use crate::models::{ProposalActions, ProposalFromDb, VoteFromDb};
 
 #[derive(Debug, Deserialize, Serialize, Clone, opg::OpgModel)]
 #[serde(rename_all = "camelCase")]
-#[opg("Stakeholder response")]
-pub struct StakeholderResponse {
-    pub user_address: String,
-    pub user_type: String,
-    #[opg("stake_balance", string)]
-    pub stake_balance: Decimal,
-    #[opg("frozen_stake_balance", string)]
-    pub frozen_stake_balance: Decimal,
-    #[opg("last_reward", string)]
-    pub last_reward: Decimal,
-    #[opg("total_reward", string)]
-    pub total_reward: Decimal,
+#[opg("Proposal response")]
+pub struct ProposalResponse {
+    pub proposal_id: i32,
+    pub contract_address: String,
+    pub proposer: String,
+    pub description: String,
+    pub start_time: i32,
+    pub end_time: i32,
+    pub execution_time: i32,
+    #[opg("forVotes", string)]
+    pub for_votes: Decimal,
+    #[opg("againstVotes", string)]
+    pub against_votes: Decimal,
+    #[opg("quorumVotes", string)]
+    pub quorum_votes: Decimal,
+    pub message_hash: String,
+    pub transaction_hash: String,
+    pub timestamp_block: i32,
+    pub actions: ProposalActions,
+    pub executed: bool,
+    pub canceled: bool,
+    pub queued: bool,
+    pub grace_period: i32,
+    pub updated_at: i64,
     pub created_at: i64,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, opg::OpgModel)]
 #[serde(rename_all = "camelCase")]
-#[opg("Stakeholder response")]
-pub struct TransferResponse {
+#[opg("Vote response")]
+pub struct VoteResponse {
     pub transaction_hash: Option<String>,
     pub contract_address: Option<String>,
     #[opg("volume_exec", string)]
@@ -41,22 +54,35 @@ pub struct TransferResponse {
 #[serde(rename_all = "camelCase")]
 #[opg("Stakeholders table response")]
 pub struct ProposalsResponse {
-    pub stakeholders: Vec<StakeholderResponse>,
+    pub proposals: Vec<ProposalResponse>,
     pub total_count: i32,
 }
 
 impl From<(Vec<ProposalFromDb>, i32)> for ProposalsResponse {
-    fn from((user_balances, total_count): (Vec<ProposalFromDb>, i32)) -> Self {
+    fn from((proposals, total_count): (Vec<ProposalFromDb>, i32)) -> Self {
         Self {
-            stakeholders: user_balances
+            proposals: proposals
                 .into_iter()
-                .map(|x| StakeholderResponse {
-                    user_address: x.user_address,
-                    user_type: x.user_kind,
-                    stake_balance: x.stake_balance,
-                    frozen_stake_balance: x.frozen_stake,
-                    last_reward: x.last_reward,
-                    total_reward: x.total_reward,
+                .map(|x| ProposalResponse {
+                    proposal_id: x.proposal_id,
+                    contract_address: x.contract_address,
+                    proposer: x.proposer,
+                    description: x.description,
+                    start_time: x.start_time,
+                    end_time: x.end_time,
+                    execution_time: x.execution_time,
+                    for_votes: x.for_votes,
+                    against_votes: x.against_votes,
+                    quorum_votes: x.quorum_votes,
+                    message_hash: hex::encode(x.message_hash),
+                    transaction_hash: hex::encode(x.transaction_hash),
+                    timestamp_block: x.timestamp_block,
+                    actions: serde_json::from_value(x.actions).unwrap(),
+                    executed: x.executed,
+                    canceled: x.canceled,
+                    queued: x.queued,
+                    grace_period: x.grace_period,
+                    updated_at: x.updated_at,
                     created_at: x.created_at,
                 })
                 .collect::<Vec<_>>(),
@@ -67,18 +93,18 @@ impl From<(Vec<ProposalFromDb>, i32)> for ProposalsResponse {
 
 #[derive(Debug, Deserialize, Serialize, Clone, opg::OpgModel)]
 #[serde(rename_all = "camelCase")]
-#[opg("Stakeholders table response")]
+#[opg("Votes response")]
 pub struct VotesResponse {
-    pub transfers: Vec<TransferResponse>,
+    pub votes: Vec<VoteResponse>,
     pub total_count: i64,
 }
 
-impl From<(Vec<TransferFromDb>, i64)> for VotesResponse {
-    fn from((transfers, total_count): (Vec<TransferFromDb>, i64)) -> Self {
+impl From<(Vec<VoteFromDb>, i64)> for VotesResponse {
+    fn from((votes, total_count): (Vec<VoteFromDb>, i64)) -> Self {
         Self {
-            transfers: transfers
+            votes: votes
                 .into_iter()
-                .map(|x| TransferResponse {
+                .map(|x| VoteResponse {
                     transaction_hash: x.ton_transaction_hash.map(hex::encode),
                     contract_address: x.contract_address,
                     volume_exec: x.volume_exec,
@@ -95,84 +121,4 @@ impl From<(Vec<TransferFromDb>, i64)> for VotesResponse {
             total_count,
         }
     }
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone, opg::OpgModel)]
-#[serde(rename_all = "camelCase")]
-#[opg("Transaction response")]
-pub struct TransactionResponse {
-    pub transaction_hash: String,
-    pub transaction_kind: String,
-    #[opg("amount_exec", string)]
-    pub amount_exec: Decimal,
-    pub timestamp_block: i64,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone, opg::OpgModel)]
-#[serde(rename_all = "camelCase")]
-#[opg("Transactions table response")]
-pub struct TransactionsTableResponse {
-    pub transactions: Vec<TransactionResponse>,
-    pub total_count: i32,
-}
-
-impl From<(Vec<VoteFromDb>, i32)> for TransactionsTableResponse {
-    fn from((transactions, total_count): (Vec<VoteFromDb>, i32)) -> Self {
-        Self {
-            transactions: transactions
-                .into_iter()
-                .map(|x| TransactionResponse {
-                    transaction_hash: hex::encode(x.transaction_hash),
-                    transaction_kind: x.transaction_kind,
-                    amount_exec: x.bridge_exec,
-                    timestamp_block: x.timestamp_block as i64 * 1000,
-                })
-                .collect::<Vec<_>>(),
-            total_count,
-        }
-    }
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone, opg::OpgModel)]
-#[serde(rename_all = "camelCase")]
-#[opg("Graph data response")]
-pub struct GraphDataResponse {
-    #[opg("data", string)]
-    pub data: Decimal,
-    pub timestamp: i64,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone, opg::OpgModel)]
-#[serde(rename_all = "camelCase")]
-#[opg("Main page staking response")]
-pub struct MainPageStakingResponse {
-    #[opg("tvl", string)]
-    pub tvl: Decimal,
-    #[opg("tvl_change", string)]
-    pub tvl_change: Decimal,
-    #[opg("reward_30d", string)]
-    pub reward_30d: Decimal,
-    #[opg("reward_30d_change", string)]
-    pub reward_30d_change: Decimal,
-    #[opg("average_apr", string)]
-    pub average_apr: Decimal,
-    pub stakeholders: i64,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone, opg::OpgModel)]
-#[serde(rename_all = "camelCase")]
-#[opg("User page staking response")]
-pub struct UserPageStakingResponse {
-    #[opg("user_tvl", string)]
-    pub user_tvl: Decimal,
-    #[opg("user_tvl_change", string)]
-    pub user_tvl_change: Decimal,
-    #[opg("user_frozen_stake", string)]
-    pub user_frozen_stake: Decimal,
-    #[opg("user_30d_reward", string)]
-    pub user_30d_reward: Decimal,
-    #[opg("user_30d_reward_change", string)]
-    pub user_30d_reward_change: Decimal,
-    #[opg("average_apr", string)]
-    pub average_apr: Decimal,
 }

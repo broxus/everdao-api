@@ -1,5 +1,7 @@
 use nekoton_abi::*;
+use std::str::FromStr;
 use ton_block::MsgAddressInt;
+use ton_types::{Cell, UInt256};
 
 #[derive(Debug, Clone, PackAbiPlain, UnpackAbiPlain, KnownParamTypePlain)]
 pub struct ProposalOverview {
@@ -23,51 +25,34 @@ pub struct ProposalOverview {
     pub state: u8,
 }
 
-#[derive(
-Debug, serde::Serialize, serde::Deserialize, Clone, Copy, Eq, PartialEq, Hash, opg::OpgModel,
-)]
-#[opg("Proposal Type")]
-enum ProposalState {
-    Pending,
-    Active,
-    Canceled,
-    Failed,
-    Succeeded,
-    Expired,
-    Queued,
-    Executed,
+#[derive(Debug, Clone, UnpackAbi, KnownParamType)]
+pub struct TonAction {
+    #[abi(uint128)]
+    pub value: u128,
+    #[abi(with = "address_only_hash")]
+    pub target: UInt256,
+    #[abi(cell)]
+    pub payload: ton_types::Cell,
 }
 
-
-impl ToString for ProposalState {
-    fn to_string(&self) -> String {
-        match self {
-            ProposalState::Pending => "Pending".into(),
-            ProposalState::Active => "Active".into(),
-            ProposalState::Canceled => "Canceled".into(),
-            ProposalState::Failed => "Failed".into(),
-            ProposalState::Succeeded => "Succeeded".into(),
-            ProposalState::Expired => "Expired".into(),
-            ProposalState::Queued => "Queued".into(),
-            ProposalState::Executed => "Executed".into(),
-        }
-    }
+#[derive(Debug, Clone, UnpackAbi, KnownParamType)]
+pub struct EthAction {
+    #[abi(with = "uint256_bytes")]
+    pub value: UInt256,
+    #[abi(uint32)]
+    pub chain_id: u32,
+    #[abi(with = "uint160_bytes")]
+    pub target: [u8; 20],
+    #[abi(string)]
+    pub signature: String,
+    #[abi(bytes)]
+    pub call_data: Vec<u8>,
 }
 
-impl FromStr for ProposalState {
-    type Err = anyhow::Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_lowercase().as_str() {
-            "pending" => Ok(Self::Pending),
-            "active" => Ok(Self::Active),
-            "canceled" => Ok(Self::Canceled),
-            "failed" => Ok(Self::Failed),
-            "succeeded" => Ok(Self::Succeeded),
-            "expired" => Ok(Self::Expired),
-            "queued" => Ok(Self::Queued),
-            "executed" => Ok(Self::Executed),
-            &_ => Err(anyhow::Error::msg(format!("invalid event type {}", s))),
-        }
-    }
+#[derive(Debug, Clone, PackAbiPlain, UnpackAbiPlain, KnownParamTypePlain)]
+pub struct GetActions {
+    #[abi(array, name = "value0")]
+    pub ton_actions: Vec<TonAction>,
+    #[abi(array, name = "value1")]
+    pub eth_actions: Vec<EthAction>,
 }

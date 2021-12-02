@@ -3,12 +3,10 @@ use futures::prelude::future::*;
 use crate::api::filters::proposals;
 
 use super::Context;
-use crate::api::requests::{
-    GraphRequest, SearchProposalRequest, SearchProposalVotesRequest, SearchProposalsRequest,
-    SearchVotesRequest,
-};
+use crate::api::requests::{SearchProposalVotesRequest, SearchVotesRequest};
 use crate::api::responses::{ProposalsResponse, VotesResponse};
 use crate::api::utils::*;
+use crate::models::SearchProposalsRequest;
 
 pub fn post_search_proposals(
     ctx: Context,

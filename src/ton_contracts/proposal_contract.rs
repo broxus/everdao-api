@@ -13,3 +13,14 @@ pub fn get_overview() -> &'static ton_abi::Function {
             .build()
     })
 }
+
+/// External responsible function
+pub fn get_actions() -> &'static ton_abi::Function {
+    static FUNCTION: OnceCell<ton_abi::Function> = OnceCell::new();
+    FUNCTION.get_or_init(|| {
+        FunctionBuilder::new_responsible("getActions")
+            .time_header()
+            .outputs(GetActions::param_type())
+            .build()
+    })
+}
