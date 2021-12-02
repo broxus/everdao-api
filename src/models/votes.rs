@@ -1,4 +1,5 @@
 use rust_decimal::Decimal;
+use ton_block::MsgAddressInt;
 
 use crate::models::{VoteOrdering, VoteState};
 
@@ -9,13 +10,8 @@ pub struct SearchVotesRequest {
     pub limit: i32,
     pub offset: i32,
     pub ordering: Option<VoteOrdering>,
-    pub vote_id: Option<i32>,
-    pub proposer: Option<String>,
-    pub start_time_ge: Option<i32>,
-    pub start_time_le: Option<i32>,
-    pub end_time_ge: Option<i32>,
-    pub end_time_le: Option<i32>,
-    pub state: Option<VoteState>,
+    pub proposal_id: Option<i32>,
+    pub voter: Option<String>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
@@ -35,34 +31,22 @@ impl CreateVote {
         timestamp_block: i32,
         message_hash: Vec<u8>,
         transaction_hash: Vec<u8>,
-        proposal_id: u32,
-        vote: super::abi::VoteOverview,
-        eth_actions: Vec<super::abi::EthAction>,
-        ton_actions: Vec<super::abi::TonAction>,
-        grace_period: u32,
+        vote: super::abi::VoteCast,
+        voter: MsgAddressInt,
     ) -> Self {
         Self {
-            vote_id: vote_id as i32,
-            proposer: format!(
+            proposal_id: vote.proposal_id as i32,
+            votes: Decimal::from(vote.votes),
+            reason: vote.reason,
+            support: vote.support,
+            voter: format!(
                 "{}:{}",
-                vote.proposer.workchain_id(),
-                vote.proposer.address().to_hex_string()
+                voter.workchain_id(),
+                voter.address().to_hex_string()
             ),
-            description: vote.description,
-            start_time: vote.start_time as i64,
-            end_time: vote.end_time as i64,
-            execution_time: vote.execution_time as i64,
-            for_votes: Decimal::from(vote.for_votes),
-            against_votes: Decimal::from(vote.against_votes),
-            quorum_votes: Decimal::from(vote.quorum_votes),
             message_hash,
             transaction_hash,
             timestamp_block,
-            actions: VoteActions {
-                ton_actions: ton_actions.into_iter().map(From::from).collect(),
-                eth_actions: eth_actions.into_iter().map(From::from).collect(),
-            },
-            grace_period: grace_period as i64,
         }
     }
 }

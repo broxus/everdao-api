@@ -5,6 +5,7 @@ use crate::indexer::*;
 pub struct AllEvents {
     dao_root: Vec<AnyExtractable>,
     user_data: Vec<AnyExtractable>,
+    proposal: Vec<AnyExtractable>,
 }
 
 impl AllEvents {
@@ -12,11 +13,12 @@ impl AllEvents {
         Self {
             dao_root: dao_root(),
             user_data: user_data(),
+            proposal: proposal(),
         }
     }
 
     pub fn get_all_events(&self) -> &[AnyExtractable] {
-        [&self.dao_root, &self.user_data].concat()
+        [&self.dao_root, &self.user_data, &self.proposal].concat()
     }
 }
 
@@ -34,4 +36,18 @@ fn user_data() -> Vec<AnyExtractable> {
     let vote_cast = events.get("VoteCast").unwrap();
 
     vec![AnyExtractable::Event(vote_cast.clone())]
+}
+
+fn proposal() -> Vec<AnyExtractable> {
+    let contract = ton_abi::Contract::load(std::io::Cursor::new(PROPOSAL_ABI)).unwrap();
+    let events = contract.events();
+    let executed = events.get("Executed").unwrap();
+    let canceled = events.get("Canceled").unwrap();
+    let queued = events.get("Queued").unwrap();
+
+    vec![
+        AnyExtractable::Event(executed.clone()),
+        AnyExtractable::Event(canceled.clone()),
+        AnyExtractable::Event(queued.clone()),
+    ]
 }

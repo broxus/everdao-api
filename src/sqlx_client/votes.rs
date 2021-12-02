@@ -1,12 +1,10 @@
-use crate::api::requests::{SearchTransactionsRequest, SearchVotesRequest};
-use crate::models::sqlx::VoteFromDb;
-use crate::sqlx_client::SqlxClient;
-
-use crate::models::transaction_ordering::TransactionOrdering;
 use itertools::Itertools;
 use sqlx::postgres::PgArguments;
 use sqlx::Row;
 use sqlx::{Arguments, Postgres, Transaction};
+
+use crate::models::{CreateVote, SearchVotesRequest, VoteFromDb, VoteOrdering};
+use crate::sqlx_client::SqlxClient;
 
 impl SqlxClient {
     pub async fn search_votes(
@@ -36,10 +34,8 @@ impl SqlxClient {
 
         let ordering = if let Some(ordering) = input.ordering {
             match ordering {
-                TransactionOrdering::AmountAscending => "ORDER BY bridge_exec",
-                TransactionOrdering::AmountDescending => "ORDER BY bridge_exec DESC",
-                TransactionOrdering::TimestampBlockAscending => "ORDER BY timestamp_block",
-                TransactionOrdering::TimestampBlockAtDescending => "ORDER BY timestamp_block DESC",
+                VoteOrdering::CreatedAtAsc => "ORDER BY timestamp_block",
+                VoteOrdering::CreatedAtDesc => "ORDER BY timestamp_block DESC",
             }
         } else {
             "ORDER BY timestamp_block DESC"
@@ -78,7 +74,7 @@ impl SqlxClient {
         Ok((res, total_count))
     }
 
-    pub async fn new_vote(&self, vote: CreateVote) -> Result<VoteFromDb, anyhow::Error> {
+    pub async fn create_vote(&self, vote: CreateVote) -> Result<VoteFromDb, anyhow::Error> {
         sqlx::query!(
             r#"INSERT INTO votes (proposal_id, voter, support, reason, votes, message_hash, transaction_hash, timestamp_block)
                           VALUES ($1, $2, $3, $4, $5, $6, $7, &8)
@@ -98,15 +94,10 @@ impl SqlxClient {
 }
 
 pub fn filter_transactions_query(
-    input: &SearchTransactionsRequest,
+    input: &SearchVotesRequest,
 ) -> (Vec<String>, i32, PgArguments, PgArguments) {
-    let SearchTransactionsRequest {
-        transaction_kind,
-        amount_ge,
-        amount_le,
-        timestamp_block_ge,
-        timestamp_block_le,
-        ..
+    let SearchVotesRequest {
+        proposal_id, voter, ..
     } = input.clone();
 
     let mut args = PgArguments::default();
@@ -114,39 +105,18 @@ pub fn filter_transactions_query(
     let mut updates = Vec::new();
     let mut args_len = 0;
 
-    if let Some(transaction_kind) = transaction_kind {
-        updates.push(format!("transaction_kind = ${}", args_len + 1,));
+    if let Some(proposal_id) = proposal_id {
+        updates.push(format!("proposal_id = ${}", args_len + 1,));
         args_len += 1;
-        args.add(transaction_kind.to_string());
-        args_clone.add(transaction_kind.to_string());
+        args.add(proposal_id);
+        args_clone.add(proposal_id);
     }
 
-    if let Some(amount_ge) = amount_ge {
-        updates.push(format!("bridge_exec >= ${}", args_len + 1,));
+    if let Some(voter) = voter {
+        updates.push(format!("voter = ${}", args_len + 1,));
         args_len += 1;
-        args.add(amount_ge);
-        args_clone.add(amount_ge);
-    }
-
-    if let Some(amount_le) = amount_le {
-        updates.push(format!("bridge_exec <= ${}", args_len + 1,));
-        args_len += 1;
-        args.add(amount_le);
-        args_clone.add(amount_le);
-    }
-
-    if let Some(timestamp_block_ge) = timestamp_block_ge {
-        updates.push(format!("timestamp_block >= ${}", args_len + 1,));
-        args_len += 1;
-        args.add(timestamp_block_ge);
-        args_clone.add(timestamp_block_ge);
-    }
-
-    if let Some(timestamp_block_le) = timestamp_block_le {
-        updates.push(format!("timestamp_block <= ${}", args_len + 1,));
-        args_len += 1;
-        args.add(timestamp_block_le);
-        args_clone.add(timestamp_block_le);
+        args.add(voter.clone());
+        args_clone.add(voter);
     }
 
     (updates, args_len, args, args_clone)

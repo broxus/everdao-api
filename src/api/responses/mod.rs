@@ -65,23 +65,22 @@ impl From<(Vec<ProposalFromDb>, i32)> for ProposalsResponse {
             proposals: proposals
                 .into_iter()
                 .map(|x| {
-
                     let state = if x.canceled {
-                         ProposalState.Canceled
+                        ProposalState.Canceled
                     } else if x.executed {
-                         ProposalState.Executed
+                        ProposalState.Executed
                     } else if now <= x.start_time {
-                         ProposalState.Pending
+                        ProposalState.Pending
                     } else if now <= x.end_time {
-                         ProposalState.Active
+                        ProposalState.Active
                     } else if x.for_votes <= x.against_votes || x.for_votes < x.quorum_votes {
-                         ProposalState.Failed
+                        ProposalState.Failed
                     } else if x.execution_time == 0 {
-                         ProposalState.Succeeded
+                        ProposalState.Succeeded
                     } else if now > x.execution_time + config.x.grace_period {
-                         ProposalState.Expired
+                        ProposalState.Expired
                     } else {
-                         ProposalState.Queued
+                        ProposalState.Queued
                     };
 
                     ProposalResponse {
@@ -119,11 +118,11 @@ impl From<(Vec<ProposalFromDb>, i32)> for ProposalsResponse {
 #[opg("Votes response")]
 pub struct VotesResponse {
     pub votes: Vec<VoteResponse>,
-    pub total_count: i64,
+    pub total_count: i32,
 }
 
-impl From<(Vec<VoteFromDb>, i64)> for VotesResponse {
-    fn from((votes, total_count): (Vec<VoteFromDb>, i64)) -> Self {
+impl From<(Vec<VoteFromDb>, i32)> for VotesResponse {
+    fn from((votes, total_count): (Vec<VoteFromDb>, i32)) -> Self {
         Self {
             votes: votes
                 .into_iter()
@@ -139,7 +138,7 @@ impl From<(Vec<VoteFromDb>, i64)> for VotesResponse {
                     created_at: x.created_at,
                 })
                 .collect::<Vec<_>>(),
-            total_count,
+            total_count: total_count as i32,
         }
     }
 }

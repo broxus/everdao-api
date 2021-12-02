@@ -1,4 +1,5 @@
 use rust_decimal::Decimal;
+use ton_block::MsgAddressInt;
 
 use crate::models::{ProposalOrdering, ProposalState};
 
@@ -21,6 +22,7 @@ pub struct SearchProposalsRequest {
 #[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
 pub struct CreateProposal {
     pub proposal_id: i32,
+    pub contract_address: String,
     pub proposer: String,
     pub description: String,
     pub start_time: i64,
@@ -46,6 +48,7 @@ impl CreateProposal {
         eth_actions: Vec<super::abi::EthAction>,
         ton_actions: Vec<super::abi::TonAction>,
         grace_period: u32,
+        contract_address: MsgAddressInt,
     ) -> Self {
         Self {
             proposal_id: proposal_id as i32,
@@ -53,6 +56,11 @@ impl CreateProposal {
                 "{}:{}",
                 proposal.proposer.workchain_id(),
                 proposal.proposer.address().to_hex_string()
+            ),
+            contract_address: format!(
+                "{}:{}",
+                contract_address.workchain_id(),
+                contract_address.address().to_hex_string()
             ),
             description: proposal.description,
             start_time: proposal.start_time as i64,
@@ -120,12 +128,8 @@ impl From<super::abi::TonAction> for ProposalTonAction {
     }
 }
 
-#[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
-pub struct UpdateProposal {
-    pub for_votes: Option<Decimal>,
-    pub against_votes: Option<Decimal>,
-    pub quorum_votes: Option<Decimal>,
-    pub executed: Option<bool>,
-    pub canceled: Option<bool>,
-    pub queued: Option<bool>,
+#[derive(Debug, serde::Deserialize, serde::Serialize, Clone, Default)]
+pub struct UpdateProposalVotes {
+    pub for_votes: Decimal,
+    pub against_votes: Decimal,
 }

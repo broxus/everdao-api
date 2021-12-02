@@ -1,6 +1,7 @@
 use anyhow::Context;
 use nekoton_abi::*;
 use nekoton_utils::repack_address;
+use sqlx::types::Decimal;
 use ton_block::MsgAddressInt;
 use ton_consumer::TransactionProducer;
 
@@ -18,6 +19,7 @@ pub async fn parse_proposal_created_event(
     sqlx_client: &SqlxClient,
     node: &TransactionProducer,
 ) -> Result<(), anyhow::Error> {
+    // get expected proposal address
     let dao_address = repack_address(DAO_ROOT_ADDRESS).unwrap();
     let function_output = node
         .run_local(
@@ -27,18 +29,22 @@ pub async fn parse_proposal_created_event(
         )
         .await?
         .context("none function output")?;
-    let details: ExpectedProposalAddress = function_output.tokens.unwrap_or_default().unpack()?;
+    let proposal_address: ExpectedProposalAddress =
+        function_output.tokens.unwrap_or_default().unpack()?;
 
+    // get  proposal overview
     let function_output = node
-        .run_local(&details.value0, &get_overview(), &[answer_id()])
+        .run_local(&proposal_address.value0, &get_overview(), &[answer_id()])
         .await?
         .context("none function output")?;
     let proposal: ProposalOverview = function_output.tokens.unwrap_or_default().unpack()?;
 
-    let eth_actions = data.eth_actions;
-    let ton_actions = data.ton_actions;
-
-    // get proposal config - grace_period?
+    // get proposal config
+    let function_output = node
+        .run_local(&proposal_address.value0, &get_config(), &[answer_id()])
+        .await?
+        .context("none function output")?;
+    let config: GetProposalConfig = function_output.tokens.unwrap_or_default().unpack()?;
 
     let payload = CreateProposal::new(
         timestamp_block,
@@ -46,9 +52,10 @@ pub async fn parse_proposal_created_event(
         transaction_hash,
         data.proposal_id,
         proposal,
-        eth_actions,
-        ton_actions,
-        grace_period,
+        data.eth_actions,
+        data.ton_actions,
+        config.value0.grace_period,
+        proposal_address.value0,
     );
 
     sqlx_client.create_proposal(payload).await?;
@@ -57,7 +64,7 @@ pub async fn parse_proposal_created_event(
 }
 
 pub async fn parse_vote_cast_event(
-    data: VoteCast,
+    vote: VoteCast,
     timestamp_block: i32,
     message_hash: Vec<u8>,
     transaction_hash: Vec<u8>,
@@ -65,6 +72,7 @@ pub async fn parse_vote_cast_event(
     sqlx_client: &SqlxClient,
     node: &TransactionProducer,
 ) -> Result<(), anyhow::Error> {
+    // get userdata details
     let function_output = node
         .run_local(&user_data_address, &get_user_data_details(), &[answer_id()])
         .await?
@@ -82,7 +90,19 @@ pub async fn parse_vote_cast_event(
         );
         return Ok(());
     }
+    let id = vote.proposal_id;
 
+    let payload = CreateVote::new(
+        timestamp_block,
+        message_hash,
+        transaction_hash,
+        vote,
+        user_data_address,
+    );
+
+    sqlx_client.create_vote(payload).await?;
+
+    // get proposal address
     let function_output = node
         .run_local(
             &dao_root,
@@ -93,11 +113,79 @@ pub async fn parse_vote_cast_event(
         .context("none function output")?;
     let details: ExpectedProposalAddress = function_output.tokens.unwrap_or_default().unpack()?;
 
+    // get proposal overview
     let function_output = node
         .run_local(&details.value0, &get_overview(), &[answer_id()])
         .await?
         .context("none function output")?;
     let proposal: ProposalOverview = function_output.tokens.unwrap_or_default().unpack()?;
+
+    let payload = UpdateProposalVotes {
+        for_votes: Decimal::from(proposal.for_votes),
+        against_votes: Decimal::from(proposal.against_votes),
+    };
+
+    sqlx_client
+        .update_proposal_votes(payload, id as i32)
+        .await?;
+
+    Ok(())
+}
+
+pub async fn parse_proposal_executed_event(
+    proposal_address: MsgAddressInt,
+    sqlx_client: &SqlxClient,
+    node: &TransactionProducer,
+) -> Result<(), anyhow::Error> {
+    // get proposal id
+    let function_output = node
+        .run_local(&proposal_address, &get_id(), &[answer_id()])
+        .await?
+        .context("none function output")?;
+    let proposal: ProposalId = function_output.tokens.unwrap_or_default().unpack()?;
+
+    sqlx_client
+        .update_proposal_executed(proposal.id as i32)
+        .await?;
+
+    Ok(())
+}
+
+pub async fn parse_proposal_canceled_event(
+    proposal_address: MsgAddressInt,
+    sqlx_client: &SqlxClient,
+    node: &TransactionProducer,
+) -> Result<(), anyhow::Error> {
+    // get proposal id
+    let function_output = node
+        .run_local(&proposal_address, &get_id(), &[answer_id()])
+        .await?
+        .context("none function output")?;
+    let proposal: ProposalId = function_output.tokens.unwrap_or_default().unpack()?;
+
+    sqlx_client
+        .update_proposal_canceled(proposal.id as i32)
+        .await?;
+
+    Ok(())
+}
+
+pub async fn parse_proposal_queued_event(
+    data: ProposalQueued,
+    proposal_address: MsgAddressInt,
+    sqlx_client: &SqlxClient,
+    node: &TransactionProducer,
+) -> Result<(), anyhow::Error> {
+    // get proposal id
+    let function_output = node
+        .run_local(&proposal_address, &get_id(), &[answer_id()])
+        .await?
+        .context("none function output")?;
+    let proposal: ProposalId = function_output.tokens.unwrap_or_default().unpack()?;
+
+    sqlx_client
+        .update_proposal_queued(data.execution_time as i64, proposal.id as i32)
+        .await?;
 
     Ok(())
 }

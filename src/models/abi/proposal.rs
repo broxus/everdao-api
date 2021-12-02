@@ -4,6 +4,28 @@ use ton_block::MsgAddressInt;
 use ton_types::{Cell, UInt256};
 
 #[derive(Debug, Clone, PackAbiPlain, UnpackAbiPlain, KnownParamTypePlain)]
+pub struct GetProposalConfig {
+    #[abi]
+    pub value0: ProposalConfig,
+}
+
+#[derive(Debug, Clone, PackAbiPlain, UnpackAbiPlain, KnownParamTypePlain)]
+pub struct ProposalConfig {
+    #[abi(uint32, name = "votingDelay")]
+    pub voting_delay: u32,
+    #[abi(uint32, name = "votingPeriod")]
+    pub voting_period: u32,
+    #[abi(uint128, name = "quorumVotes")]
+    pub quorum_votes: u128,
+    #[abi(uint32, name = "timeLock")]
+    pub time_lock: u32,
+    #[abi(uint128, name = "threshold")]
+    pub threshold: u128,
+    #[abi(uint32, name = "gracePeriod")]
+    pub grace_period: u32,
+}
+
+#[derive(Debug, Clone, PackAbiPlain, UnpackAbiPlain, KnownParamTypePlain)]
 pub struct ProposalOverview {
     #[abi(address, name = "proposer_")]
     pub proposer: MsgAddressInt,
@@ -23,6 +45,12 @@ pub struct ProposalOverview {
     pub quorum_votes: u128,
     #[abi(uint8, name = "state_")]
     pub state: u8,
+}
+
+#[derive(Debug, Clone, PackAbiPlain, UnpackAbiPlain, KnownParamTypePlain)]
+pub struct ProposalId {
+    #[abi(uint32, name = "id")]
+    pub id: u32,
 }
 
 #[derive(Debug, Clone, UnpackAbi, KnownParamType)]
@@ -55,4 +83,22 @@ pub struct GetActions {
     pub ton_actions: Vec<TonAction>,
     #[abi(array, name = "value1")]
     pub eth_actions: Vec<EthAction>,
+}
+
+#[derive(Debug, Clone, PackAbiPlain, UnpackAbiPlain, KnownParamTypePlain)]
+pub struct ProposalExecuted {
+    #[abi(bool, name = "executed")]
+    pub executed: bool,
+}
+
+#[derive(Debug, Clone, PackAbiPlain, UnpackAbiPlain, KnownParamTypePlain)]
+pub struct ProposalCanceled {
+    #[abi(bool, name = "canceled")]
+    pub canceled: bool,
+}
+
+#[derive(Debug, Clone, PackAbiPlain, UnpackAbiPlain, KnownParamTypePlain)]
+pub struct ProposalQueued {
+    #[abi(uint32, name = "executionTime_")]
+    pub execution_time: u32,
 }

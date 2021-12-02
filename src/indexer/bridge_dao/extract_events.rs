@@ -29,7 +29,6 @@ pub async fn extract_dao_root_parsed_events(
                     timestamp_block,
                     message_hash,
                     transaction_hash,
-                    contract_address.clone(),
                     sqlx_client,
                     node,
                 )
@@ -47,6 +46,17 @@ pub async fn extract_dao_root_parsed_events(
                     node,
                 )
                 .await?;
+            }
+            "Executed" => {
+                parse_proposal_executed_event(contract_address.clone(), sqlx_client, node).await?;
+            }
+            "Canceled" => {
+                parse_proposal_canceled_event(contract_address.clone(), sqlx_client, node).await?;
+            }
+            "Queued" => {
+                let data: ProposalQueued = event.input.unpack()?;
+                parse_proposal_queued_event(data, contract_address.clone(), sqlx_client, node)
+                    .await?;
             }
             _ => {}
         }
