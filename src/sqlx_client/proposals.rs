@@ -1,4 +1,3 @@
-use crate::sqlx_client::SqlxClient;
 use chrono::Utc;
 use itertools::Itertools;
 use sqlx::postgres::PgArguments;
@@ -6,6 +5,7 @@ use sqlx::Arguments;
 use sqlx::Row;
 
 use crate::models::{ProposalFromDb, ProposalOrdering, ProposalState, SearchProposalsRequest};
+use crate::sqlx_client::SqlxClient;
 
 impl SqlxClient {
     pub async fn search_proposals(
@@ -16,7 +16,7 @@ impl SqlxClient {
 
         let mut query = "SELECT proposal_id, proposer, description, start_time, end_time, execution_time, for_votes,
                   against_votes, quorum_votes, message_hash, transaction_hash, timestamp_block, actions,
-                  executed, canceled, updated_at, created_at FROM proposals"
+                  executed, canceled, queued, grace_period, updated_at, created_at FROM proposals"
             .to_string();
         if !updates.is_empty() {
             query = format!("{} WHERE {}", query, updates.iter().format(" AND "));
@@ -76,8 +76,10 @@ impl SqlxClient {
                 actions: x.get(13),
                 executed: x.get(14),
                 canceled: x.get(15),
-                updated_at: x.get(16),
-                created_at: x.get(17),
+                queued: x.get(16),
+                grace_period: x.get(17),
+                updated_at: x.get(18),
+                created_at: x.get(19),
             })
             .collect::<Vec<_>>();
 
@@ -91,12 +93,12 @@ impl SqlxClient {
         sqlx::query!(
             r#"INSERT INTO proposal (
             proposal_id, proposer, description, start_time, end_time, execution_time, for_votes, against_votes,
-            quorum_votes, message_hash, transaction_hash, timestamp_block, actions)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+            quorum_votes, message_hash, transaction_hash, timestamp_block, actions, grace_period)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
             RETURNING
                   proposal_id, proposer, description, start_time, end_time, execution_time, for_votes,
                   against_votes, quorum_votes, message_hash, transaction_hash, timestamp_block, actions,
-                  executed, canceled, updated_at, created_at"#,
+                  executed, canceled, queued, grace_period, updated_at, created_at"#,
             proposal.proposal_id,
             proposal.proposer,
             proposal.description,
@@ -110,6 +112,7 @@ impl SqlxClient {
             proposal.transaction_hash,
             proposal.timestamp_block,
             serde_json::to_value(proposal.actions).unwrap(),
+            proposal.grace_period,
         )
         .fetch_one(&self.pool)
         .await
@@ -198,16 +201,10 @@ pub fn filter_proposals_query(
                 args_clone.add(now);
             }
             ProposalState::Canceled => {
-                updates.push(format!("canceled = ${}", args_len + 1,));
-                args_len += 1;
-                args.add(true);
-                args_clone.add(true);
+                updates.push(format!("canceled = true"));
             }
             ProposalState::Executed => {
-                updates.push(format!("executed = ${}", args_len + 1,));
-                args_len += 1;
-                args.add(true);
-                args_clone.add(true);
+                updates.push(format!("executed = true"));
             }
             ProposalState::Failed => {
                 updates.push(format!("end_time < ${}", args_len + 1,));
@@ -226,52 +223,36 @@ pub fn filter_proposals_query(
                 args_clone.add(now);
 
                 updates.push(format!(
-                    "(for_votes > against_votes AND for_votes >= quorum_votes)"
+                    "(for_votes > against_votes AND for_votes >= quorum_votes AND queued = false)"
                 ));
             }
-            ProposalState::Expired => {}
-            ProposalState::Queued => {}
+            ProposalState::Expired => {
+                updates.push(format!(
+                    "(execution_time + grace_period) < ${}",
+                    args_len + 1,
+                ));
+                args_len += 1;
+                args.add(now);
+                args_clone.add(now);
+
+                updates.push(format!(
+                    "(for_votes > against_votes AND for_votes >= quorum_votes AND queued = true AND executed = false)"
+                ));
+            }
+            ProposalState::Queued => {
+                updates.push(format!(
+                    "(execution_time + grace_period) > ${}",
+                    args_len + 1,
+                ));
+                args_len += 1;
+                args.add(now);
+                args_clone.add(now);
+
+                updates.push(format!(
+                    "(for_votes > against_votes AND for_votes >= quorum_votes AND queued = true AND executed = false)"
+                ));
+            }
         }
-
-        updates.push(format!("total_reward >= ${}", args_len + 1,));
-        args_len += 1;
-        args.add(total_reward_ge);
-        args_clone.add(total_reward_ge)
-    }
-
-    if let Some(total_reward_le) = total_reward_le {
-        updates.push(format!("total_reward <= ${}", args_len + 1,));
-        args_len += 1;
-        args.add(total_reward_le);
-        args_clone.add(total_reward_le)
-    }
-
-    if let Some(frozen_stake_ge) = frozen_stake_ge {
-        updates.push(format!("frozen_stake >= ${}", args_len + 1,));
-        args_len += 1;
-        args.add(frozen_stake_ge);
-        args_clone.add(frozen_stake_ge)
-    }
-
-    if let Some(frozen_stake_le) = frozen_stake_le {
-        updates.push(format!("frozen_stake <= ${}", args_len + 1,));
-        args_len += 1;
-        args.add(frozen_stake_le);
-        args_clone.add(frozen_stake_le)
-    }
-
-    if let Some(created_at_ge) = created_at_ge {
-        updates.push(format!("created_at >= ${}", args_len + 1,));
-        args_len += 1;
-        args.add(created_at_ge);
-        args_clone.add(created_at_ge)
-    }
-
-    if let Some(created_at_le) = created_at_le {
-        updates.push(format!("created_at <= ${}", args_len + 1,));
-        args_len += 1;
-        args.add(created_at_le);
-        args_clone.add(created_at_le)
     }
 
     (updates, args_len, args, args_clone)

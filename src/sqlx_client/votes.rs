@@ -15,14 +15,15 @@ impl SqlxClient {
     ) -> Result<(Vec<VoteFromDb>, i32), anyhow::Error> {
         let (updates, args_len, args, mut args_clone) = filter_transactions_query(&input);
 
-        let mut query = "SELECT message_hash, transaction_hash, transaction_kind, user_address, user_public_key, 
-            bridge_exec, timestamp_block, created_at FROM transactions"
+        let mut query = "SELECT
+         proposal_id, voter, support, reason, votes, message_hash, transaction_hash, timestamp_block, created_at
+         FROM votes"
             .to_string();
         if !updates.is_empty() {
             query = format!("{} WHERE {}", query, updates.iter().format(" AND "));
         }
 
-        let mut query_count = "SELECT COUNT(*) FROM transactions".to_string();
+        let mut query_count = "SELECT COUNT(*) FROM votes".to_string();
         if !updates.is_empty() {
             query_count = format!("{} WHERE {}", query_count, updates.iter().format(" AND "));
         }
@@ -62,37 +63,37 @@ impl SqlxClient {
         let res = transactions
             .into_iter()
             .map(|x| VoteFromDb {
-                message_hash: x.get(0),
-                transaction_hash: x.get(1),
-                transaction_kind: x.get(2),
-                user_address: x.get(3),
-                user_public_key: x.get(4),
-                bridge_exec: x.get(5),
-                timestamp_block: x.get(6),
-                created_at: x.get(7),
+                proposal_id: x.get(0),
+                voter: x.get(1),
+                support: x.get(2),
+                reason: x.get(3),
+                votes: x.get(4),
+                message_hash: x.get(5),
+                transaction_hash: x.get(6),
+                timestamp_block: x.get(7),
+                created_at: x.get(8),
             })
             .collect::<Vec<_>>();
 
         Ok((res, total_count))
     }
 
-    pub async fn new_vote(&self, vote: VoteFromDb) -> Result<i64, anyhow::Error> {
-        let created_at: i64 = sqlx::query!(
-            r#"INSERT INTO votes (message_hash, vote_hash,
-                          vote_kind, user_address, user_public_key, bridge_exec, timestamp_block)
-                          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING created_at"#,
+    pub async fn new_vote(&self, vote: CreateVote) -> Result<VoteFromDb, anyhow::Error> {
+        sqlx::query!(
+            r#"INSERT INTO votes (proposal_id, voter, support, reason, votes, message_hash, transaction_hash, timestamp_block)
+                          VALUES ($1, $2, $3, $4, $5, $6, $7, &8)
+                          RETURNING proposal_id, voter, support, reason, votes, message_hash, transaction_hash, timestamp_block, created_at"#,
+            vote.proposal_id,
+            vote.voter,
+            vote.support,
+            vote.reason,
+            vote.votes,
             vote.message_hash,
-            vote.vote_hash,
-            vote.vote_kind,
-            vote.user_address,
-            vote.user_public_key,
-            vote.bridge_exec,
+            vote.transaction_hash,
             vote.timestamp_block
         )
         .fetch_one(&self.pool)
         .await
-        .map(|x| x.created_at)?;
-        Ok(created_at)
     }
 }
 
