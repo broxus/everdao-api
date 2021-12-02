@@ -1,4 +1,4 @@
-use std::net::{SocketAddr};
+use std::net::SocketAddr;
 
 use config::{Config as RawConfig, ConfigError, Environment};
 use serde::Deserialize;

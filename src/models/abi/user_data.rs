@@ -43,7 +43,7 @@ pub struct GetDetails {
     pub value0: GetDetailsValue0,
 }
 
-#[derive(Debug, Clone, Default, UnpackAbiPlain, KnownParamTypePlain)]
+#[derive(Debug, Clone, Default, UnpackAbi, KnownParamType)]
 pub struct GetDetailsValue0 {
     #[abi(uint128)]
     pub token_balance: u128,
@@ -51,8 +51,8 @@ pub struct GetDetailsValue0 {
     pub relay_lock_until: u32,
     #[abi(array, name = "rewardRounds")]
     pub reward_rounds: Vec<GetDetailsRewardRound>,
-    #[abi(unpack_with = "uint160_bytes::unpack")]
-    pub relay_eth_address: [u8; 20], //uint160
+    #[abi(with = "uint160_bytes")]
+    pub relay_eth_address: [u8; 20],
     #[abi(bool)]
     pub eth_address_confirmed: bool,
     #[abi(unpack_with = "uint256_bytes::unpack")]
@@ -69,7 +69,7 @@ pub struct GetDetailsValue0 {
     pub dao_root: MsgAddressInt,
 }
 
-#[derive(UnpackAbi, Debug, Clone)]
+#[derive(UnpackAbi, Debug, Clone, KnownParamType)]
 pub struct GetDetailsRewardRound {
     #[abi(uint128)]
     pub reward_balance: u128,

@@ -74,11 +74,10 @@ impl SqlxClient {
         Ok((res, total_count))
     }
 
-    pub async fn create_vote(&self, vote: CreateVote) -> Result<VoteFromDb, anyhow::Error> {
+    pub async fn create_vote(&self, vote: CreateVote) -> Result<(), anyhow::Error> {
         sqlx::query!(
             r#"INSERT INTO votes (proposal_id, voter, support, reason, votes, message_hash, transaction_hash, timestamp_block)
-                          VALUES ($1, $2, $3, $4, $5, $6, $7, &8)
-                          RETURNING proposal_id, voter, support, reason, votes, message_hash, transaction_hash, timestamp_block, created_at"#,
+                          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"#,
             vote.proposal_id,
             vote.voter,
             vote.support,
@@ -88,8 +87,9 @@ impl SqlxClient {
             vote.transaction_hash,
             vote.timestamp_block
         )
-        .fetch_one(&self.pool)
-        .await
+        .execute(&self.pool)
+        .await?;
+        Ok(())
     }
 }
 

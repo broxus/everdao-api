@@ -2,7 +2,7 @@
 
 use opg::*;
 
-use crate::api::{responses};
+use crate::api::responses;
 use crate::models;
 
 pub fn swagger() -> String {

@@ -89,19 +89,13 @@ impl SqlxClient {
         Ok((res, total_count))
     }
 
-    pub async fn create_proposal(
-        &self,
-        proposal: CreateProposal,
-    ) -> Result<ProposalFromDb, anyhow::Error> {
+    pub async fn create_proposal(&self, proposal: CreateProposal) -> Result<(), anyhow::Error> {
         sqlx::query!(
-            r#"INSERT INTO proposal (
+            r#"INSERT INTO proposals (
             proposal_id, contract_address, proposer, description, start_time, end_time, execution_time, for_votes, against_votes,
             quorum_votes, message_hash, transaction_hash, timestamp_block, actions, grace_period)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-            RETURNING
-                  proposal_id, contract_address, proposer, description, start_time, end_time, execution_time, for_votes,
-                  against_votes, quorum_votes, message_hash, transaction_hash, timestamp_block, actions,
-                  executed, canceled, queued, grace_period, updated_at, created_at"#,
+            "#,
             proposal.proposal_id,
             proposal.contract_address,
             proposal.proposer,
@@ -118,80 +112,66 @@ impl SqlxClient {
             serde_json::to_value(proposal.actions).unwrap(),
             proposal.grace_period,
         )
-        .fetch_one(&self.pool)
-        .await
+        .execute(&self.pool)
+        .await?;
+        Ok(())
     }
 
     pub async fn update_proposal_votes(
         &self,
         proposal: UpdateProposalVotes,
         proposal_id: i32,
-    ) -> Result<ProposalFromDb, anyhow::Error> {
+    ) -> Result<(), anyhow::Error> {
         sqlx::query!(
             r#"UPDATE proposals SET for_votes = $1, against_votes = $2
-            WHERE proposal_id = #3
-            RETURNING
-                  proposal_id, contract_address, proposer, description, start_time, end_time, execution_time, for_votes,
-                  against_votes, quorum_votes, message_hash, transaction_hash, timestamp_block, actions,
-                  executed, canceled, queued, grace_period, updated_at, created_at"#,
+            WHERE proposal_id = $3
+            "#,
             proposal.for_votes,
             proposal.against_votes,
             proposal_id,
         )
-            .fetch_one(&self.pool)
-            .await
+        .execute(&self.pool)
+        .await?;
+        Ok(())
     }
 
-    pub async fn update_proposal_executed(
-        &self,
-        proposal_id: i32,
-    ) -> Result<ProposalFromDb, anyhow::Error> {
+    pub async fn update_proposal_executed(&self, proposal_id: i32) -> Result<(), anyhow::Error> {
         sqlx::query!(
             r#"UPDATE proposals SET executed = true
-            WHERE proposal_id = #1
-            RETURNING
-                  proposal_id, contract_address, proposer, description, start_time, end_time, execution_time, for_votes,
-                  against_votes, quorum_votes, message_hash, transaction_hash, timestamp_block, actions,
-                  executed, canceled, queued, grace_period, updated_at, created_at"#,
+            WHERE proposal_id = $1"#,
             proposal_id,
         )
-            .fetch_one(&self.pool)
-            .await
+        .execute(&self.pool)
+        .await?;
+        Ok(())
     }
 
-    pub async fn update_proposal_canceled(
-        &self,
-        proposal_id: i32,
-    ) -> Result<ProposalFromDb, anyhow::Error> {
+    pub async fn update_proposal_canceled(&self, proposal_id: i32) -> Result<(), anyhow::Error> {
         sqlx::query!(
             r#"UPDATE proposals SET canceled = true
-            WHERE proposal_id = #1
-            RETURNING
-                  proposal_id, contract_address, proposer, description, start_time, end_time, execution_time, for_votes,
-                  against_votes, quorum_votes, message_hash, transaction_hash, timestamp_block, actions,
-                  executed, canceled, queued, grace_period, updated_at, created_at"#,
+            WHERE proposal_id = $1"#,
             proposal_id,
         )
-            .fetch_one(&self.pool)
-            .await
+        .execute(&self.pool)
+        .await?;
+        Ok(())
     }
 
     pub async fn update_proposal_queued(
         &self,
         execution_time: i64,
         proposal_id: i32,
-    ) -> Result<ProposalFromDb, anyhow::Error> {
+    ) -> Result<(), anyhow::Error> {
         sqlx::query!(
             r#"UPDATE proposals SET queued = true, execution_time = $1
-            WHERE proposal_id = #2
-            RETURNING
-                  proposal_id, contract_address, proposer, description, start_time, end_time, execution_time, for_votes,
-                  against_votes, quorum_votes, message_hash, transaction_hash, timestamp_block, actions,
-                  executed, canceled, queued, grace_period, updated_at, created_at"#,
+            WHERE proposal_id = $2
+            "#,
+            execution_time,
             proposal_id,
         )
-            .fetch_one(&self.pool)
-            .await
+        .execute(&self.pool)
+        .await?;
+        Ok(())
     }
 }
 

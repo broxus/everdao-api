@@ -1,5 +1,89 @@
 {
   "db": "PostgreSQL",
+  "0ebbf32aee4488842dfa06c4b24956f3130cb1e8a8e29508674bf6b6a4de107f": {
+    "query": "UPDATE proposals SET for_votes = $1, against_votes = $2\n            WHERE proposal_id = $3\n            ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Numeric",
+          "Int4"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "1240acc0d07a641515f58a390c7db4564abaf1c5d8bdde7f2c78aa50bac96b3a": {
+    "query": "UPDATE proposals SET queued = true, execution_time = $1\n            WHERE proposal_id = $2\n            ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int4"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "3ec57628af480bff5456c754d8c52291f013a1977da89b9767204f2b33878626": {
+    "query": "INSERT INTO votes (proposal_id, voter, support, reason, votes, message_hash, transaction_hash, timestamp_block)\n                          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Varchar",
+          "Bool",
+          "Varchar",
+          "Numeric",
+          "Bytea",
+          "Bytea",
+          "Int4"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "48d7882620137da674cecc784ae40abc9b0506208c6da5b26f5ae2d884a63dfa": {
+    "query": "INSERT INTO proposals (\n            proposal_id, contract_address, proposer, description, start_time, end_time, execution_time, for_votes, against_votes,\n            quorum_votes, message_hash, transaction_hash, timestamp_block, actions, grace_period)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)\n            ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Int8",
+          "Int8",
+          "Int8",
+          "Numeric",
+          "Numeric",
+          "Numeric",
+          "Bytea",
+          "Bytea",
+          "Int4",
+          "Jsonb",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "76d4a6a7c817700434a1430b4006b616aa14d2fad52ded461c4032cecede7c57": {
+    "query": "UPDATE proposals SET canceled = true\n            WHERE proposal_id = $1",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "7974d19fd4f2b23caae0537325954025fcda4f20f3e6407f441a3fd94d69e34a": {
     "query": "SELECT * FROM raw_transactions ORDER BY timestamp_block, timestamp_lt LIMIT $1 OFFSET $2",
     "describe": {
@@ -55,6 +139,18 @@
           "Bytea",
           "Int4",
           "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "fc8ec5a332b5e8b147ce5c82f6701bae04ea0f232ca405c5653eaad646f96c88": {
+    "query": "UPDATE proposals SET executed = true\n            WHERE proposal_id = $1",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int4"
         ]
       },
       "nullable": []

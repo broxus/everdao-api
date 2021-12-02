@@ -1,7 +1,7 @@
 use rust_decimal::Decimal;
 use ton_block::MsgAddressInt;
 
-use crate::models::{VoteOrdering};
+use crate::models::VoteOrdering;
 
 #[derive(Debug, serde::Deserialize, Clone, opg::OpgModel)]
 #[serde(rename_all = "camelCase")]

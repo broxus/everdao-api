@@ -46,32 +46,3 @@ pub fn get_actions() -> &'static ton_abi::Function {
             .build()
     })
 }
-
-pub mod events {
-    use super::*;
-
-    pub fn proposal_executed() -> &'static ton_abi::Event {
-        static EVENT: OnceCell<ton_abi::Event> = OnceCell::new();
-        EVENT.get_or_init(|| {
-            EventBuilder::new("Executed")
-                .inputs(ProposalExecuted::param_type())
-                .build()
-        })
-    }
-    pub fn proposal_canceled() -> &'static ton_abi::Event {
-        static EVENT: OnceCell<ton_abi::Event> = OnceCell::new();
-        EVENT.get_or_init(|| {
-            EventBuilder::new("Canceled")
-                .inputs(ProposalCanceled::param_type())
-                .build()
-        })
-    }
-    pub fn proposal_queued() -> &'static ton_abi::Event {
-        static EVENT: OnceCell<ton_abi::Event> = OnceCell::new();
-        EVENT.get_or_init(|| {
-            EventBuilder::new("Queued")
-                .inputs(ProposalQueued::param_type())
-                .build()
-        })
-    }
-}

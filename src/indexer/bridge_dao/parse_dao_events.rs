@@ -2,6 +2,7 @@ use anyhow::Context;
 use nekoton_abi::*;
 use nekoton_utils::repack_address;
 use sqlx::types::Decimal;
+use ton_abi::{TokenValue, Uint};
 use ton_block::MsgAddressInt;
 use ton_consumer::TransactionProducer;
 
@@ -25,7 +26,13 @@ pub async fn parse_proposal_created_event(
         .run_local(
             &dao_address,
             &expected_proposal_address(),
-            &[answer_id(), data.proposal_id],
+            &[
+                answer_id(),
+                ton_abi::Token::new(
+                    "proposalId",
+                    TokenValue::Uint(Uint::new(data.proposal_id as u128, 32)),
+                ),
+            ],
         )
         .await?
         .context("none function output")?;
@@ -107,7 +114,10 @@ pub async fn parse_vote_cast_event(
         .run_local(
             &dao_root,
             &expected_proposal_address(),
-            &[answer_id(), id],
+            &[
+                answer_id(),
+                ton_abi::Token::new("proposalId", TokenValue::Uint(Uint::new(id as u128, 32))),
+            ],
         )
         .await?
         .context("none function output")?;

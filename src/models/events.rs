@@ -17,8 +17,13 @@ impl AllEvents {
         }
     }
 
-    pub fn get_all_events(&self) -> &[AnyExtractable] {
-        &[&*self.dao_root, &*self.user_data, &*self.proposal].concat()
+    pub fn get_all_events(&self) -> Vec<AnyExtractable> {
+        self.dao_root
+            .clone()
+            .into_iter()
+            .chain(self.user_data.clone().into_iter())
+            .chain(self.proposal.clone().into_iter())
+            .collect()
     }
 }
 

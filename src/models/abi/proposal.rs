@@ -1,15 +1,14 @@
 use nekoton_abi::*;
-use std::str::FromStr;
 use ton_block::MsgAddressInt;
-use ton_types::{Cell, UInt256};
+use ton_types::UInt256;
 
-#[derive(Debug, Clone, PackAbiPlain, UnpackAbiPlain, KnownParamTypePlain)]
+#[derive(Debug, Clone, UnpackAbiPlain, KnownParamTypePlain)]
 pub struct GetProposalConfig {
     #[abi]
     pub value0: ProposalConfig,
 }
 
-#[derive(Debug, Clone, PackAbiPlain, UnpackAbiPlain, KnownParamTypePlain)]
+#[derive(Debug, Clone, UnpackAbi, KnownParamType)]
 pub struct ProposalConfig {
     #[abi(uint32, name = "votingDelay")]
     pub voting_delay: u32,
@@ -77,7 +76,7 @@ pub struct EthAction {
     pub call_data: Vec<u8>,
 }
 
-#[derive(Debug, Clone, PackAbiPlain, UnpackAbiPlain, KnownParamTypePlain)]
+#[derive(Debug, Clone, UnpackAbiPlain, KnownParamTypePlain)]
 pub struct GetActions {
     #[abi(array, name = "value0")]
     pub ton_actions: Vec<TonAction>,
@@ -85,19 +84,19 @@ pub struct GetActions {
     pub eth_actions: Vec<EthAction>,
 }
 
-#[derive(Debug, Clone, PackAbiPlain, UnpackAbiPlain, KnownParamTypePlain)]
+#[derive(Debug, Clone, UnpackAbiPlain, KnownParamTypePlain)]
 pub struct ProposalExecuted {
     #[abi(bool, name = "executed")]
     pub executed: bool,
 }
 
-#[derive(Debug, Clone, PackAbiPlain, UnpackAbiPlain, KnownParamTypePlain)]
+#[derive(Debug, Clone, UnpackAbiPlain, KnownParamTypePlain)]
 pub struct ProposalCanceled {
     #[abi(bool, name = "canceled")]
     pub canceled: bool,
 }
 
-#[derive(Debug, Clone, PackAbiPlain, UnpackAbiPlain, KnownParamTypePlain)]
+#[derive(Debug, Clone, UnpackAbiPlain, KnownParamTypePlain)]
 pub struct ProposalQueued {
     #[abi(uint32, name = "executionTime_")]
     pub execution_time: u32,
