@@ -60,6 +60,7 @@ pub async fn start_server() -> StdResult<()> {
         ));
     }
 
+    log::debug!("start http server");
     let service = Arc::new(Services::new(sqlx_client.clone()));
     tokio::spawn(http_service(config.server_addr, service, sqlx_client));
 

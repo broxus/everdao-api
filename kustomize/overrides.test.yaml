@@ -21,7 +21,7 @@ spec:
               memory: 256Mi
           env:
             - name: RUST_LOG
-              value: "bridge_dao_indexer=debug,dexpa=debug,warp=debug,node_indexer=debug,tiny_adnl=info"
+              value: "bridge_dao_indexer=debug,dexpa=debug,warp=debug,ton-consumer=debug"
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
@@ -47,8 +47,8 @@ spec:
                   name: ton-kafka-credentials
                   key: ton_kafka_password
             - name: STATES_RPC_ENDPOINT
-              value: "http://35.240.13.113:8082"
+              value: "http://35.240.13.113:8081"
             - name: KAFKA_GROUP_ID
-              value: "ton-bridge-dao-indexer-test-2"
+              value: "ton-bridge-dao-indexer-test-0"
             - name: KAFKA_CLIENT_ID
               value: "ton-bridge-dao-indexer-test-client"

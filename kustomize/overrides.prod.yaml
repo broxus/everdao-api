@@ -47,7 +47,7 @@ spec:
                   name: ton-kafka-credentials
                   key: ton_kafka_password
             - name: STATES_RPC_ENDPOINT
-              value: "http://35.240.13.113:8082"
+              value: "http://35.240.13.113:8081"
             - name: KAFKA_GROUP_ID
               value: "ton-bridge-dao-indexer-prod-0"
             - name: KAFKA_CLIENT_ID

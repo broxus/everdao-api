@@ -26,7 +26,7 @@ pub async fn http_service(
     let api = filters::server(ctx);
     let cors = warp::cors()
         .allow_any_origin()
-        .allow_headers(vec!["content-type", "authorization", "api-key"])
+        .allow_headers(vec!["content-type"])
         .allow_methods(vec!["GET", "POST", "DELETE", "OPTIONS", "PUT"]);
     let log = warp::log("warp");
     let routes = api.with(log).with(cors);
