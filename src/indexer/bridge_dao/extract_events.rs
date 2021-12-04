@@ -47,15 +47,33 @@ pub async fn extract_dao_root_parsed_events(
                 .await?;
             }
             "Executed" => {
-                parse_proposal_executed_event(contract_address.clone(), sqlx_client, node).await?;
+                parse_proposal_executed_event(
+                    timestamp_block,
+                    contract_address.clone(),
+                    sqlx_client,
+                    node,
+                )
+                .await?;
             }
             "Canceled" => {
-                parse_proposal_canceled_event(contract_address.clone(), sqlx_client, node).await?;
+                parse_proposal_canceled_event(
+                    timestamp_block,
+                    contract_address.clone(),
+                    sqlx_client,
+                    node,
+                )
+                .await?;
             }
             "Queued" => {
                 let data: ProposalQueued = event.input.unpack()?;
-                parse_proposal_queued_event(data, contract_address.clone(), sqlx_client, node)
-                    .await?;
+                parse_proposal_queued_event(
+                    data,
+                    timestamp_block,
+                    contract_address.clone(),
+                    sqlx_client,
+                    node,
+                )
+                .await?;
             }
             _ => {}
         }

@@ -143,6 +143,7 @@ pub async fn parse_vote_cast_event(
 }
 
 pub async fn parse_proposal_executed_event(
+    timestamp_block: i32,
     proposal_address: MsgAddressInt,
     sqlx_client: &SqlxClient,
     node: &TransactionProducer,
@@ -155,13 +156,14 @@ pub async fn parse_proposal_executed_event(
     let proposal: ProposalId = function_output.tokens.unwrap_or_default().unpack()?;
 
     sqlx_client
-        .update_proposal_executed(proposal.id as i32)
+        .update_proposal_executed(proposal.id as i32, timestamp_block)
         .await?;
 
     Ok(())
 }
 
 pub async fn parse_proposal_canceled_event(
+    timestamp_block: i32,
     proposal_address: MsgAddressInt,
     sqlx_client: &SqlxClient,
     node: &TransactionProducer,
@@ -174,7 +176,7 @@ pub async fn parse_proposal_canceled_event(
     let proposal: ProposalId = function_output.tokens.unwrap_or_default().unpack()?;
 
     sqlx_client
-        .update_proposal_canceled(proposal.id as i32)
+        .update_proposal_canceled(proposal.id as i32, timestamp_block)
         .await?;
 
     Ok(())
@@ -182,6 +184,7 @@ pub async fn parse_proposal_canceled_event(
 
 pub async fn parse_proposal_queued_event(
     data: ProposalQueued,
+    timestamp_block: i32,
     proposal_address: MsgAddressInt,
     sqlx_client: &SqlxClient,
     node: &TransactionProducer,
@@ -194,7 +197,11 @@ pub async fn parse_proposal_queued_event(
     let proposal: ProposalId = function_output.tokens.unwrap_or_default().unpack()?;
 
     sqlx_client
-        .update_proposal_queued(data.execution_time as i64, proposal.id as i32)
+        .update_proposal_queued(
+            data.execution_time as i64,
+            proposal.id as i32,
+            timestamp_block,
+        )
         .await?;
 
     Ok(())

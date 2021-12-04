@@ -19,7 +19,7 @@ impl SqlxClient {
 
         let mut query = "SELECT proposal_id, contract_address, proposer, description, start_time, end_time, execution_time, for_votes,
                   against_votes, quorum_votes, message_hash, transaction_hash, timestamp_block, actions,
-                  executed, canceled, queued, grace_period, updated_at, created_at FROM proposals"
+                  executed, canceled, queued, grace_period, updated_at, created_at, canceled_at, executed_at, queued_at FROM proposals"
             .to_string();
         if !updates.is_empty() {
             query = format!("{} WHERE {}", query, updates.iter().format(" AND "));
@@ -83,6 +83,9 @@ impl SqlxClient {
                 grace_period: x.get(17),
                 updated_at: x.get(18),
                 created_at: x.get(19),
+                canceled_at: x.get(20),
+                executed_at: x.get(21),
+                queued_at: x.get(22),
             })
             .collect::<Vec<_>>();
 
@@ -122,12 +125,14 @@ impl SqlxClient {
         proposal: UpdateProposalVotes,
         proposal_id: i32,
     ) -> Result<(), anyhow::Error> {
+        let updated_at = chrono::Utc::now().timestamp();
         sqlx::query!(
-            r#"UPDATE proposals SET for_votes = $1, against_votes = $2
-            WHERE proposal_id = $3
+            r#"UPDATE proposals SET for_votes = $1, against_votes = $2, updated_at = $3
+            WHERE proposal_id = $4
             "#,
             proposal.for_votes,
             proposal.against_votes,
+            updated_at,
             proposal_id,
         )
         .execute(&self.pool)
@@ -135,10 +140,17 @@ impl SqlxClient {
         Ok(())
     }
 
-    pub async fn update_proposal_executed(&self, proposal_id: i32) -> Result<(), anyhow::Error> {
+    pub async fn update_proposal_executed(
+        &self,
+        proposal_id: i32,
+        timestamp_block: i32,
+    ) -> Result<(), anyhow::Error> {
+        let updated_at = chrono::Utc::now().timestamp();
         sqlx::query!(
-            r#"UPDATE proposals SET executed = true
-            WHERE proposal_id = $1"#,
+            r#"UPDATE proposals SET executed = true, executed_at = $1, updated_at = $2
+            WHERE proposal_id = $3"#,
+            timestamp_block,
+            updated_at,
             proposal_id,
         )
         .execute(&self.pool)
@@ -146,10 +158,17 @@ impl SqlxClient {
         Ok(())
     }
 
-    pub async fn update_proposal_canceled(&self, proposal_id: i32) -> Result<(), anyhow::Error> {
+    pub async fn update_proposal_canceled(
+        &self,
+        proposal_id: i32,
+        timestamp_block: i32,
+    ) -> Result<(), anyhow::Error> {
+        let updated_at = chrono::Utc::now().timestamp();
         sqlx::query!(
-            r#"UPDATE proposals SET canceled = true
-            WHERE proposal_id = $1"#,
+            r#"UPDATE proposals SET canceled = true, canceled_at = $1, updated_at = $2
+            WHERE proposal_id = $3"#,
+            timestamp_block,
+            updated_at,
             proposal_id,
         )
         .execute(&self.pool)
@@ -161,12 +180,16 @@ impl SqlxClient {
         &self,
         execution_time: i64,
         proposal_id: i32,
+        timestamp_block: i32,
     ) -> Result<(), anyhow::Error> {
+        let updated_at = chrono::Utc::now().timestamp();
         sqlx::query!(
-            r#"UPDATE proposals SET queued = true, execution_time = $1
-            WHERE proposal_id = $2
+            r#"UPDATE proposals SET queued = true, execution_time = $1, queued_at = $2, updated_at = $3
+            WHERE proposal_id = $4
             "#,
             execution_time,
+            timestamp_block,
+            updated_at,
             proposal_id,
         )
         .execute(&self.pool)

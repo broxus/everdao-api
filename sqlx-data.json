@@ -1,25 +1,13 @@
 {
   "db": "PostgreSQL",
-  "0ebbf32aee4488842dfa06c4b24956f3130cb1e8a8e29508674bf6b6a4de107f": {
-    "query": "UPDATE proposals SET for_votes = $1, against_votes = $2\n            WHERE proposal_id = $3\n            ",
+  "019325f3fa90dc45065750cf042557442abff85351a4001082cc4e925c994a4b": {
+    "query": "UPDATE proposals SET queued = true, execution_time = $1, queued_at = $2, updated_at = $3\n            WHERE proposal_id = $4\n            ",
     "describe": {
       "columns": [],
       "parameters": {
         "Left": [
-          "Numeric",
-          "Numeric",
-          "Int4"
-        ]
-      },
-      "nullable": []
-    }
-  },
-  "1240acc0d07a641515f58a390c7db4564abaf1c5d8bdde7f2c78aa50bac96b3a": {
-    "query": "UPDATE proposals SET queued = true, execution_time = $1\n            WHERE proposal_id = $2\n            ",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
+          "Int8",
+          "Int4",
           "Int8",
           "Int4"
         ]
@@ -72,12 +60,15 @@
       "nullable": []
     }
   },
-  "76d4a6a7c817700434a1430b4006b616aa14d2fad52ded461c4032cecede7c57": {
-    "query": "UPDATE proposals SET canceled = true\n            WHERE proposal_id = $1",
+  "552479f58916207c6ac60c11de8395abfc62588b0a811fc849be15e884a553ca": {
+    "query": "UPDATE proposals SET for_votes = $1, against_votes = $2, updated_at = $3\n            WHERE proposal_id = $4\n            ",
     "describe": {
       "columns": [],
       "parameters": {
         "Left": [
+          "Numeric",
+          "Numeric",
+          "Int8",
           "Int4"
         ]
       },
@@ -129,6 +120,20 @@
       ]
     }
   },
+  "8776631202debac3601d10b611e97f1ef9ac3c2a3ac18dd7660114f7abef0553": {
+    "query": "UPDATE proposals SET executed = true, executed_at = $1, updated_at = $2\n            WHERE proposal_id = $3",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Int8",
+          "Int4"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "953e2bd219fcd6a98b5e8ab3becb36999479ea12fea2e79dd0b09f5ef7a02bbf": {
     "query": "INSERT INTO raw_transactions (transaction, transaction_hash, timestamp_block, timestamp_lt) VALUES($1, $2, $3, $4) ON CONFLICT DO NOTHING",
     "describe": {
@@ -144,12 +149,14 @@
       "nullable": []
     }
   },
-  "fc8ec5a332b5e8b147ce5c82f6701bae04ea0f232ca405c5653eaad646f96c88": {
-    "query": "UPDATE proposals SET executed = true\n            WHERE proposal_id = $1",
+  "9b7c6f28ee44b1a22a1bc11c1e62e48fd1562864e99f312a06f01cd8e5f4b33d": {
+    "query": "UPDATE proposals SET canceled = true, canceled_at = $1, updated_at = $2\n            WHERE proposal_id = $3",
     "describe": {
       "columns": [],
       "parameters": {
         "Left": [
+          "Int4",
+          "Int8",
           "Int4"
         ]
       },

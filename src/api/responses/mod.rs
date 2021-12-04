@@ -14,7 +14,7 @@ pub struct ProposalResponse {
     pub description: String,
     pub start_time: i64,
     pub end_time: i64,
-    pub execution_time: i64,
+    pub execution_time: Option<i64>,
     #[opg("forVotes", string)]
     pub for_votes: Decimal,
     #[opg("againstVotes", string)]
@@ -32,6 +32,9 @@ pub struct ProposalResponse {
     pub state: ProposalState,
     pub updated_at: i64,
     pub created_at: i64,
+    pub canceled_at: Option<i32>,
+    pub executed_at: Option<i32>,
+    pub queued_at: Option<i32>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, opg::OpgModel)]
@@ -90,7 +93,11 @@ impl From<(Vec<ProposalFromDb>, i32)> for ProposalsResponse {
                         description: x.description,
                         start_time: x.start_time,
                         end_time: x.end_time,
-                        execution_time: x.execution_time,
+                        execution_time: if x.execution_time == 0 {
+                            None
+                        } else {
+                            Some(x.execution_time)
+                        },
                         for_votes: x.for_votes,
                         against_votes: x.against_votes,
                         quorum_votes: x.quorum_votes,
@@ -105,6 +112,9 @@ impl From<(Vec<ProposalFromDb>, i32)> for ProposalsResponse {
                         state,
                         updated_at: x.updated_at,
                         created_at: x.created_at,
+                        canceled_at: x.canceled_at,
+                        executed_at: x.executed_at,
+                        queued_at: x.queued_at,
                     }
                 })
                 .collect::<Vec<_>>(),

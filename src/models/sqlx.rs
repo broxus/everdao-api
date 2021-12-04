@@ -58,6 +58,9 @@ pub struct ProposalFromDb {
     pub grace_period: i64,
     pub updated_at: i64,
     pub created_at: i64,
+    pub canceled_at: Option<i32>,
+    pub executed_at: Option<i32>,
+    pub queued_at: Option<i32>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
