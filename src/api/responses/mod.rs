@@ -58,11 +58,11 @@ pub struct VoteResponse {
 #[opg("Stakeholders table response")]
 pub struct ProposalsResponse {
     pub proposals: Vec<ProposalResponse>,
-    pub total_count: i32,
+    pub total_count: i64,
 }
 
-impl From<(Vec<ProposalFromDb>, i32)> for ProposalsResponse {
-    fn from((proposals, total_count): (Vec<ProposalFromDb>, i32)) -> Self {
+impl From<(Vec<ProposalFromDb>, i64)> for ProposalsResponse {
+    fn from((proposals, total_count): (Vec<ProposalFromDb>, i64)) -> Self {
         let now = Utc::now().timestamp();
         Self {
             proposals: proposals
@@ -128,11 +128,11 @@ impl From<(Vec<ProposalFromDb>, i32)> for ProposalsResponse {
 #[opg("Votes response")]
 pub struct VotesResponse {
     pub votes: Vec<VoteResponse>,
-    pub total_count: i32,
+    pub total_count: i64,
 }
 
-impl From<(Vec<VoteFromDb>, i32)> for VotesResponse {
-    fn from((votes, total_count): (Vec<VoteFromDb>, i32)) -> Self {
+impl From<(Vec<VoteFromDb>, i64)> for VotesResponse {
+    fn from((votes, total_count): (Vec<VoteFromDb>, i64)) -> Self {
         Self {
             votes: votes
                 .into_iter()
@@ -148,7 +148,7 @@ impl From<(Vec<VoteFromDb>, i32)> for VotesResponse {
                     created_at: x.created_at,
                 })
                 .collect::<Vec<_>>(),
-            total_count: total_count as i32,
+            total_count,
         }
     }
 }

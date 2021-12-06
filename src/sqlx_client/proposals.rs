@@ -14,7 +14,7 @@ impl SqlxClient {
     pub async fn search_proposals(
         &self,
         input: SearchProposalsRequest,
-    ) -> Result<(Vec<ProposalFromDb>, i32), anyhow::Error> {
+    ) -> Result<(Vec<ProposalFromDb>, i64), anyhow::Error> {
         let (updates, args_len, args, mut args_clone) = filter_proposals_query(&input);
 
         let mut query = "SELECT proposal_id, contract_address, proposer, description, start_time, end_time, execution_time, for_votes,
@@ -30,7 +30,7 @@ impl SqlxClient {
             query_count = format!("{} WHERE {}", query_count, updates.iter().format(" AND "));
         }
 
-        let total_count: i32 = sqlx::query_with(&query_count, args)
+        let total_count: i64 = sqlx::query_with(&query_count, args)
             .fetch_one(&self.pool)
             .await
             .map(|x| x.get(0))

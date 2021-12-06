@@ -10,7 +10,7 @@ impl SqlxClient {
     pub async fn search_votes(
         &self,
         input: SearchVotesRequest,
-    ) -> Result<(Vec<VoteFromDb>, i32), anyhow::Error> {
+    ) -> Result<(Vec<VoteFromDb>, i64), anyhow::Error> {
         let (updates, args_len, args, mut args_clone) = filter_transactions_query(&input);
 
         let mut query = "SELECT
@@ -26,7 +26,7 @@ impl SqlxClient {
             query_count = format!("{} WHERE {}", query_count, updates.iter().format(" AND "));
         }
 
-        let total_count: i32 = sqlx::query_with(&query_count, args)
+        let total_count: i64 = sqlx::query_with(&query_count, args)
             .fetch_one(&self.pool)
             .await
             .map(|x| x.get(0))
