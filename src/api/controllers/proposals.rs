@@ -1,7 +1,7 @@
 use futures::prelude::future::*;
 
 use super::Context;
-use crate::api::responses::{ProposalsResponse, VotesResponse};
+use crate::api::responses::{ProposalsResponse, ProposalsVotesResponse, VotesResponse};
 use crate::api::utils::*;
 use crate::models::{SearchProposalsRequest, SearchVotesRequest};
 
@@ -84,17 +84,16 @@ pub fn post_voters_votes(
 pub fn post_voters_proposals(
     address: String,
     ctx: Context,
-    mut input: SearchProposalsRequest,
+    input: SearchProposalsRequest,
 ) -> BoxFuture<'static, Result<impl warp::Reply, warp::Rejection>> {
     async move {
-        input.proposer = Some(address);
-        let (proposals, total_count) = ctx
+        let (proposals_with_votes, total_count) = ctx
             .services
-            .search_proposals(input)
+            .search_proposals_with_votes(address, input)
             .await
             .map_err(|e| warp::reject::custom(BadRequestError { 0: e.to_string() }))?;
 
-        let res = ProposalsResponse::from((proposals, total_count));
+        let res = ProposalsVotesResponse::from((proposals_with_votes, total_count));
 
         Ok(warp::reply::json(&res))
     }

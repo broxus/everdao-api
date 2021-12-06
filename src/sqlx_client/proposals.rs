@@ -6,7 +6,7 @@ use sqlx::Row;
 
 use crate::models::{
     CreateProposal, ProposalFromDb, ProposalOrdering, ProposalState, SearchProposalsRequest,
-    UpdateProposalVotes,
+    UpdateProposalVotes, VoteFromDb,
 };
 use crate::sqlx_client::SqlxClient;
 
@@ -86,6 +86,107 @@ impl SqlxClient {
                 canceled_at: x.get(20),
                 executed_at: x.get(21),
                 queued_at: x.get(22),
+            })
+            .collect::<Vec<_>>();
+
+        Ok((res, total_count))
+    }
+
+    pub async fn search_proposals_with_votes(
+        &self,
+        address: String,
+        mut input: SearchProposalsRequest,
+    ) -> Result<(Vec<(ProposalFromDb, VoteFromDb)>, i64), anyhow::Error> {
+        input.proposal_id = None;
+        let (updates, args_len, args, mut args_clone) = filter_proposals_query(&input);
+
+        let mut query = format!("SELECT proposals.proposal_id, proposals.contract_address, proposals.proposer, proposals.description, proposals.start_time, proposals.end_time, proposals.execution_time, proposals.for_votes,
+                  proposals.against_votes, proposals.quorum_votes, proposals.message_hash, proposals.transaction_hash, proposals.timestamp_block, proposals.actions,
+                  proposals.executed, proposals.canceled, proposals.queued, proposals.grace_period, proposals.updated_at, proposals.created_at, proposals.canceled_at,
+                  proposals.executed_at, proposals.queued_at,
+                  votes.proposal_id, votes.voter, votes.support, votes.reason, votes.votes, votes.message_hash, votes.transaction_hash, votes.timestamp_block, votes.created_at
+                  FROM proposals inner join votes on proposals.proposal_id = votes.proposal_id
+                  WHERE voter = {}", address);
+        if !updates.is_empty() {
+            query = format!("{} {}", query, updates.iter().format(" AND "));
+        }
+
+        let mut query_count = format!("SELECT COUNT(*) FROM proposals inner join votes on proposals.proposal_id = votes.proposal_id  WHERE voter = {}", address);
+        if !updates.is_empty() {
+            query_count = format!("{} {}", query_count, updates.iter().format(" AND "));
+        }
+
+        let total_count: i64 = sqlx::query_with(&query_count, args)
+            .fetch_one(&self.pool)
+            .await
+            .map(|x| x.get(0))
+            .unwrap_or_default();
+
+        let ordering = if let Some(ordering) = input.ordering {
+            match ordering {
+                ProposalOrdering::CreatedAtDesc => "ORDER BY votes.timestamp_block DESC",
+                ProposalOrdering::CreatedAtAsc => "ORDER BY votes.timestamp_block",
+            }
+        } else {
+            "ORDER BY votes.timestamp_block DESC"
+        };
+
+        query = format!(
+            "{} {} OFFSET ${} LIMIT ${}",
+            query,
+            ordering,
+            args_len + 1,
+            args_len + 2
+        );
+
+        args_clone.add(input.offset);
+        args_clone.add(input.limit);
+
+        let transactions = sqlx::query_with(&query, args_clone)
+            .fetch_all(&self.pool)
+            .await?;
+
+        let res = transactions
+            .into_iter()
+            .map(|x| {
+                (
+                    ProposalFromDb {
+                        proposal_id: x.get(0),
+                        contract_address: x.get(1),
+                        proposer: x.get(2),
+                        description: x.get(3),
+                        start_time: x.get(4),
+                        end_time: x.get(5),
+                        execution_time: x.get(6),
+                        for_votes: x.get(7),
+                        against_votes: x.get(8),
+                        quorum_votes: x.get(9),
+                        message_hash: x.get(10),
+                        transaction_hash: x.get(11),
+                        timestamp_block: x.get(12),
+                        actions: x.get(13),
+                        executed: x.get(14),
+                        canceled: x.get(15),
+                        queued: x.get(16),
+                        grace_period: x.get(17),
+                        updated_at: x.get(18),
+                        created_at: x.get(19),
+                        canceled_at: x.get(20),
+                        executed_at: x.get(21),
+                        queued_at: x.get(22),
+                    },
+                    VoteFromDb {
+                        proposal_id: x.get(23),
+                        voter: x.get(24),
+                        support: x.get(25),
+                        reason: x.get(26),
+                        votes: x.get(27),
+                        message_hash: x.get(28),
+                        transaction_hash: x.get(29),
+                        timestamp_block: x.get(30),
+                        created_at: x.get(31),
+                    },
+                )
             })
             .collect::<Vec<_>>();
 

@@ -55,7 +55,7 @@ pub struct VoteResponse {
 
 #[derive(Debug, Deserialize, Serialize, Clone, opg::OpgModel)]
 #[serde(rename_all = "camelCase")]
-#[opg("Stakeholders table response")]
+#[opg("Proposal table response")]
 pub struct ProposalsResponse {
     pub proposals: Vec<ProposalResponse>,
     pub total_count: i64,
@@ -63,62 +63,63 @@ pub struct ProposalsResponse {
 
 impl From<(Vec<ProposalFromDb>, i64)> for ProposalsResponse {
     fn from((proposals, total_count): (Vec<ProposalFromDb>, i64)) -> Self {
-        let now = Utc::now().timestamp();
         Self {
-            proposals: proposals
-                .into_iter()
-                .map(|x| {
-                    let state = if x.canceled {
-                        ProposalState::Canceled
-                    } else if x.executed {
-                        ProposalState::Executed
-                    } else if now <= x.start_time {
-                        ProposalState::Pending
-                    } else if now <= x.end_time {
-                        ProposalState::Active
-                    } else if x.for_votes <= x.against_votes || x.for_votes < x.quorum_votes {
-                        ProposalState::Failed
-                    } else if x.execution_time == 0 {
-                        ProposalState::Succeeded
-                    } else if now > x.execution_time + x.grace_period {
-                        ProposalState::Expired
-                    } else {
-                        ProposalState::Queued
-                    };
-
-                    ProposalResponse {
-                        proposal_id: x.proposal_id,
-                        contract_address: x.contract_address,
-                        proposer: x.proposer,
-                        description: x.description,
-                        start_time: x.start_time,
-                        end_time: x.end_time,
-                        execution_time: if x.execution_time == 0 {
-                            None
-                        } else {
-                            Some(x.execution_time)
-                        },
-                        for_votes: x.for_votes,
-                        against_votes: x.against_votes,
-                        quorum_votes: x.quorum_votes,
-                        message_hash: hex::encode(x.message_hash),
-                        transaction_hash: hex::encode(x.transaction_hash),
-                        timestamp_block: x.timestamp_block,
-                        actions: serde_json::from_value(x.actions).unwrap(),
-                        executed: x.executed,
-                        canceled: x.canceled,
-                        queued: x.queued,
-                        grace_period: x.grace_period,
-                        state,
-                        updated_at: x.updated_at,
-                        created_at: x.created_at,
-                        canceled_at: x.canceled_at,
-                        executed_at: x.executed_at,
-                        queued_at: x.queued_at,
-                    }
-                })
-                .collect::<Vec<_>>(),
+            proposals: proposals.into_iter().map(From::from).collect::<Vec<_>>(),
             total_count,
+        }
+    }
+}
+
+impl From<ProposalFromDb> for ProposalResponse {
+    fn from(x: ProposalFromDb) -> Self {
+        let now = Utc::now().timestamp();
+        let state = if x.canceled {
+            ProposalState::Canceled
+        } else if x.executed {
+            ProposalState::Executed
+        } else if now <= x.start_time {
+            ProposalState::Pending
+        } else if now <= x.end_time {
+            ProposalState::Active
+        } else if x.for_votes <= x.against_votes || x.for_votes < x.quorum_votes {
+            ProposalState::Failed
+        } else if x.execution_time == 0 {
+            ProposalState::Succeeded
+        } else if now > x.execution_time + x.grace_period {
+            ProposalState::Expired
+        } else {
+            ProposalState::Queued
+        };
+
+        Self {
+            proposal_id: x.proposal_id,
+            contract_address: x.contract_address,
+            proposer: x.proposer,
+            description: x.description,
+            start_time: x.start_time,
+            end_time: x.end_time,
+            execution_time: if x.execution_time == 0 {
+                None
+            } else {
+                Some(x.execution_time)
+            },
+            for_votes: x.for_votes,
+            against_votes: x.against_votes,
+            quorum_votes: x.quorum_votes,
+            message_hash: hex::encode(x.message_hash),
+            transaction_hash: hex::encode(x.transaction_hash),
+            timestamp_block: x.timestamp_block,
+            actions: serde_json::from_value(x.actions).unwrap(),
+            executed: x.executed,
+            canceled: x.canceled,
+            queued: x.queued,
+            grace_period: x.grace_period,
+            state,
+            updated_at: x.updated_at,
+            created_at: x.created_at,
+            canceled_at: x.canceled_at,
+            executed_at: x.executed_at,
+            queued_at: x.queued_at,
         }
     }
 }
@@ -134,18 +135,52 @@ pub struct VotesResponse {
 impl From<(Vec<VoteFromDb>, i64)> for VotesResponse {
     fn from((votes, total_count): (Vec<VoteFromDb>, i64)) -> Self {
         Self {
-            votes: votes
+            votes: votes.into_iter().map(From::from).collect::<Vec<_>>(),
+            total_count,
+        }
+    }
+}
+
+impl From<VoteFromDb> for VoteResponse {
+    fn from(x: VoteFromDb) -> Self {
+        Self {
+            transaction_hash: hex::encode(x.transaction_hash),
+            message_hash: hex::encode(x.message_hash),
+            proposal_id: x.proposal_id,
+            voter: x.voter,
+            support: x.support,
+            reason: x.reason,
+            votes: x.votes,
+            timestamp_block: x.timestamp_block,
+            created_at: x.created_at,
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, opg::OpgModel)]
+#[serde(rename_all = "camelCase")]
+#[opg("Proposals with Votes response")]
+pub struct ProposalsVotesResponse {
+    pub proposal_with_votes: Vec<ProposalWithVoteResponse>,
+    pub total_count: i64,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, opg::OpgModel)]
+#[serde(rename_all = "camelCase")]
+#[opg("Proposal with Votes response")]
+pub struct ProposalWithVoteResponse {
+    pub vote: VoteResponse,
+    pub proposal: ProposalResponse,
+}
+
+impl From<(Vec<(ProposalFromDb, VoteFromDb)>, i64)> for ProposalsVotesResponse {
+    fn from((proposal_with_votes, total_count): (Vec<(ProposalFromDb, VoteFromDb)>, i64)) -> Self {
+        Self {
+            proposal_with_votes: proposal_with_votes
                 .into_iter()
-                .map(|x| VoteResponse {
-                    transaction_hash: hex::encode(x.transaction_hash),
-                    message_hash: hex::encode(x.message_hash),
-                    proposal_id: x.proposal_id,
-                    voter: x.voter,
-                    support: x.support,
-                    reason: x.reason,
-                    votes: x.votes,
-                    timestamp_block: x.timestamp_block,
-                    created_at: x.created_at,
+                .map(|(p, v)| ProposalWithVoteResponse {
+                    vote: v.into(),
+                    proposal: p.into(),
                 })
                 .collect::<Vec<_>>(),
             total_count,

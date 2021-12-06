@@ -63,7 +63,7 @@ pub fn swagger() -> String {
                     summary: "Voter proposals search",
                     description: "Get voter proposals data.",
                     body: models::SearchProposalsRequest,
-                    200: responses::ProposalsResponse,
+                    200: responses::ProposalsVotesResponse,
                 }
             },
         }
