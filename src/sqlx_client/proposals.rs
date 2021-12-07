@@ -106,12 +106,12 @@ impl SqlxClient {
                   proposals.executed_at, proposals.queued_at,
                   votes.proposal_id, votes.voter, votes.support, votes.reason, votes.votes, votes.message_hash, votes.transaction_hash, votes.timestamp_block, votes.created_at
                   FROM proposals inner join votes on proposals.proposal_id = votes.proposal_id
-                  WHERE voter = {}", address);
+                  WHERE voter = '{}'", address);
         if !updates.is_empty() {
             query = format!("{} {}", query, updates.iter().format(" AND "));
         }
 
-        let mut query_count = format!("SELECT COUNT(*) FROM proposals inner join votes on proposals.proposal_id = votes.proposal_id  WHERE voter = {}", address);
+        let mut query_count = format!("SELECT COUNT(*) FROM proposals inner join votes on proposals.proposal_id = votes.proposal_id  WHERE voter = '{}'", address);
         if !updates.is_empty() {
             query_count = format!("{} {}", query_count, updates.iter().format(" AND "));
         }
