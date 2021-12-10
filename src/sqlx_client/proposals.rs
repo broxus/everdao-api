@@ -11,15 +11,120 @@ use crate::models::{
 use crate::sqlx_client::SqlxClient;
 
 impl SqlxClient {
+    pub async fn create_proposal(&self, proposal: CreateProposal) -> Result<(), anyhow::Error> {
+        sqlx::query!(
+            r#"INSERT INTO proposals (
+            id, address, proposer, description, start_time, end_time, execution_time, grace_period, for_votes,
+            against_votes, quorum_votes, message_hash, transaction_hash, timestamp_block, actions)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+            "#,
+            proposal.id,
+            proposal.address,
+            proposal.proposer,
+            proposal.description,
+            proposal.start_time,
+            proposal.end_time,
+            proposal.execution_time,
+            proposal.grace_period,
+            proposal.for_votes,
+            proposal.against_votes,
+            proposal.quorum_votes,
+            proposal.message_hash,
+            proposal.transaction_hash,
+            proposal.timestamp_block,
+            serde_json::to_value(proposal.actions).unwrap(),
+        )
+            .execute(&self.pool)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn update_proposal_executed(
+        &self,
+        proposal_id: i32,
+        timestamp_block: i32,
+    ) -> Result<(), anyhow::Error> {
+        let updated_at = chrono::Utc::now().timestamp();
+        sqlx::query!(
+            r#"UPDATE proposals SET executed = true, executed_at = $1, updated_at = $2
+            WHERE id = $3"#,
+            timestamp_block,
+            updated_at,
+            proposal_id,
+        )
+        .execute(&self.pool)
+        .await?;
+        Ok(())
+    }
+
+    pub async fn update_proposal_canceled(
+        &self,
+        proposal_id: i32,
+        timestamp_block: i32,
+    ) -> Result<(), anyhow::Error> {
+        let updated_at = chrono::Utc::now().timestamp();
+        sqlx::query!(
+            r#"UPDATE proposals SET canceled = true, canceled_at = $1, updated_at = $2
+            WHERE id = $3"#,
+            timestamp_block,
+            updated_at,
+            proposal_id,
+        )
+        .execute(&self.pool)
+        .await?;
+        Ok(())
+    }
+
+    pub async fn update_proposal_queued(
+        &self,
+        execution_time: i64,
+        proposal_id: i32,
+        timestamp_block: i32,
+    ) -> Result<(), anyhow::Error> {
+        let updated_at = chrono::Utc::now().timestamp();
+        sqlx::query!(
+            r#"UPDATE proposals SET queued = true, execution_time = $1, queued_at = $2, updated_at = $3
+            WHERE id = $4
+            "#,
+            execution_time,
+            timestamp_block,
+            updated_at,
+            proposal_id,
+        )
+            .execute(&self.pool)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn update_proposal_votes(
+        &self,
+        proposal_id: i32,
+        proposal_votes: UpdateProposalVotes,
+    ) -> Result<(), anyhow::Error> {
+        let updated_at = chrono::Utc::now().timestamp();
+        sqlx::query!(
+            r#"UPDATE proposals SET for_votes = $2, against_votes = $3, updated_at = $4
+            WHERE id = $1
+            "#,
+            proposal_id,
+            proposal_votes.for_votes,
+            proposal_votes.against_votes,
+            updated_at,
+        )
+        .execute(&self.pool)
+        .await?;
+        Ok(())
+    }
+
     pub async fn search_proposals(
         &self,
         input: SearchProposalsRequest,
     ) -> Result<(Vec<ProposalFromDb>, i64), anyhow::Error> {
         let (updates, args_len, args, mut args_clone) = filter_proposals_query(&input);
 
-        let mut query = "SELECT proposal_id, contract_address, proposer, description, start_time, end_time, execution_time, for_votes,
+        let mut query = "SELECT id, address, proposer, description, start_time, end_time, execution_time, for_votes,
                   against_votes, quorum_votes, message_hash, transaction_hash, timestamp_block, actions,
-                  executed, canceled, queued, grace_period, updated_at, created_at, canceled_at, executed_at, queued_at FROM proposals"
+                  executed, canceled, queued, updated_at, created_at, canceled_at, executed_at, queued_at FROM proposals"
             .to_string();
         if !updates.is_empty() {
             query = format!("{} WHERE {}", query, updates.iter().format(" AND "));
@@ -192,111 +297,6 @@ impl SqlxClient {
 
         Ok((res, total_count))
     }
-
-    pub async fn create_proposal(&self, proposal: CreateProposal) -> Result<(), anyhow::Error> {
-        sqlx::query!(
-            r#"INSERT INTO proposals (
-            proposal_id, contract_address, proposer, description, start_time, end_time, execution_time, for_votes, against_votes,
-            quorum_votes, message_hash, transaction_hash, timestamp_block, actions, grace_period)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-            "#,
-            proposal.proposal_id,
-            proposal.contract_address,
-            proposal.proposer,
-            proposal.description,
-            proposal.start_time,
-            proposal.end_time,
-            proposal.execution_time,
-            proposal.for_votes,
-            proposal.against_votes,
-            proposal.quorum_votes,
-            proposal.message_hash,
-            proposal.transaction_hash,
-            proposal.timestamp_block,
-            serde_json::to_value(proposal.actions).unwrap(),
-            proposal.grace_period,
-        )
-        .execute(&self.pool)
-        .await?;
-        Ok(())
-    }
-
-    pub async fn update_proposal_votes(
-        &self,
-        proposal: UpdateProposalVotes,
-        proposal_id: i32,
-    ) -> Result<(), anyhow::Error> {
-        let updated_at = chrono::Utc::now().timestamp();
-        sqlx::query!(
-            r#"UPDATE proposals SET for_votes = $1, against_votes = $2, updated_at = $3
-            WHERE proposal_id = $4
-            "#,
-            proposal.for_votes,
-            proposal.against_votes,
-            updated_at,
-            proposal_id,
-        )
-        .execute(&self.pool)
-        .await?;
-        Ok(())
-    }
-
-    pub async fn update_proposal_executed(
-        &self,
-        proposal_id: i32,
-        timestamp_block: i32,
-    ) -> Result<(), anyhow::Error> {
-        let updated_at = chrono::Utc::now().timestamp();
-        sqlx::query!(
-            r#"UPDATE proposals SET executed = true, executed_at = $1, updated_at = $2
-            WHERE proposal_id = $3"#,
-            timestamp_block,
-            updated_at,
-            proposal_id,
-        )
-        .execute(&self.pool)
-        .await?;
-        Ok(())
-    }
-
-    pub async fn update_proposal_canceled(
-        &self,
-        proposal_id: i32,
-        timestamp_block: i32,
-    ) -> Result<(), anyhow::Error> {
-        let updated_at = chrono::Utc::now().timestamp();
-        sqlx::query!(
-            r#"UPDATE proposals SET canceled = true, canceled_at = $1, updated_at = $2
-            WHERE proposal_id = $3"#,
-            timestamp_block,
-            updated_at,
-            proposal_id,
-        )
-        .execute(&self.pool)
-        .await?;
-        Ok(())
-    }
-
-    pub async fn update_proposal_queued(
-        &self,
-        execution_time: i64,
-        proposal_id: i32,
-        timestamp_block: i32,
-    ) -> Result<(), anyhow::Error> {
-        let updated_at = chrono::Utc::now().timestamp();
-        sqlx::query!(
-            r#"UPDATE proposals SET queued = true, execution_time = $1, queued_at = $2, updated_at = $3
-            WHERE proposal_id = $4
-            "#,
-            execution_time,
-            timestamp_block,
-            updated_at,
-            proposal_id,
-        )
-        .execute(&self.pool)
-        .await?;
-        Ok(())
-    }
 }
 
 pub fn filter_proposals_query(
@@ -381,10 +381,10 @@ pub fn filter_proposals_query(
                 args_clone.add(now);
             }
             ProposalState::Canceled => {
-                updates.push(format!("canceled = true"));
+                updates.push("canceled = true".to_string());
             }
             ProposalState::Executed => {
-                updates.push(format!("executed = true"));
+                updates.push("executed = true".to_string());
             }
             ProposalState::Failed => {
                 updates.push(format!("end_time < ${}", args_len + 1,));
@@ -392,9 +392,8 @@ pub fn filter_proposals_query(
                 args.add(now);
                 args_clone.add(now);
 
-                updates.push(format!(
-                    "(for_votes <= against_votes OR for_votes < quorum_votes)"
-                ));
+                updates
+                    .push("(for_votes <= against_votes OR for_votes < quorum_votes)".to_string());
             }
             ProposalState::Succeeded => {
                 updates.push(format!("end_time < ${}", args_len + 1,));
@@ -402,9 +401,10 @@ pub fn filter_proposals_query(
                 args.add(now);
                 args_clone.add(now);
 
-                updates.push(format!(
+                updates.push(
                     "(for_votes > against_votes AND for_votes >= quorum_votes AND queued = false)"
-                ));
+                        .to_string(),
+                );
             }
             ProposalState::Expired => {
                 updates.push(format!(
@@ -415,9 +415,8 @@ pub fn filter_proposals_query(
                 args.add(now);
                 args_clone.add(now);
 
-                updates.push(format!(
-                    "(for_votes > against_votes AND for_votes >= quorum_votes AND queued = true AND executed = false)"
-                ));
+                updates.push(
+                    "(for_votes > against_votes AND for_votes >= quorum_votes AND queued = true AND executed = false)".to_string());
             }
             ProposalState::Queued => {
                 updates.push(format!(
@@ -428,9 +427,8 @@ pub fn filter_proposals_query(
                 args.add(now);
                 args_clone.add(now);
 
-                updates.push(format!(
-                    "(for_votes > against_votes AND for_votes >= quorum_votes AND queued = true AND executed = false)"
-                ));
+                updates.push(
+                    "(for_votes > against_votes AND for_votes >= quorum_votes AND queued = true AND executed = false)".to_string());
             }
         }
     }

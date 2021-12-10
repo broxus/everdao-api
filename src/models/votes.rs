@@ -1,5 +1,4 @@
 use rust_decimal::Decimal;
-use ton_block::MsgAddressInt;
 
 use crate::models::VoteOrdering;
 
@@ -24,29 +23,4 @@ pub struct CreateVote {
     pub message_hash: Vec<u8>,
     pub transaction_hash: Vec<u8>,
     pub timestamp_block: i32,
-}
-
-impl CreateVote {
-    pub fn new(
-        timestamp_block: i32,
-        message_hash: Vec<u8>,
-        transaction_hash: Vec<u8>,
-        vote: super::abi::VoteCast,
-        voter: MsgAddressInt,
-    ) -> Self {
-        Self {
-            proposal_id: vote.proposal_id as i32,
-            votes: Decimal::from(vote.votes),
-            reason: vote.reason,
-            support: vote.support,
-            voter: format!(
-                "{}:{}",
-                voter.workchain_id(),
-                voter.address().to_hex_string()
-            ),
-            message_hash,
-            transaction_hash,
-            timestamp_block,
-        }
-    }
 }

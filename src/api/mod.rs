@@ -76,7 +76,7 @@ mod filters {
 
     pub fn proposals(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
         warp::path("proposals")
-            .and(post_search_proposals(ctx.clone()).or(post_proposal_votes(ctx.clone())))
+            .and(post_search_proposals(ctx.clone()).or(post_proposal_votes(ctx)))
             .boxed()
     }
 
@@ -85,7 +85,7 @@ mod filters {
             .and(
                 post_voters_votes(ctx.clone())
                     .or(post_voter_votes(ctx.clone()))
-                    .or(post_voters_proposals(ctx.clone())),
+                    .or(post_voters_proposals(ctx)),
             )
             .boxed()
     }

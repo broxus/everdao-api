@@ -8,8 +8,8 @@ pub fn get_user_data_details() -> &'static ton_abi::Function {
     static FUNCTION: OnceCell<ton_abi::Function> = OnceCell::new();
     FUNCTION.get_or_init(|| {
         FunctionBuilder::new_responsible("getDetails")
-            .time_header()
-            .outputs(GetDetails::param_type())
+            .default_headers()
+            .output("details", GetDetails::param_type())
             .build()
     })
 }

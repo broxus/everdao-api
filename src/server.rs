@@ -15,8 +15,7 @@ use crate::settings::*;
 use crate::sqlx_client::*;
 
 pub async fn start_server() -> StdResult<()> {
-    let config = get_config();
-    let config = Arc::new(config);
+    let config = Arc::new(get_config());
     stackdriver_logger::init_with_cargo!();
 
     std::panic::set_hook(Box::new(handle_panic));
@@ -47,7 +46,7 @@ pub async fn start_server() -> StdResult<()> {
 
     let stream_transactions = transaction_producer
         .clone()
-        .stream_blocks()
+        .stream_transactions()
         .await
         .trust_me();
 

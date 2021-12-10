@@ -7,6 +7,24 @@ use crate::models::{CreateVote, SearchVotesRequest, VoteFromDb, VoteOrdering};
 use crate::sqlx_client::SqlxClient;
 
 impl SqlxClient {
+    pub async fn create_vote(&self, vote: CreateVote) -> Result<(), anyhow::Error> {
+        sqlx::query!(
+            r#"INSERT INTO votes (proposal_id, voter, support, reason, votes, message_hash, transaction_hash, timestamp_block)
+                          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"#,
+            vote.proposal_id,
+            vote.voter,
+            vote.support,
+            vote.reason,
+            vote.votes,
+            vote.message_hash,
+            vote.transaction_hash,
+            vote.timestamp_block
+        )
+            .execute(&self.pool)
+            .await?;
+        Ok(())
+    }
+
     pub async fn search_votes(
         &self,
         input: SearchVotesRequest,
@@ -72,24 +90,6 @@ impl SqlxClient {
             .collect::<Vec<_>>();
 
         Ok((res, total_count))
-    }
-
-    pub async fn create_vote(&self, vote: CreateVote) -> Result<(), anyhow::Error> {
-        sqlx::query!(
-            r#"INSERT INTO votes (proposal_id, voter, support, reason, votes, message_hash, transaction_hash, timestamp_block)
-                          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"#,
-            vote.proposal_id,
-            vote.voter,
-            vote.support,
-            vote.reason,
-            vote.votes,
-            vote.message_hash,
-            vote.transaction_hash,
-            vote.timestamp_block
-        )
-        .execute(&self.pool)
-        .await?;
-        Ok(())
     }
 }
 

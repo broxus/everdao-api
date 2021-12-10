@@ -1234,7 +1234,7 @@ dependencies = [
 [[package]]
 name = "indexer-lib"
 version = "0.3.0"
-source = "git+ssh://git@gitlab.dexpa.io/broxus/legacy-node-indexer#93b04ff61672b7335d8dffba2d5ff71f99fcf933"
+source = "git+ssh://git@gitlab.dexpa.io/broxus/legacy-node-indexer#506d7497612a6a423488fc08ab7130821543bf7e"
 dependencies = [
  "anyhow",
  "log",
@@ -1305,6 +1305,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7cc9ffccd38c451a86bf13657df244e9c3f37493cce8e5e21e940963777acc84"
 dependencies = [
  "wasm-bindgen",
+]
+
+[[package]]
+name = "krb5-src"
+version = "0.2.4+1.18.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a01c2b7c3b70ca41646dafc8fc3b6053a8a0da9301251e8da8548fb067462d81"
+dependencies = [
+ "duct",
+ "openssl-sys",
 ]
 
 [[package]]
@@ -1542,7 +1552,7 @@ dependencies = [
 [[package]]
 name = "nekoton"
 version = "0.9.0"
-source = "git+https://github.com/broxus/nekoton.git#5780aec36007332b1cfb3d8830dbd080392d2509"
+source = "git+https://github.com/broxus/nekoton.git#451ef9c440281ed948f47972c83148c4cb365683"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1585,7 +1595,7 @@ dependencies = [
 [[package]]
 name = "nekoton-abi"
 version = "0.9.0"
-source = "git+https://github.com/broxus/nekoton.git#5780aec36007332b1cfb3d8830dbd080392d2509"
+source = "git+https://github.com/broxus/nekoton.git#451ef9c440281ed948f47972c83148c4cb365683"
 dependencies = [
  "anyhow",
  "base64",
@@ -1611,7 +1621,7 @@ dependencies = [
 [[package]]
 name = "nekoton-contracts"
 version = "0.9.0"
-source = "git+https://github.com/broxus/nekoton.git#5780aec36007332b1cfb3d8830dbd080392d2509"
+source = "git+https://github.com/broxus/nekoton.git#451ef9c440281ed948f47972c83148c4cb365683"
 dependencies = [
  "once_cell",
  "ton_abi",
@@ -1621,7 +1631,7 @@ dependencies = [
 [[package]]
 name = "nekoton-derive"
 version = "0.9.0"
-source = "git+https://github.com/broxus/nekoton.git#5780aec36007332b1cfb3d8830dbd080392d2509"
+source = "git+https://github.com/broxus/nekoton.git#451ef9c440281ed948f47972c83148c4cb365683"
 dependencies = [
  "either",
  "proc-macro2 1.0.32",
@@ -1632,7 +1642,7 @@ dependencies = [
 [[package]]
 name = "nekoton-utils"
 version = "0.9.0"
-source = "git+https://github.com/broxus/nekoton.git#5780aec36007332b1cfb3d8830dbd080392d2509"
+source = "git+https://github.com/broxus/nekoton.git#451ef9c440281ed948f47972c83148c4cb365683"
 dependencies = [
  "anyhow",
  "base64",
@@ -2328,6 +2338,7 @@ checksum = "067d1f7cad609ce2046016915d48caf20d6fc35469b0dae17579eea927c3b1f8"
 dependencies = [
  "cc",
  "duct",
+ "krb5-src",
  "libc",
  "pkg-config",
 ]
@@ -3076,7 +3087,7 @@ dependencies = [
 [[package]]
 name = "ton-consumer"
 version = "0.1.0"
-source = "git+ssh://git@gitlab.dexpa.io/beton/ton-consumer#45a681dee79dd882e7dccec7baf8b059a1d4ed52"
+source = "git+ssh://git@gitlab.dexpa.io/beton/ton-consumer#a6e484416f1d5870cc1efdaf9af81ef0b47de322"
 dependencies = [
  "anyhow",
  "base64",

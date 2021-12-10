@@ -1,7 +1,8 @@
-use indexer_lib::TransactionExt;
-use rust_decimal::Decimal;
 use std::convert::TryFrom;
-use ton_block::{Serializable, Transaction};
+
+use nekoton::transport::models::RawTransaction;
+use rust_decimal::Decimal;
+use ton_block::{GetRepresentationHash, Serializable};
 
 #[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
 pub struct RawTransactionFromDb {
@@ -12,28 +13,21 @@ pub struct RawTransactionFromDb {
     pub created_at: i64,
 }
 
-impl TryFrom<Transaction> for RawTransactionFromDb {
+impl TryFrom<RawTransaction> for RawTransactionFromDb {
     type Error = anyhow::Error;
 
-    fn try_from(transaction: Transaction) -> Result<Self, Self::Error> {
-        let raw_transaction_hash = transaction.tx_hash()?.as_slice().to_vec();
-        let bytes = transaction.write_to_bytes()?;
+    fn try_from(raw_transaction: RawTransaction) -> Result<Self, Self::Error> {
+        let raw_transaction_hash = raw_transaction.data.hash()?.as_slice().to_vec();
+        let bytes = raw_transaction.data.write_to_bytes()?;
 
         Ok(RawTransactionFromDb {
             transaction: bytes,
             transaction_hash: raw_transaction_hash,
-            timestamp_block: transaction.now as i32,
-            timestamp_lt: transaction.lt as i64,
+            timestamp_block: raw_transaction.data.now as i32,
+            timestamp_lt: raw_transaction.data.lt as i64,
             created_at: 0,
         })
     }
-
-    /*fn from(transaction: Transaction) -> Self {
-        RawTransaction {
-            hash: transaction.tx_hash().unwrap(),
-            data: transaction,
-        };
-    }*/
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
