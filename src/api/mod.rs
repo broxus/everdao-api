@@ -13,6 +13,8 @@ use self::controllers::*;
 use crate::services::Services;
 use crate::sqlx_client::SqlxClient;
 
+pub use self::utils::*;
+
 pub async fn http_service(
     server_http_address: SocketAddr,
     services: Arc<Services>,
@@ -34,9 +36,6 @@ pub async fn http_service(
 }
 
 mod filters {
-    use std::pin::Pin;
-
-    use futures::Future;
     use warp::filters::BoxedFilter;
     use warp::Filter;
 
@@ -47,26 +46,30 @@ mod filters {
         warp::any().and(api_v1(ctx).or(healthcheck())).boxed()
     }
 
-    pub fn healthcheck() -> BoxedFilter<(impl warp::Reply,)> {
+    fn healthcheck() -> BoxedFilter<(impl warp::Reply,)> {
         warp::path("healthcheck")
             .and(warp::get())
             .and_then(get_healthcheck)
             .boxed()
     }
 
-    pub fn get_healthcheck(
-    ) -> Pin<Box<dyn Future<Output = Result<impl warp::Reply, warp::Rejection>> + Send + 'static>>
-    {
-        Box::pin(async move { Ok(warp::reply::json(&())) })
+    async fn get_healthcheck() -> Result<impl warp::Reply, warp::Rejection> {
+        Ok(warp::reply::json(&()))
     }
 
-    pub fn api_v1(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
+    fn api_v1(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
         warp::path("v1")
-            .and(swagger().or(proposals(ctx.clone())).or(voters(ctx)))
+            .and(
+                swagger()
+                    .or(post_proposals(ctx.clone()))
+                    .or(post_proposals_search(ctx.clone()))
+                    .or(post_votes_search(ctx.clone()))
+                    .or(post_voters_proposals(ctx)),
+            )
             .boxed()
     }
 
-    pub fn swagger() -> BoxedFilter<(impl warp::Reply,)> {
+    fn swagger() -> BoxedFilter<(impl warp::Reply,)> {
         let docs = docs::swagger();
         warp::path!("swagger.yaml")
             .and(warp::get())
@@ -74,66 +77,27 @@ mod filters {
             .boxed()
     }
 
-    pub fn proposals(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
-        warp::path("proposals")
-            .and(post_search_proposals(ctx.clone()).or(post_proposal_votes(ctx)))
-            .boxed()
-    }
-
-    pub fn voters(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
-        warp::path("voters")
-            .and(
-                post_voters_votes(ctx.clone())
-                    .or(post_voter_votes(ctx.clone()))
-                    .or(post_voters_proposals(ctx)),
-            )
-            .boxed()
-    }
-
-    pub fn post_search_proposals(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
-        warp::path("search")
-            .and(warp::path::end())
+    fn post_proposals(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
+        warp::path!("proposals")
             .and(warp::post())
             .and(with_ctx(ctx))
             .and(json_body())
-            .and_then(controllers::proposals::post_search_proposals)
+            .and_then(controllers::post_proposals)
             .boxed()
     }
 
-    pub fn post_proposal_votes(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
-        warp::path::param()
-            .and(warp::path("votes"))
-            .and(warp::path::end())
+    fn post_proposals_search(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
+        warp::path!("proposals" / "search")
             .and(warp::post())
             .and(with_ctx(ctx))
             .and(json_body())
-            .and_then(controllers::proposals::post_proposal_votes)
-            .boxed()
-    }
-
-    pub fn post_voters_votes(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
-        warp::path("votes")
-            .and(warp::path::end())
-            .and(warp::post())
-            .and(with_ctx(ctx))
-            .and(json_body())
-            .and_then(controllers::proposals::post_voters_votes)
-            .boxed()
-    }
-
-    pub fn post_voter_votes(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
-        warp::path::param()
-            .and(warp::path("votes"))
-            .and(warp::path::end())
-            .and(warp::post())
-            .and(with_ctx(ctx))
-            .and(json_body())
-            .and_then(controllers::proposals::post_voter_votes)
+            .and_then(controllers::post_proposals_search)
             .boxed()
     }
 
     pub fn post_voters_proposals(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
-        warp::path::param()
+        warp::path!("voters" / ..)
+            .and(warp::path::param::<String>())
             .and(warp::path("proposals"))
             .and(warp::path::end())
             .and(warp::post())
@@ -143,50 +107,20 @@ mod filters {
             .boxed()
     }
 
+    fn post_votes_search(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
+        warp::path!("votes" / "search")
+            .and(warp::post())
+            .and(with_ctx(ctx))
+            .and(json_body())
+            .and_then(controllers::post_votes_search)
+            .boxed()
+    }
+
     fn json_body<T>() -> impl Filter<Extract = (T,), Error = warp::Rejection> + Clone
     where
         T: for<'de> serde::Deserialize<'de> + Send,
     {
         warp::body::json()
-    }
-
-    #[allow(unused)]
-    fn query<T>() -> impl Filter<Extract = (T,), Error = warp::Rejection> + Clone
-    where
-        T: for<'de> serde::Deserialize<'de> + Send + 'static,
-    {
-        warp::query()
-    }
-
-    #[allow(unused)]
-    fn optional_query<T>() -> impl Filter<Extract = (T,), Error = std::convert::Infallible> + Clone
-    where
-        T: for<'de> serde::Deserialize<'de> + Default + Send + 'static,
-    {
-        warp::any()
-            .and(warp::query().or(warp::any().map(T::default)))
-            .unify()
-    }
-
-    #[allow(unused)]
-    fn optional_param<T>(
-    ) -> impl Filter<Extract = (Option<T>,), Error = std::convert::Infallible> + Clone
-    where
-        T: for<'de> serde::Deserialize<'de> + std::str::FromStr + Send + 'static,
-    {
-        warp::any()
-            .and(
-                warp::path::param::<T>()
-                    .map(Some)
-                    .or(warp::any().map(|| None)),
-            )
-            .unify()
-    }
-
-    #[allow(unused)]
-    pub fn default_value<T: Default + Send + 'static>(
-    ) -> impl Filter<Extract = (T,), Error = std::convert::Infallible> + Copy {
-        warp::any().map(Default::default)
     }
 
     fn with_ctx(

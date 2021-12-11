@@ -1,21 +1,26 @@
 use rust_decimal::Decimal;
+use serde::Deserialize;
 
 use crate::models::*;
+use crate::utils::*;
 
-#[derive(Debug, serde::Deserialize, Clone, opg::OpgModel)]
-#[serde(rename_all = "camelCase")]
-#[opg("Search proposals request")]
-pub struct SearchProposalsRequest {
-    pub limit: i32,
-    pub offset: i32,
-    pub ordering: Option<ProposalOrdering>,
-    pub proposal_id: Option<i32>,
+pub type ProposalsSearch = Paginated<Ordered<ProposalFilters, ProposalsOrdering>>;
+
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash)]
+pub struct ProposalFilters {
+    pub start_time_ge: Option<u32>,
+    pub start_time_le: Option<u32>,
+
+    pub end_time_ge: Option<u32>,
+    pub end_time_le: Option<u32>,
+
+    pub proposal_id: Option<u32>,
+
     pub proposer: Option<String>,
-    pub start_time_ge: Option<i32>,
-    pub start_time_le: Option<i32>,
-    pub end_time_ge: Option<i32>,
-    pub end_time_le: Option<i32>,
+
     pub state: Option<ProposalState>,
+
+    pub voter: Option<String>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
@@ -88,4 +93,28 @@ impl From<TonAction> for ProposalTonAction {
 pub struct UpdateProposalVotes {
     pub for_votes: Decimal,
     pub against_votes: Decimal,
+}
+
+#[derive(Debug, Copy, Clone, Deserialize, Eq, PartialEq, Hash, opg::OpgModel)]
+#[opg("Proposals ordering")]
+pub struct ProposalsOrdering {
+    pub column: ProposalColumn,
+    pub direction: Direction,
+}
+
+impl Default for ProposalsOrdering {
+    fn default() -> Self {
+        Self {
+            column: ProposalColumn::CreatedAt,
+            direction: Direction::Descending,
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone, Deserialize, Eq, PartialEq, Hash, opg::OpgModel)]
+#[serde(rename_all = "camelCase")]
+#[opg("Proposal column")]
+pub enum ProposalColumn {
+    CreatedAt,
+    UpdatedAt,
 }

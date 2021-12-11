@@ -1,9 +1,13 @@
-pub mod proposals;
-
 use std::sync::Arc;
 
-use crate::services::Services;
-use crate::sqlx_client::SqlxClient;
+use crate::services::*;
+use crate::sqlx_client::*;
+
+pub use self::proposals::*;
+pub use self::votes::*;
+
+pub mod proposals;
+pub mod votes;
 
 #[derive(Clone)]
 pub struct Context {

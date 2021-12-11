@@ -28,9 +28,9 @@ CREATE TABLE IF NOT EXISTS proposals
     executed            BOOLEAN NOT NULL DEFAULT false,
     canceled            BOOLEAN NOT NULL DEFAULT false,
     queued              BOOLEAN NOT NULL DEFAULT false,
-    executed_at         INTEGER NOT NULL,
-    canceled_at         INTEGER NOT NULL,
-    queued_at           INTEGER NOT NULL,
+    executed_at         INTEGER,
+    canceled_at         INTEGER,
+    queued_at           INTEGER,
     updated_at          BIGINT  NOT NULL DEFAULT extract(epoch from (CURRENT_TIMESTAMP(3) at time zone 'utc')) * 1000,
     created_at          BIGINT  NOT NULL DEFAULT extract(epoch from (CURRENT_TIMESTAMP(3) at time zone 'utc')) * 1000,
     PRIMARY KEY (id)

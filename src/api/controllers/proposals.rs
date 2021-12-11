@@ -1,101 +1,45 @@
-use futures::prelude::future::*;
-
 use super::Context;
-use crate::api::responses::{ProposalsResponse, ProposalsVotesResponse, VotesResponse};
+
+use crate::api::requests::*;
+use crate::api::responses::*;
 use crate::api::utils::*;
-use crate::models::{SearchProposalsRequest, SearchVotesRequest};
 
-pub fn post_search_proposals(
+pub async fn post_proposals(
     ctx: Context,
-    input: SearchProposalsRequest,
-) -> BoxFuture<'static, Result<impl warp::Reply, warp::Rejection>> {
-    async move {
-        let (proposals, total_count) = ctx
-            .services
-            .search_proposals(input)
+    input: ProposalByIdRequest,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    Ok(warp::reply::json(
+        &ctx.services
+            .get_proposal(input.id)
             .await
-            .map_err(|e| warp::reject::custom(BadRequestError { 0: e.to_string() }))?;
-
-        let res = ProposalsResponse::from((proposals, total_count));
-
-        Ok(warp::reply::json(&res))
-    }
-    .boxed()
+            .map_err(BadRequestError)?
+            .map(ProposalResponse::from),
+    ))
 }
 
-pub fn post_proposal_votes(
-    proposal_id: i32,
+pub async fn post_proposals_search(
     ctx: Context,
-    mut input: SearchVotesRequest,
-) -> BoxFuture<'static, Result<impl warp::Reply, warp::Rejection>> {
-    async move {
-        input.proposal_id = Some(proposal_id);
-        let (votes, total_count) = ctx
-            .services
-            .search_votes(input)
+    input: ProposalsRequest,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    Ok(reply_sequence(
+        ctx.services
+            .search_proposals(input.into())
             .await
-            .map_err(|e| warp::reject::custom(BadRequestError { 0: e.to_string() }))?;
-
-        let res = VotesResponse::from((votes, total_count));
-
-        Ok(warp::reply::json(&res))
-    }
-    .boxed()
+            .map_err(BadRequestError)?
+            .map(ProposalResponse::from),
+    ))
 }
 
-pub fn post_voter_votes(
+pub async fn post_voters_proposals(
     address: String,
     ctx: Context,
-    mut input: SearchVotesRequest,
-) -> BoxFuture<'static, Result<impl warp::Reply, warp::Rejection>> {
-    async move {
-        input.voter = Some(address);
-        let (votes, total_count) = ctx
-            .services
-            .search_votes(input)
+    input: ProposalsRequest,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    Ok(reply_sequence(
+        ctx.services
+            .search_voter_proposals(address, input.into())
             .await
-            .map_err(|e| warp::reject::custom(BadRequestError { 0: e.to_string() }))?;
-
-        let res = VotesResponse::from((votes, total_count));
-
-        Ok(warp::reply::json(&res))
-    }
-    .boxed()
-}
-
-pub fn post_voters_votes(
-    ctx: Context,
-    input: SearchVotesRequest,
-) -> BoxFuture<'static, Result<impl warp::Reply, warp::Rejection>> {
-    async move {
-        let (votes, total_count) = ctx
-            .services
-            .search_votes(input)
-            .await
-            .map_err(|e| warp::reject::custom(BadRequestError { 0: e.to_string() }))?;
-
-        let res = VotesResponse::from((votes, total_count));
-
-        Ok(warp::reply::json(&res))
-    }
-    .boxed()
-}
-
-pub fn post_voters_proposals(
-    address: String,
-    ctx: Context,
-    input: SearchProposalsRequest,
-) -> BoxFuture<'static, Result<impl warp::Reply, warp::Rejection>> {
-    async move {
-        let (proposals_with_votes, total_count) = ctx
-            .services
-            .search_proposals_with_votes(address, input)
-            .await
-            .map_err(|e| warp::reject::custom(BadRequestError { 0: e.to_string() }))?;
-
-        let res = ProposalsVotesResponse::from((proposals_with_votes, total_count));
-
-        Ok(warp::reply::json(&res))
-    }
-    .boxed()
+            .map_err(BadRequestError)?
+            .map(ProposalResponse::from),
+    ))
 }

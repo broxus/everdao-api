@@ -1,13 +1,11 @@
-use itertools::Itertools;
-use sqlx::postgres::PgArguments;
-use sqlx::Arguments;
-use sqlx::Row;
+use anyhow::Result;
 
-use crate::models::{CreateVote, SearchVotesRequest, VoteFromDb, VoteOrdering};
-use crate::sqlx_client::SqlxClient;
+use crate::models::*;
+use crate::sqlx_client::*;
+use crate::utils::*;
 
 impl SqlxClient {
-    pub async fn create_vote(&self, vote: CreateVote) -> Result<(), anyhow::Error> {
+    pub async fn create_vote(&self, vote: CreateVote) -> Result<()> {
         sqlx::query!(
             r#"INSERT INTO votes (proposal_id, voter, support, reason, votes, message_hash, transaction_hash, timestamp_block)
                           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"#,
@@ -27,97 +25,88 @@ impl SqlxClient {
 
     pub async fn search_votes(
         &self,
-        input: SearchVotesRequest,
-    ) -> Result<(Vec<VoteFromDb>, i64), anyhow::Error> {
-        let (updates, args_len, args, mut args_clone) = filter_transactions_query(&input);
-
-        let mut query = "SELECT
-         proposal_id, voter, support, reason, votes, message_hash, transaction_hash, timestamp_block, created_at
-         FROM votes"
-            .to_string();
-        if !updates.is_empty() {
-            query = format!("{} WHERE {}", query, updates.iter().format(" AND "));
-        }
-
-        let mut query_count = "SELECT COUNT(*) FROM votes".to_string();
-        if !updates.is_empty() {
-            query_count = format!("{} WHERE {}", query_count, updates.iter().format(" AND "));
-        }
-
-        let total_count: i64 = sqlx::query_with(&query_count, args)
-            .fetch_one(&self.pool)
-            .await
-            .map(|x| x.get(0))
-            .unwrap_or_default();
-
-        let ordering = if let Some(ordering) = input.ordering {
-            match ordering {
-                VoteOrdering::CreatedAtAsc => "ORDER BY timestamp_block",
-                VoteOrdering::CreatedAtDesc => "ORDER BY timestamp_block DESC",
-            }
-        } else {
-            "ORDER BY timestamp_block DESC"
-        };
-
-        query = format!(
-            "{} {} OFFSET ${} LIMIT ${}",
-            query,
-            ordering,
-            args_len + 1,
-            args_len + 2
+        input: VotesSearch,
+    ) -> Result<impl Iterator<Item = VoteFromDb> + Send + Sync> {
+        let mut query = OwnedPartBuilder::new().starts_with(
+            "SELECT \
+                proposal_id, voter, support, reason, votes, message_hash, transaction_hash, \
+                timestamp_block, created_at \
+            FROM votes",
         );
 
-        args_clone.add(input.offset);
-        args_clone.add(input.limit);
+        let mut args_len = 0;
 
-        let transactions = sqlx::query_with(&query, args_clone)
-            .fetch_all(&self.pool)
-            .await?;
+        query
+            .push_part(proposal_filters(input.data.filters, &mut args_len))
+            .push(votes_ordering(input.data.ordering))
+            .push_with_arg(
+                {
+                    format!("LIMIT ${}", {
+                        args_len += 1;
+                        args_len
+                    })
+                },
+                max_limit(input.limit),
+            )
+            .push_with_arg(
+                {
+                    format!("OFFSET ${}", {
+                        args_len += 1;
+                        args_len
+                    })
+                },
+                input.offset,
+            );
 
-        let res = transactions
+        let (query, args) = query.split();
+
+        let votes = sqlx::query_with(&query, args).fetch_all(&self.pool).await?;
+
+        Ok(votes
             .into_iter()
-            .map(|x| VoteFromDb {
-                proposal_id: x.get(0),
-                voter: x.get(1),
-                support: x.get(2),
-                reason: x.get(3),
-                votes: x.get(4),
-                message_hash: x.get(5),
-                transaction_hash: x.get(6),
-                timestamp_block: x.get(7),
-                created_at: x.get(8),
-            })
-            .collect::<Vec<_>>();
-
-        Ok((res, total_count))
+            .map(RowReader::from_row)
+            .map(|mut x| VoteFromDb {
+                proposal_id: x.read_next(),
+                voter: x.read_next(),
+                support: x.read_next(),
+                reason: x.read_next(),
+                votes: x.read_next(),
+                message_hash: x.read_next(),
+                transaction_hash: x.read_next(),
+                timestamp_block: x.read_next(),
+                created_at: x.read_next(),
+            }))
     }
 }
 
-pub fn filter_transactions_query(
-    input: &SearchVotesRequest,
-) -> (Vec<String>, i32, PgArguments, PgArguments) {
-    let SearchVotesRequest {
-        proposal_id, voter, ..
-    } = input.clone();
+fn proposal_filters(filters: VoteFilters, args_len: &mut u32) -> impl QueryPart {
+    WhereAndConditions((
+        filters.voter.map(|address| {
+            *args_len += 1;
+            (format!("voter = ${}", *args_len), address)
+        }),
+        filters.proposal_id.map(|proposal_id| {
+            *args_len += 1;
+            (format!("proposal_id = ${}", *args_len), proposal_id)
+        }),
+        filters.support.map(|support| {
+            *args_len += 1;
+            (format!("support = ${}", *args_len), support)
+        }),
+    ))
+}
 
-    let mut args = PgArguments::default();
-    let mut args_clone = PgArguments::default();
-    let mut updates = Vec::new();
-    let mut args_len = 0;
+fn votes_ordering(ordering: Option<VotesOrdering>) -> &'static str {
+    let VotesOrdering { column, direction } = ordering.unwrap_or_default();
 
-    if let Some(proposal_id) = proposal_id {
-        updates.push(format!("proposal_id = ${}", args_len + 1,));
-        args_len += 1;
-        args.add(proposal_id);
-        args_clone.add(proposal_id);
+    match (column, direction) {
+        (VoteColumn::CreatedAt, Direction::Ascending) => "ORDER BY created_at",
+        (VoteColumn::CreatedAt, Direction::Descending) => "ORDER BY created_at DESC",
+        (VoteColumn::UpdatedAt, Direction::Ascending) => "ORDER BY updated_at",
+        (VoteColumn::UpdatedAt, Direction::Descending) => "ORDER BY updated_at DESC",
     }
+}
 
-    if let Some(voter) = voter {
-        updates.push(format!("voter = ${}", args_len + 1,));
-        args_len += 1;
-        args.add(voter.clone());
-        args_clone.add(voter);
-    }
-
-    (updates, args_len, args, args_clone)
+fn max_limit(limit: u32) -> u32 {
+    std::cmp::min(limit, 100)
 }

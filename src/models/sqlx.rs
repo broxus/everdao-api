@@ -32,13 +32,14 @@ impl TryFrom<RawTransaction> for RawTransactionFromDb {
 
 #[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
 pub struct ProposalFromDb {
-    pub proposal_id: i32,
-    pub contract_address: String,
+    pub id: i32,
+    pub address: String,
     pub proposer: String,
     pub description: String,
     pub start_time: i64,
     pub end_time: i64,
     pub execution_time: i64,
+    pub grace_period: i64,
     pub for_votes: Decimal,
     pub against_votes: Decimal,
     pub quorum_votes: Decimal,
@@ -49,12 +50,11 @@ pub struct ProposalFromDb {
     pub executed: bool,
     pub canceled: bool,
     pub queued: bool,
-    pub grace_period: i64,
+    pub executed_at: Option<i32>,
+    pub canceled_at: Option<i32>,
+    pub queued_at: Option<i32>,
     pub updated_at: i64,
     pub created_at: i64,
-    pub canceled_at: Option<i32>,
-    pub executed_at: Option<i32>,
-    pub queued_at: Option<i32>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]

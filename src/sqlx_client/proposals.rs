@@ -1,17 +1,12 @@
+use anyhow::Result;
 use chrono::Utc;
-use itertools::Itertools;
-use sqlx::postgres::PgArguments;
-use sqlx::Arguments;
-use sqlx::Row;
 
-use crate::models::{
-    CreateProposal, ProposalFromDb, ProposalOrdering, ProposalState, SearchProposalsRequest,
-    UpdateProposalVotes, VoteFromDb,
-};
-use crate::sqlx_client::SqlxClient;
+use crate::models::*;
+use crate::sqlx_client::*;
+use crate::utils::*;
 
 impl SqlxClient {
-    pub async fn create_proposal(&self, proposal: CreateProposal) -> Result<(), anyhow::Error> {
+    pub async fn create_proposal(&self, proposal: CreateProposal) -> Result<()> {
         sqlx::query!(
             r#"INSERT INTO proposals (
             id, address, proposer, description, start_time, end_time, execution_time, grace_period, for_votes,
@@ -43,7 +38,7 @@ impl SqlxClient {
         &self,
         proposal_id: i32,
         timestamp_block: i32,
-    ) -> Result<(), anyhow::Error> {
+    ) -> Result<()> {
         let updated_at = chrono::Utc::now().timestamp();
         sqlx::query!(
             r#"UPDATE proposals SET executed = true, executed_at = $1, updated_at = $2
@@ -61,7 +56,7 @@ impl SqlxClient {
         &self,
         proposal_id: i32,
         timestamp_block: i32,
-    ) -> Result<(), anyhow::Error> {
+    ) -> Result<()> {
         let updated_at = chrono::Utc::now().timestamp();
         sqlx::query!(
             r#"UPDATE proposals SET canceled = true, canceled_at = $1, updated_at = $2
@@ -80,7 +75,7 @@ impl SqlxClient {
         execution_time: i64,
         proposal_id: i32,
         timestamp_block: i32,
-    ) -> Result<(), anyhow::Error> {
+    ) -> Result<()> {
         let updated_at = chrono::Utc::now().timestamp();
         sqlx::query!(
             r#"UPDATE proposals SET queued = true, execution_time = $1, queued_at = $2, updated_at = $3
@@ -100,7 +95,7 @@ impl SqlxClient {
         &self,
         proposal_id: i32,
         proposal_votes: UpdateProposalVotes,
-    ) -> Result<(), anyhow::Error> {
+    ) -> Result<()> {
         let updated_at = chrono::Utc::now().timestamp();
         sqlx::query!(
             r#"UPDATE proposals SET for_votes = $2, against_votes = $3, updated_at = $4
@@ -116,322 +111,250 @@ impl SqlxClient {
         Ok(())
     }
 
-    pub async fn search_proposals(
-        &self,
-        input: SearchProposalsRequest,
-    ) -> Result<(Vec<ProposalFromDb>, i64), anyhow::Error> {
-        let (updates, args_len, args, mut args_clone) = filter_proposals_query(&input);
-
-        let mut query = "SELECT id, address, proposer, description, start_time, end_time, execution_time, for_votes,
-                  against_votes, quorum_votes, message_hash, transaction_hash, timestamp_block, actions,
-                  executed, canceled, queued, updated_at, created_at, canceled_at, executed_at, queued_at FROM proposals"
-            .to_string();
-        if !updates.is_empty() {
-            query = format!("{} WHERE {}", query, updates.iter().format(" AND "));
-        }
-
-        let mut query_count = "SELECT COUNT(*) FROM proposals".to_string();
-        if !updates.is_empty() {
-            query_count = format!("{} WHERE {}", query_count, updates.iter().format(" AND "));
-        }
-
-        let total_count: i64 = sqlx::query_with(&query_count, args)
-            .fetch_one(&self.pool)
-            .await
-            .map(|x| x.get(0))
-            .unwrap_or_default();
-
-        let ordering = if let Some(ordering) = input.ordering {
-            match ordering {
-                ProposalOrdering::CreatedAtDesc => "ORDER BY timestamp_block DESC",
-                ProposalOrdering::CreatedAtAsc => "ORDER BY timestamp_block",
-            }
-        } else {
-            "ORDER BY timestamp_block DESC"
-        };
-
-        query = format!(
-            "{} {} OFFSET ${} LIMIT ${}",
-            query,
-            ordering,
-            args_len + 1,
-            args_len + 2
+    pub async fn get_proposal(&self, id: u32) -> Result<Option<ProposalFromDb>> {
+        let mut query = OwnedPartBuilder::new().starts_with(
+                "SELECT \
+                id, address, proposer, description, start_time, end_time, execution_time, \
+                grace_period, for_votes, against_votes, quorum_votes, message_hash, transaction_hash, \
+                timestamp_block, actions, executed, canceled, queued, executed_at, canceled_at, queued_at, \
+                updated_at, created_at \
+            FROM proposals WHERE id = $1",
         );
+        query.push_arg(id);
 
-        args_clone.add(input.offset);
-        args_clone.add(input.limit);
-
-        let transactions = sqlx::query_with(&query, args_clone)
-            .fetch_all(&self.pool)
+        let (query, args) = query.split();
+        let proposal = sqlx::query_with(&query, args)
+            .fetch_optional(&self.pool)
             .await?;
 
-        let res = transactions
-            .into_iter()
-            .map(|x| ProposalFromDb {
-                proposal_id: x.get(0),
-                contract_address: x.get(1),
-                proposer: x.get(2),
-                description: x.get(3),
-                start_time: x.get(4),
-                end_time: x.get(5),
-                execution_time: x.get(6),
-                for_votes: x.get(7),
-                against_votes: x.get(8),
-                quorum_votes: x.get(9),
-                message_hash: x.get(10),
-                transaction_hash: x.get(11),
-                timestamp_block: x.get(12),
-                actions: x.get(13),
-                executed: x.get(14),
-                canceled: x.get(15),
-                queued: x.get(16),
-                grace_period: x.get(17),
-                updated_at: x.get(18),
-                created_at: x.get(19),
-                canceled_at: x.get(20),
-                executed_at: x.get(21),
-                queued_at: x.get(22),
-            })
-            .collect::<Vec<_>>();
-
-        Ok((res, total_count))
+        Ok(proposal
+            .map(RowReader::from_row)
+            .map(|mut x| ProposalFromDb {
+                id: x.read_next(),
+                address: x.read_next(),
+                proposer: x.read_next(),
+                description: x.read_next(),
+                start_time: x.read_next(),
+                end_time: x.read_next(),
+                execution_time: x.read_next(),
+                grace_period: x.read_next(),
+                for_votes: x.read_next(),
+                against_votes: x.read_next(),
+                quorum_votes: x.read_next(),
+                message_hash: x.read_next(),
+                transaction_hash: x.read_next(),
+                timestamp_block: x.read_next(),
+                actions: x.read_next(),
+                executed: x.read_next(),
+                canceled: x.read_next(),
+                queued: x.read_next(),
+                executed_at: x.read_next(),
+                canceled_at: x.read_next(),
+                queued_at: x.read_next(),
+                updated_at: x.read_next(),
+                created_at: x.read_next(),
+            }))
     }
 
-    pub async fn search_proposals_with_votes(
+    pub async fn search_proposals(
         &self,
-        address: String,
-        mut input: SearchProposalsRequest,
-    ) -> Result<(Vec<(ProposalFromDb, VoteFromDb)>, i64), anyhow::Error> {
-        input.proposal_id = None;
-        let (updates, args_len, args, mut args_clone) = filter_proposals_query(&input);
-
-        let mut query = format!("SELECT proposals.proposal_id, proposals.contract_address, proposals.proposer, proposals.description, proposals.start_time, proposals.end_time, proposals.execution_time, proposals.for_votes,
-                  proposals.against_votes, proposals.quorum_votes, proposals.message_hash, proposals.transaction_hash, proposals.timestamp_block, proposals.actions,
-                  proposals.executed, proposals.canceled, proposals.queued, proposals.grace_period, proposals.updated_at, proposals.created_at, proposals.canceled_at,
-                  proposals.executed_at, proposals.queued_at,
-                  votes.proposal_id, votes.voter, votes.support, votes.reason, votes.votes, votes.message_hash, votes.transaction_hash, votes.timestamp_block, votes.created_at
-                  FROM proposals inner join votes on proposals.proposal_id = votes.proposal_id
-                  WHERE voter = '{}'", address);
-        if !updates.is_empty() {
-            query = format!("{} {}", query, updates.iter().format(" AND "));
-        }
-
-        let mut query_count = format!("SELECT COUNT(*) FROM proposals inner join votes on proposals.proposal_id = votes.proposal_id  WHERE voter = '{}'", address);
-        if !updates.is_empty() {
-            query_count = format!("{} {}", query_count, updates.iter().format(" AND "));
-        }
-
-        let total_count: i64 = sqlx::query_with(&query_count, args)
-            .fetch_one(&self.pool)
-            .await
-            .map(|x| x.get(0))
-            .unwrap_or_default();
-
-        let ordering = if let Some(ordering) = input.ordering {
-            match ordering {
-                ProposalOrdering::CreatedAtDesc => "ORDER BY votes.timestamp_block DESC",
-                ProposalOrdering::CreatedAtAsc => "ORDER BY votes.timestamp_block",
-            }
-        } else {
-            "ORDER BY votes.timestamp_block DESC"
+        input: ProposalsSearch,
+    ) -> Result<impl Iterator<Item = ProposalFromDb> + Send + Sync> {
+        let mut query = match input.data.filters.voter {
+            None => OwnedPartBuilder::new().starts_with(
+                "SELECT \
+                id, address, proposer, description, start_time, end_time, execution_time, \
+                grace_period, for_votes, against_votes, quorum_votes, message_hash, transaction_hash, \
+                timestamp_block, actions, executed, canceled, queued, executed_at, canceled_at, queued_at, \
+                updated_at, created_at \
+            FROM proposals",
+            ),
+            Some(_) => OwnedPartBuilder::new().starts_with(
+                "SELECT \
+                proposals.id, proposals.address, proposals.proposer, proposals.description, proposals.start_time, \
+                proposals.end_time, proposals.execution_time, proposals.grace_period, proposals.for_votes, proposals.against_votes, \
+                proposals.quorum_votes, proposals.message_hash, proposals.transaction_hash, proposals.timestamp_block, \
+                proposals.actions, proposals.executed, proposals.canceled, proposals.queued, proposals.executed_at, \
+                proposals.canceled_at, proposals.queued_at, proposals.updated_at, proposals.created_at \
+            FROM proposals INNER JOIN votes on proposals.id = votes.proposal_id",
+            )
         };
 
-        query = format!(
-            "{} {} OFFSET ${} LIMIT ${}",
-            query,
-            ordering,
-            args_len + 1,
-            args_len + 2
-        );
+        let mut args_len = 0;
 
-        args_clone.add(input.offset);
-        args_clone.add(input.limit);
+        query
+            .push_part(proposal_filters(input.data.filters, &mut args_len))
+            .push(proposals_ordering(input.data.ordering))
+            .push_with_arg(
+                {
+                    format!("LIMIT ${}", {
+                        args_len += 1;
+                        args_len
+                    })
+                },
+                max_limit(input.limit),
+            )
+            .push_with_arg(
+                {
+                    format!("OFFSET ${}", {
+                        args_len += 1;
+                        args_len
+                    })
+                },
+                input.offset,
+            );
 
-        let transactions = sqlx::query_with(&query, args_clone)
-            .fetch_all(&self.pool)
-            .await?;
+        let (query, args) = query.split();
 
-        let res = transactions
+        let proposals = sqlx::query_with(&query, args).fetch_all(&self.pool).await?;
+
+        Ok(proposals
             .into_iter()
-            .map(|x| {
-                (
-                    ProposalFromDb {
-                        proposal_id: x.get(0),
-                        contract_address: x.get(1),
-                        proposer: x.get(2),
-                        description: x.get(3),
-                        start_time: x.get(4),
-                        end_time: x.get(5),
-                        execution_time: x.get(6),
-                        for_votes: x.get(7),
-                        against_votes: x.get(8),
-                        quorum_votes: x.get(9),
-                        message_hash: x.get(10),
-                        transaction_hash: x.get(11),
-                        timestamp_block: x.get(12),
-                        actions: x.get(13),
-                        executed: x.get(14),
-                        canceled: x.get(15),
-                        queued: x.get(16),
-                        grace_period: x.get(17),
-                        updated_at: x.get(18),
-                        created_at: x.get(19),
-                        canceled_at: x.get(20),
-                        executed_at: x.get(21),
-                        queued_at: x.get(22),
-                    },
-                    VoteFromDb {
-                        proposal_id: x.get(23),
-                        voter: x.get(24),
-                        support: x.get(25),
-                        reason: x.get(26),
-                        votes: x.get(27),
-                        message_hash: x.get(28),
-                        transaction_hash: x.get(29),
-                        timestamp_block: x.get(30),
-                        created_at: x.get(31),
-                    },
-                )
-            })
-            .collect::<Vec<_>>();
-
-        Ok((res, total_count))
+            .map(RowReader::from_row)
+            .map(|mut x| ProposalFromDb {
+                id: x.read_next(),
+                address: x.read_next(),
+                proposer: x.read_next(),
+                description: x.read_next(),
+                start_time: x.read_next(),
+                end_time: x.read_next(),
+                execution_time: x.read_next(),
+                grace_period: x.read_next(),
+                for_votes: x.read_next(),
+                against_votes: x.read_next(),
+                quorum_votes: x.read_next(),
+                message_hash: x.read_next(),
+                transaction_hash: x.read_next(),
+                timestamp_block: x.read_next(),
+                actions: x.read_next(),
+                executed: x.read_next(),
+                canceled: x.read_next(),
+                queued: x.read_next(),
+                executed_at: x.read_next(),
+                canceled_at: x.read_next(),
+                queued_at: x.read_next(),
+                updated_at: x.read_next(),
+                created_at: x.read_next(),
+            }))
     }
 }
 
-pub fn filter_proposals_query(
-    input: &SearchProposalsRequest,
-) -> (Vec<String>, i32, PgArguments, PgArguments) {
-    let SearchProposalsRequest {
-        proposal_id,
-        proposer,
-        start_time_ge,
-        start_time_le,
-        end_time_ge,
-        end_time_le,
-        state,
-        ..
-    } = input.clone();
+fn proposal_filters(filters: ProposalFilters, args_len: &mut u32) -> impl QueryPart {
+    WhereAndConditions((
+        filters.voter.map(|address| {
+            *args_len += 1;
+            (format!("voter = ${}", *args_len), address)
+        }),
+        filters.start_time_ge.map(|time| {
+            *args_len += 1;
+            (format!("start_time >= ${}", *args_len), time)
+        }),
+        filters.start_time_le.map(|time| {
+            *args_len += 1;
+            (format!("start_time <= ${}", *args_len), time)
+        }),
+        filters.end_time_ge.map(|time| {
+            *args_len += 1;
+            (format!("end_time >= ${}", *args_len), time)
+        }),
+        filters.end_time_le.map(|time| {
+            *args_len += 1;
+            (format!("end_time <= ${}", *args_len), time)
+        }),
+        filters.proposal_id.map(|id| {
+            *args_len += 1;
+            (format!("id = ${}", *args_len), id)
+        }),
+        filters.proposer.map(|proposer| {
+            *args_len += 1;
+            (format!("proposer = ${}", *args_len), proposer)
+        }),
+        filters.state.map(|state| {
+            let now = Utc::now().timestamp();
+            match state {
+                ProposalState::Pending => {
+                    let parts = format!("start_time >= ${}", {
+                        *args_len += 1;
+                        *args_len
+                    });
+                    CustomBuild(parts, vec![CustomBuildType::Int(now)])
+                }
+                ProposalState::Active => {
+                    let parts = format!(
+                        "start_time <= ${} AND end_time > ${}",
+                        {
+                            *args_len += 1;
+                            *args_len
+                        },
+                        {
+                            *args_len += 1;
+                            *args_len
+                        }
+                    );
+                    CustomBuild(parts, vec![CustomBuildType::Int(now), CustomBuildType::Int(now)])
+                }
+                ProposalState::Failed => {
+                    let parts = format!("end_time < ${} AND \
+                    (for_votes <= against_votes OR for_votes < quorum_votes)", {
+                        *args_len += 1;
+                        *args_len
+                    });
+                    CustomBuild(parts, vec![CustomBuildType::Int(now)])
+                }
+                ProposalState::Succeeded => {
+                    let parts = format!("end_time < ${} AND \
+                    (for_votes > against_votes AND for_votes >= quorum_votes AND queued = false)", {
+                        *args_len += 1;
+                        *args_len
+                    });
+                    CustomBuild(parts, vec![CustomBuildType::Int(now)])
+                }
+                ProposalState::Expired => {
+                    let parts = format!("(execution_time + grace_period) < ${} AND \
+                    (for_votes > against_votes AND for_votes >= quorum_votes AND queued = true AND executed = false)", {
+                        *args_len += 1;
+                        *args_len
+                    });
+                    CustomBuild(parts, vec![CustomBuildType::Int(now)])
+                }
+                ProposalState::Queued => {
+                    let parts = format!("(execution_time + grace_period) > ${} AND \
+                    (for_votes > against_votes AND for_votes >= quorum_votes AND queued = true AND executed = false)", {
+                        *args_len += 1;
+                        *args_len
+                    });
+                    CustomBuild(parts, vec![CustomBuildType::Int(now)])
+                }
+                ProposalState::Canceled => {
+                    let parts = format!("canceled = ${}", {
+                        *args_len += 1;
+                        *args_len
+                    });
+                    CustomBuild(parts, vec![CustomBuildType::Bool(true)])
+                }
+                ProposalState::Executed => {
+                    let parts = format!("executed = ${}", {
+                        *args_len += 1;
+                        *args_len
+                    });
+                    CustomBuild(parts, vec![CustomBuildType::Bool(true)])
+                }
+            }
+        }),
+    ))
+}
 
-    let mut args = PgArguments::default();
-    let mut args_clone = PgArguments::default();
-    let mut updates = Vec::new();
-    let mut args_len = 0;
+fn proposals_ordering(ordering: Option<ProposalsOrdering>) -> &'static str {
+    let ProposalsOrdering { column, direction } = ordering.unwrap_or_default();
 
-    if let Some(proposal_id) = proposal_id {
-        updates.push(format!("proposal_id = ${}", args_len + 1,));
-        args_len += 1;
-        args.add(proposal_id);
-        args_clone.add(proposal_id)
+    match (column, direction) {
+        (ProposalColumn::CreatedAt, Direction::Ascending) => "ORDER BY created_at",
+        (ProposalColumn::CreatedAt, Direction::Descending) => "ORDER BY created_at DESC",
+        (ProposalColumn::UpdatedAt, Direction::Ascending) => "ORDER BY updated_at",
+        (ProposalColumn::UpdatedAt, Direction::Descending) => "ORDER BY updated_at DESC",
     }
+}
 
-    if let Some(proposer) = proposer {
-        updates.push(format!("proposer = ${}", args_len + 1,));
-        args_len += 1;
-        args.add(proposer.clone());
-        args_clone.add(proposer);
-    }
-
-    if let Some(start_time_ge) = start_time_ge {
-        updates.push(format!("start_time >= ${}", args_len + 1,));
-        args_len += 1;
-        args.add(start_time_ge);
-        args_clone.add(start_time_ge)
-    }
-
-    if let Some(start_time_le) = start_time_le {
-        updates.push(format!("start_time <= ${}", args_len + 1,));
-        args_len += 1;
-        args.add(start_time_le);
-        args_clone.add(start_time_le)
-    }
-
-    if let Some(end_time_ge) = end_time_ge {
-        updates.push(format!("end_time >= ${}", args_len + 1,));
-        args_len += 1;
-        args.add(end_time_ge);
-        args_clone.add(end_time_ge)
-    }
-
-    if let Some(end_time_le) = end_time_le {
-        updates.push(format!("end_time <= ${}", args_len + 1,));
-        args_len += 1;
-        args.add(end_time_le);
-        args_clone.add(end_time_le)
-    }
-
-    if let Some(state) = state {
-        let now = Utc::now().timestamp();
-        match state {
-            ProposalState::Pending => {
-                updates.push(format!("start_time >= ${}", args_len + 1,));
-                args_len += 1;
-                args.add(now);
-                args_clone.add(now)
-            }
-            ProposalState::Active => {
-                updates.push(format!("start_time <= ${}", args_len + 1,));
-                args_len += 1;
-                args.add(now);
-                args_clone.add(now);
-
-                updates.push(format!("end_time > ${}", args_len + 1,));
-                args_len += 1;
-                args.add(now);
-                args_clone.add(now);
-            }
-            ProposalState::Canceled => {
-                updates.push("canceled = true".to_string());
-            }
-            ProposalState::Executed => {
-                updates.push("executed = true".to_string());
-            }
-            ProposalState::Failed => {
-                updates.push(format!("end_time < ${}", args_len + 1,));
-                args_len += 1;
-                args.add(now);
-                args_clone.add(now);
-
-                updates
-                    .push("(for_votes <= against_votes OR for_votes < quorum_votes)".to_string());
-            }
-            ProposalState::Succeeded => {
-                updates.push(format!("end_time < ${}", args_len + 1,));
-                args_len += 1;
-                args.add(now);
-                args_clone.add(now);
-
-                updates.push(
-                    "(for_votes > against_votes AND for_votes >= quorum_votes AND queued = false)"
-                        .to_string(),
-                );
-            }
-            ProposalState::Expired => {
-                updates.push(format!(
-                    "(execution_time + grace_period) < ${}",
-                    args_len + 1,
-                ));
-                args_len += 1;
-                args.add(now);
-                args_clone.add(now);
-
-                updates.push(
-                    "(for_votes > against_votes AND for_votes >= quorum_votes AND queued = true AND executed = false)".to_string());
-            }
-            ProposalState::Queued => {
-                updates.push(format!(
-                    "(execution_time + grace_period) > ${}",
-                    args_len + 1,
-                ));
-                args_len += 1;
-                args.add(now);
-                args_clone.add(now);
-
-                updates.push(
-                    "(for_votes > against_votes AND for_votes >= quorum_votes AND queued = true AND executed = false)".to_string());
-            }
-        }
-    }
-
-    (updates, args_len, args, args_clone)
+fn max_limit(limit: u32) -> u32 {
+    std::cmp::min(limit, 100)
 }
