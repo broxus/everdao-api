@@ -8,9 +8,9 @@ use crate::api::responses;
 pub fn swagger() -> String {
     let api = describe_api! {
         info: {
-            title: "Farming",
+            title: "DAO",
             version: "1.0.0",
-            description: r##"This API allows you to get the information of bridge"##,
+            description: r##"This API allows you to get the information of DAO"##,
         },
         servers: {
             "https://bridge-dao-indexer-test.broxus.com/v1",
