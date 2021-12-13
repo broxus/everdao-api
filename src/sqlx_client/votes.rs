@@ -27,6 +27,8 @@ impl SqlxClient {
         &self,
         input: VotesSearch,
     ) -> Result<impl Iterator<Item = VoteFromDb> + Send + Sync> {
+        let mut args_len = 0;
+
         let mut query = OwnedPartBuilder::new().starts_with(
             "SELECT \
                 proposal_id, voter, support, reason, votes, message_hash, transaction_hash, \
@@ -34,10 +36,8 @@ impl SqlxClient {
             FROM votes",
         );
 
-        let mut args_len = 0;
-
         query
-            .push_part(proposal_filters(input.data.filters, &mut args_len))
+            .push_part(vote_filters(input.data.filters, &mut args_len))
             .push(votes_ordering(input.data.ordering))
             .push_with_arg(
                 {
@@ -77,9 +77,28 @@ impl SqlxClient {
                 created_at: x.read_next(),
             }))
     }
+
+    pub async fn votes_total_count(&self, input: VotesSearch) -> Result<i64> {
+        let mut args_len = 0;
+
+        let mut query = OwnedPartBuilder::new().starts_with("SELECT COUNT(*) FROM votes");
+
+        query.push_part(vote_filters(input.data.filters, &mut args_len));
+
+        let (query, args) = query.split();
+
+        let total_count: i64 = sqlx::query_with(&query, args)
+            .fetch_one(&self.pool)
+            .await
+            .map(RowReader::from_row)
+            .map(|mut x| x.read_next())
+            .unwrap_or_default();
+
+        Ok(total_count)
+    }
 }
 
-fn proposal_filters(filters: VoteFilters, args_len: &mut u32) -> impl QueryPart {
+fn vote_filters(filters: VoteFilters, args_len: &mut u32) -> impl QueryPart {
     WhereAndConditions((
         filters.voter.map(|address| {
             *args_len += 1;

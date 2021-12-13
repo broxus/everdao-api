@@ -37,7 +37,7 @@ pub fn swagger() -> String {
                     summary: "Proposals search",
                     description: "Get proposals data.",
                     body: requests::ProposalsRequest,
-                    200: Vec<responses::ProposalResponse>,
+                    200: responses::ProposalsResponse,
                 }
             },
             ("votes" / "search" ): {
@@ -46,7 +46,7 @@ pub fn swagger() -> String {
                     summary: "Votes search",
                     description: "Get votes data.",
                     body: requests::VotesRequest,
-                    200: Vec<responses::VoteResponse>,
+                    200: responses::VotesResponse,
                 }
             },
             ("voters" / String /"proposals" ): {
@@ -55,7 +55,7 @@ pub fn swagger() -> String {
                     summary: "Proposals search by voter",
                     description: "Get proposals data.",
                     body: requests::ProposalsRequest,
-                    200: Vec<responses::ProposalResponse>,
+                    200: responses::ProposalsResponse,
                 }
             }
         }

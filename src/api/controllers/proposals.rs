@@ -21,13 +21,16 @@ pub async fn post_proposals_search(
     ctx: Context,
     input: ProposalsRequest,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(reply_sequence(
-        ctx.services
-            .search_proposals(input.into())
-            .await
-            .map_err(BadRequestError)?
-            .map(ProposalResponse::from),
-    ))
+    let (proposals, total_count) = ctx
+        .services
+        .search_proposals(input.into())
+        .await
+        .map_err(BadRequestError)?;
+
+    Ok(warp::reply::json(&ProposalsResponse {
+        proposals: proposals.map(ProposalResponse::from).collect::<Vec<_>>(),
+        total_count,
+    }))
 }
 
 pub async fn post_voters_proposals(
@@ -35,11 +38,14 @@ pub async fn post_voters_proposals(
     ctx: Context,
     input: ProposalsRequest,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(reply_sequence(
-        ctx.services
-            .search_voter_proposals(address, input.into())
-            .await
-            .map_err(BadRequestError)?
-            .map(ProposalResponse::from),
-    ))
+    let (proposals, total_count) = ctx
+        .services
+        .search_voter_proposals(address, input.into())
+        .await
+        .map_err(BadRequestError)?;
+
+    Ok(warp::reply::json(&ProposalsResponse {
+        proposals: proposals.map(ProposalResponse::from).collect::<Vec<_>>(),
+        total_count,
+    }))
 }

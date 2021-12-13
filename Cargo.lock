@@ -3085,7 +3085,7 @@ dependencies = [
 [[package]]
 name = "ton-consumer"
 version = "0.1.0"
-source = "git+ssh://git@gitlab.dexpa.io/beton/ton-consumer#a6e484416f1d5870cc1efdaf9af81ef0b47de322"
+source = "git+ssh://git@gitlab.dexpa.io/beton/ton-consumer#ffba4b16857bd5cc84a22f3f8bd84119be2602e9"
 dependencies = [
  "anyhow",
  "base64",

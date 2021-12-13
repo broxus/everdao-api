@@ -237,6 +237,25 @@ impl SqlxClient {
                 created_at: x.read_next(),
             }))
     }
+
+    pub async fn proposals_total_count(&self, input: ProposalsSearch) -> Result<i64> {
+        let mut args_len = 0;
+
+        let mut query = OwnedPartBuilder::new().starts_with("SELECT COUNT(*) FROM proposals");
+
+        query.push_part(proposal_filters(input.data.filters, &mut args_len));
+
+        let (query, args) = query.split();
+
+        let total_count: i64 = sqlx::query_with(&query, args)
+            .fetch_one(&self.pool)
+            .await
+            .map(RowReader::from_row)
+            .map(|mut x| x.read_next())
+            .unwrap_or_default();
+
+        Ok(total_count)
+    }
 }
 
 fn proposal_filters(filters: ProposalFilters, args_len: &mut u32) -> impl QueryPart {

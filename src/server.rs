@@ -35,7 +35,7 @@ pub async fn start_server() -> StdResult<()> {
     let (group_id, topic, states_rpc_endpoint, options) = get_kafka_settings(&config);
     let transaction_producer = TransactionProducer::new(
         &group_id,
-        topic,
+        &topic,
         states_rpc_endpoint,
         options
             .iter()

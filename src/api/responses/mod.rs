@@ -95,6 +95,14 @@ impl From<ProposalFromDb> for ProposalResponse {
 
 #[derive(Debug, Deserialize, Serialize, Clone, opg::OpgModel)]
 #[serde(rename_all = "camelCase")]
+#[opg("Proposal table response")]
+pub struct ProposalsResponse {
+    pub proposals: Vec<ProposalResponse>,
+    pub total_count: i64,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, opg::OpgModel)]
+#[serde(rename_all = "camelCase")]
 #[opg("Vote response")]
 pub struct VoteResponse {
     pub proposal_id: i32,
@@ -123,4 +131,12 @@ impl From<VoteFromDb> for VoteResponse {
             created_at: x.created_at,
         }
     }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, opg::OpgModel)]
+#[serde(rename_all = "camelCase")]
+#[opg("Votes response")]
+pub struct VotesResponse {
+    pub votes: Vec<VoteResponse>,
+    pub total_count: i64,
 }
