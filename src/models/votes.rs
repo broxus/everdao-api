@@ -46,5 +46,4 @@ impl Default for VotesOrdering {
 #[opg("Vote column")]
 pub enum VoteColumn {
     CreatedAt,
-    UpdatedAt,
 }

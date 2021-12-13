@@ -1,6 +1,7 @@
 use crate::sqlx_client::SqlxClient;
 
 mod proposals;
+mod voters;
 mod votes;
 
 pub struct Services {

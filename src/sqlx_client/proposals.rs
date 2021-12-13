@@ -111,23 +111,42 @@ impl SqlxClient {
         Ok(())
     }
 
-    pub async fn get_proposal(&self, id: u32) -> Result<Option<ProposalFromDb>> {
+    pub async fn get_proposals(
+        &self,
+        ids: Vec<u32>,
+    ) -> Result<impl Iterator<Item = ProposalFromDb> + Send + Sync> {
         let mut query = OwnedPartBuilder::new().starts_with(
                 "SELECT \
                 id, address, proposer, description, start_time, end_time, execution_time, \
                 grace_period, for_votes, against_votes, quorum_votes, message_hash, transaction_hash, \
                 timestamp_block, actions, executed, canceled, queued, executed_at, canceled_at, queued_at, \
                 updated_at, created_at \
-            FROM proposals WHERE id = $1",
+            FROM proposals",
         );
-        query.push_arg(id);
+
+        let mut args_len = 0;
+        let mut first = true;
+        for id in ids {
+            if ::std::mem::take(&mut first) {
+                query.push("WHERE");
+            } else {
+                query.push("OR");
+            }
+            query.push_with_arg(
+                format!("id = ${}", {
+                    args_len += 1;
+                    args_len
+                }),
+                id,
+            );
+        }
 
         let (query, args) = query.split();
-        let proposal = sqlx::query_with(&query, args)
-            .fetch_optional(&self.pool)
-            .await?;
 
-        Ok(proposal
+        let proposals = sqlx::query_with(&query, args).fetch_all(&self.pool).await?;
+
+        Ok(proposals
+            .into_iter()
             .map(RowReader::from_row)
             .map(|mut x| ProposalFromDb {
                 id: x.read_next(),
@@ -160,25 +179,13 @@ impl SqlxClient {
         &self,
         input: ProposalsSearch,
     ) -> Result<impl Iterator<Item = ProposalFromDb> + Send + Sync> {
-        let mut query = match input.data.filters.voter {
-            None => OwnedPartBuilder::new().starts_with(
+        let mut query = OwnedPartBuilder::new().starts_with(
                 "SELECT \
                 id, address, proposer, description, start_time, end_time, execution_time, \
                 grace_period, for_votes, against_votes, quorum_votes, message_hash, transaction_hash, \
                 timestamp_block, actions, executed, canceled, queued, executed_at, canceled_at, queued_at, \
                 updated_at, created_at \
-            FROM proposals",
-            ),
-            Some(_) => OwnedPartBuilder::new().starts_with(
-                "SELECT \
-                proposals.id, proposals.address, proposals.proposer, proposals.description, proposals.start_time, \
-                proposals.end_time, proposals.execution_time, proposals.grace_period, proposals.for_votes, proposals.against_votes, \
-                proposals.quorum_votes, proposals.message_hash, proposals.transaction_hash, proposals.timestamp_block, \
-                proposals.actions, proposals.executed, proposals.canceled, proposals.queued, proposals.executed_at, \
-                proposals.canceled_at, proposals.queued_at, proposals.updated_at, proposals.created_at \
-            FROM proposals INNER JOIN votes on proposals.id = votes.proposal_id",
-            )
-        };
+            FROM proposals");
 
         let mut args_len = 0;
 
@@ -260,10 +267,6 @@ impl SqlxClient {
 
 fn proposal_filters(filters: ProposalFilters, args_len: &mut u32) -> impl QueryPart {
     WhereAndConditions((
-        filters.voter.map(|address| {
-            *args_len += 1;
-            (format!("voter = ${}", *args_len), address)
-        }),
         filters.start_time_ge.map(|time| {
             *args_len += 1;
             (format!("start_time >= ${}", *args_len), time)
@@ -367,10 +370,8 @@ fn proposals_ordering(ordering: Option<ProposalsOrdering>) -> &'static str {
     let ProposalsOrdering { column, direction } = ordering.unwrap_or_default();
 
     match (column, direction) {
-        (ProposalColumn::CreatedAt, Direction::Ascending) => "ORDER BY created_at",
-        (ProposalColumn::CreatedAt, Direction::Descending) => "ORDER BY created_at DESC",
-        (ProposalColumn::UpdatedAt, Direction::Ascending) => "ORDER BY updated_at",
-        (ProposalColumn::UpdatedAt, Direction::Descending) => "ORDER BY updated_at DESC",
+        (ProposalColumn::CreatedAt, Direction::Ascending) => "ORDER BY timestamp_block",
+        (ProposalColumn::CreatedAt, Direction::Descending) => "ORDER BY timestamp_block DESC",
     }
 }
 

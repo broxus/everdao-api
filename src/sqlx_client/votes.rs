@@ -119,10 +119,8 @@ fn votes_ordering(ordering: Option<VotesOrdering>) -> &'static str {
     let VotesOrdering { column, direction } = ordering.unwrap_or_default();
 
     match (column, direction) {
-        (VoteColumn::CreatedAt, Direction::Ascending) => "ORDER BY created_at",
-        (VoteColumn::CreatedAt, Direction::Descending) => "ORDER BY created_at DESC",
-        (VoteColumn::UpdatedAt, Direction::Ascending) => "ORDER BY updated_at",
-        (VoteColumn::UpdatedAt, Direction::Descending) => "ORDER BY updated_at DESC",
+        (VoteColumn::CreatedAt, Direction::Ascending) => "ORDER BY timestamp_block",
+        (VoteColumn::CreatedAt, Direction::Descending) => "ORDER BY timestamp_block DESC",
     }
 }
 

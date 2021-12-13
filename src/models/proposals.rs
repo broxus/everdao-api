@@ -19,8 +19,6 @@ pub struct ProposalFilters {
     pub proposer: Option<String>,
 
     pub state: Option<ProposalState>,
-
-    pub voter: Option<String>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
@@ -116,5 +114,4 @@ impl Default for ProposalsOrdering {
 #[opg("Proposal column")]
 pub enum ProposalColumn {
     CreatedAt,
-    UpdatedAt,
 }

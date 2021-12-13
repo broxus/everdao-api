@@ -17,18 +17,18 @@ pub fn swagger() -> String {
             "https://bridge-dao-indexer.broxus.com/v1"
         },
         tags: {
-            voters,
             proposals,
+            voters,
             votes,
         },
         paths: {
             ("proposals"): {
                 POST: {
                     tags: { proposals },
-                    summary: "Proposal data",
-                    description: "Get Proposal data.",
-                    body: requests::ProposalByIdRequest,
-                    200: Option<responses::ProposalResponse>,
+                    summary: "Proposals data",
+                    description: "Get proposals data by id's.",
+                    body: requests::ProposalsByIdRequest,
+                    200: Vec<responses::ProposalResponse>,
                 }
             },
             ("proposals" / "search" ): {
@@ -49,15 +49,15 @@ pub fn swagger() -> String {
                     200: responses::VotesResponse,
                 }
             },
-            ("voters" / String /"proposals" ): {
+            ("voters" / { voter: String } / "search" ): {
                 POST: {
                     tags: { voters },
-                    summary: "Proposals search by voter",
-                    description: "Get proposals data.",
-                    body: requests::ProposalsRequest,
-                    200: responses::ProposalsResponse,
+                    summary: "Voter search",
+                    description: "Get proposals with votes data.",
+                    body: requests::VotersRequest,
+                    200: responses::ProposalsWithVotesResponse,
                 }
-            }
+            },
         }
     };
 

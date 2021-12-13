@@ -64,7 +64,7 @@ mod filters {
                     .or(post_proposals(ctx.clone()))
                     .or(post_proposals_search(ctx.clone()))
                     .or(post_votes_search(ctx.clone()))
-                    .or(post_voters_proposals(ctx)),
+                    .or(post_voters_search(ctx)),
             )
             .boxed()
     }
@@ -82,7 +82,7 @@ mod filters {
             .and(warp::post())
             .and(with_ctx(ctx))
             .and(json_body())
-            .and_then(controllers::post_proposals)
+            .and_then(controllers::proposals::post_proposals)
             .boxed()
     }
 
@@ -91,19 +91,7 @@ mod filters {
             .and(warp::post())
             .and(with_ctx(ctx))
             .and(json_body())
-            .and_then(controllers::post_proposals_search)
-            .boxed()
-    }
-
-    pub fn post_voters_proposals(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
-        warp::path!("voters" / ..)
-            .and(warp::path::param::<String>())
-            .and(warp::path("proposals"))
-            .and(warp::path::end())
-            .and(warp::post())
-            .and(with_ctx(ctx))
-            .and(json_body())
-            .and_then(controllers::proposals::post_voters_proposals)
+            .and_then(controllers::proposals::post_proposals_search)
             .boxed()
     }
 
@@ -112,7 +100,19 @@ mod filters {
             .and(warp::post())
             .and(with_ctx(ctx))
             .and(json_body())
-            .and_then(controllers::post_votes_search)
+            .and_then(controllers::votes::post_votes_search)
+            .boxed()
+    }
+
+    fn post_voters_search(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
+        warp::path!("voters" / ..)
+            .and(warp::path::param::<String>())
+            .and(warp::path("search"))
+            .and(warp::path::end())
+            .and(warp::post())
+            .and(with_ctx(ctx))
+            .and(json_body())
+            .and_then(controllers::voters::post_voters_search)
             .boxed()
     }
 

@@ -2,6 +2,7 @@ use sqlx::PgPool;
 
 mod proposals;
 mod raw_transactions;
+mod voters;
 mod votes;
 
 #[derive(Clone)]
