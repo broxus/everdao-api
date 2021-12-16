@@ -49,6 +49,6 @@ spec:
             - name: STATES_RPC_ENDPOINT
               value: "http://35.240.13.113:8081"
             - name: KAFKA_GROUP_ID
-              value: "ton-bridge-dao-indexer-test-0"
+              value: "ton-bridge-dao-indexer-test-1"
             - name: KAFKA_CLIENT_ID
               value: "ton-bridge-dao-indexer-test-client"

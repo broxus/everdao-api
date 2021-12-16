@@ -2,12 +2,12 @@ use nekoton_abi::*;
 
 #[derive(Debug, Clone, PackAbiPlain, UnpackAbiPlain, KnownParamTypePlain)]
 pub struct VoteCast {
-    #[abi(uint32, name = "proposal_id")]
+    #[abi(uint32)]
     pub proposal_id: u32,
-    #[abi(bool, name = "support")]
+    #[abi(bool)]
     pub support: bool,
-    #[abi(uint128, name = "votes")]
+    #[abi(uint128)]
     pub votes: u128,
-    #[abi(string, name = "reason")]
+    #[abi(string)]
     pub reason: String,
 }

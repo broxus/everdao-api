@@ -4,13 +4,13 @@ use ton_types::{Cell, UInt256};
 
 #[derive(Debug, Clone, UnpackAbiPlain, KnownParamTypePlain)]
 pub struct ProposalCreated {
-    #[abi(uint32)]
+    #[abi(uint32, name = "proposalId")]
     pub proposal_id: u32,
     #[abi(address)]
     pub proposer: MsgAddressInt,
-    #[abi(array)]
+    #[abi(array, name = "tonActions")]
     pub ton_actions: Vec<TonAction>,
-    #[abi(array)]
+    #[abi(array, ethActions)]
     pub eth_actions: Vec<EthAction>,
     #[abi(string)]
     pub description: String,

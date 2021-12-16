@@ -56,7 +56,7 @@ pub async fn bridge_dao_indexer(
                 log::error!("Failed to parse event: {}", err);
             }
 
-            produced_transaction.commit().trust_me();
+            // produced_transaction.commit().trust_me();
         }
     }
 
