@@ -10,7 +10,7 @@ pub struct ProposalCreated {
     pub proposer: MsgAddressInt,
     #[abi(array, name = "tonActions")]
     pub ton_actions: Vec<TonAction>,
-    #[abi(array, ethActions)]
+    #[abi(array, name = "ethActions")]
     pub eth_actions: Vec<EthAction>,
     #[abi(string)]
     pub description: String,
