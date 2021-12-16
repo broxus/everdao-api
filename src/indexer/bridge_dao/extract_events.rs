@@ -19,7 +19,14 @@ pub async fn extract_dao_root_parsed_events(
     for event in events {
         let message_hash = event.message_hash.to_vec();
         if event.function_name.as_str() == "ProposalCreated" {
+            let _data: ProposalCreatedTest1 = event.input.clone().unpack()?;
+            log::info!("ProposalCreatedTest1 unpacked");
+            let _data: ProposalCreatedTest2 = event.input.clone().unpack()?;
+            log::info!("ProposalCreatedTest2 unpacked");
+            let _data: ProposalCreatedTest3 = event.input.clone().unpack()?;
+            log::info!("ProposalCreatedTest3 unpacked");
             let data: ProposalCreated = event.input.unpack()?;
+            log::info!("ProposalCreated unpacked");
             parse_proposal_created_event(
                 data,
                 message_hash,
