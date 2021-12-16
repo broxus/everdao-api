@@ -17,9 +17,13 @@ pub async fn parse_proposal_created_event(
     sqlx_client: &SqlxClient,
     transaction_producer: &TransactionProducer,
 ) -> Result<(), anyhow::Error> {
-    if transaction.contract_address()? != repack_address(super::DAO_ROOT_ADDRESS)? {
+    /*if transaction.contract_address()? != repack_address(super::DAO_ROOT_ADDRESS)? {
         // skip event
         return Ok(());
+    }*/
+
+    if transaction.contract_address()? != repack_address(super::DAO_ROOT_ADDRESS)? {
+        log::warn!("DAO ROOT: {}", transaction.contract_address()?);
     }
 
     let timestamp_block = transaction.time() as i32;
