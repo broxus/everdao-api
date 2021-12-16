@@ -3,30 +3,6 @@ use ton_block::MsgAddressInt;
 use ton_types::{Cell, UInt256};
 
 #[derive(Debug, Clone, UnpackAbiPlain, KnownParamTypePlain)]
-pub struct ProposalCreatedTest1 {
-    #[abi(uint32, name = "proposalId")]
-    pub proposal_id: u32,
-}
-
-#[derive(Debug, Clone, UnpackAbiPlain, KnownParamTypePlain)]
-pub struct ProposalCreatedTest2 {
-    #[abi(uint32, name = "proposalId")]
-    pub proposal_id: u32,
-    #[abi(address)]
-    pub proposer: MsgAddressInt,
-}
-
-#[derive(Debug, Clone, UnpackAbiPlain, KnownParamTypePlain)]
-pub struct ProposalCreatedTest3 {
-    #[abi(uint32, name = "proposalId")]
-    pub proposal_id: u32,
-    #[abi(address)]
-    pub proposer: MsgAddressInt,
-    #[abi(array, name = "tonActions")]
-    pub ton_actions: Vec<TonAction>,
-}
-
-#[derive(Debug, Clone, UnpackAbiPlain, KnownParamTypePlain)]
 pub struct ProposalCreated {
     #[abi(uint32, name = "proposalId")]
     pub proposal_id: u32,
