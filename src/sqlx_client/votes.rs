@@ -132,6 +132,10 @@ fn vote_filters(filters: VoteFilters, args_len: &mut u32) -> impl QueryPart {
             *args_len += 1;
             (format!("support = ${}", *args_len), support)
         }),
+        filters.locked.map(|locked| {
+            *args_len += 1;
+            (format!("support = ${}", *args_len), locked)
+        }),
     ))
 }
 

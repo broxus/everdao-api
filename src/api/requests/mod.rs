@@ -70,6 +70,9 @@ pub struct VotesRequest {
     pub support: Option<bool>,
 
     #[opg(optional)]
+    pub locked: Option<bool>,
+
+    #[opg(optional)]
     pub ordering: Option<VotesOrdering>,
 }
 
@@ -79,6 +82,7 @@ impl From<VotesRequest> for VotesSearch {
             proposal_id: w.proposal_id,
             voter: w.voter,
             support: w.support,
+            locked: w.locked,
         }
         .ordered(w.ordering)
         .paginated(w.limit, w.offset)

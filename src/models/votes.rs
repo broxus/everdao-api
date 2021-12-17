@@ -11,6 +11,7 @@ pub struct VoteFilters {
     pub voter: Option<String>,
     pub proposal_id: Option<u32>,
     pub support: Option<bool>,
+    pub locked: Option<bool>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
