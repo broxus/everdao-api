@@ -17,6 +17,7 @@ pub async fn parse_vote_cast_event(
     sqlx_client: &SqlxClient,
     transaction_producer: &TransactionProducer,
 ) -> Result<(), anyhow::Error> {
+    log::debug!("Found vote cast event - {:?}", vote);
     let timestamp_block = transaction.time() as i32;
     let transaction_hash = transaction.tx_hash().trust_me().as_slice().to_vec();
 

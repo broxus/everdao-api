@@ -17,6 +17,11 @@ pub async fn parse_proposal_created_event(
     sqlx_client: &SqlxClient,
     transaction_producer: &TransactionProducer,
 ) -> Result<(), anyhow::Error> {
+    log::debug!("Found new proposal : {:?}", data);
+    log::debug!(
+        "transaction DAO ROOT address: {}",
+        transaction.contract_address()?.address().to_hex_string()
+    );
     if transaction.contract_address()? != repack_address(super::DAO_ROOT_ADDRESS)? {
         // skip event
         return Ok(());
@@ -66,6 +71,8 @@ pub async fn parse_proposal_created_event(
         end_time: proposal_overview.end_time as i64,
         execution_time: proposal_overview.execution_time as i64,
         grace_period: proposal_config.grace_period as i64,
+        time_lock: proposal_config.time_lock as i64,
+        voting_delay: proposal_config.voting_delay as i64,
         for_votes: Decimal::from(proposal_overview.for_votes),
         against_votes: Decimal::from(proposal_overview.against_votes),
         quorum_votes: Decimal::from(proposal_overview.quorum_votes),

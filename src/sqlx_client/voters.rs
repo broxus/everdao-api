@@ -14,7 +14,7 @@ impl SqlxClient {
         let mut query = OwnedPartBuilder::new().starts_with(
             "SELECT \
             proposals.id, proposals.address, proposals.proposer, proposals.description, proposals.start_time, \
-            proposals.end_time, proposals.execution_time, proposals.grace_period, proposals.for_votes, proposals.against_votes, \
+            proposals.end_time, proposals.execution_time, proposals.grace_period,  proposals.time_lock,  proposals.voting_delay, proposals.for_votes, proposals.against_votes, \
             proposals.quorum_votes, proposals.message_hash, proposals.transaction_hash, proposals.timestamp_block, \
             proposals.actions, proposals.executed, proposals.canceled, proposals.queued, proposals.executed_at, \
             proposals.canceled_at, proposals.queued_at, proposals.updated_at, proposals.created_at,\
@@ -61,6 +61,8 @@ impl SqlxClient {
                     end_time: x.read_next(),
                     execution_time: x.read_next(),
                     grace_period: x.read_next(),
+                    time_lock: x.read_next(),
+                    voting_delay: x.read_next(),
                     for_votes: x.read_next(),
                     against_votes: x.read_next(),
                     quorum_votes: x.read_next(),

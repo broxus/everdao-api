@@ -9,9 +9,9 @@ impl SqlxClient {
     pub async fn create_proposal(&self, proposal: CreateProposal) -> Result<()> {
         sqlx::query!(
             r#"INSERT INTO proposals (
-            id, address, proposer, description, start_time, end_time, execution_time, grace_period, for_votes,
+            id, address, proposer, description, start_time, end_time, execution_time, grace_period, time_lock, voting_delay, for_votes,
             against_votes, quorum_votes, message_hash, transaction_hash, timestamp_block, actions)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
             "#,
             proposal.id,
             proposal.address,
@@ -21,6 +21,8 @@ impl SqlxClient {
             proposal.end_time,
             proposal.execution_time,
             proposal.grace_period,
+            proposal.time_lock,
+            proposal.voting_delay,
             proposal.for_votes,
             proposal.against_votes,
             proposal.quorum_votes,
@@ -118,7 +120,7 @@ impl SqlxClient {
         let mut query = OwnedPartBuilder::new().starts_with(
                 "SELECT \
                 id, address, proposer, description, start_time, end_time, execution_time, \
-                grace_period, for_votes, against_votes, quorum_votes, message_hash, transaction_hash, \
+                grace_period, time_lock, voting_delay, for_votes, against_votes, quorum_votes, message_hash, transaction_hash, \
                 timestamp_block, actions, executed, canceled, queued, executed_at, canceled_at, queued_at, \
                 updated_at, created_at \
             FROM proposals",
@@ -157,6 +159,8 @@ impl SqlxClient {
                 end_time: x.read_next(),
                 execution_time: x.read_next(),
                 grace_period: x.read_next(),
+                time_lock: x.read_next(),
+                voting_delay: x.read_next(),
                 for_votes: x.read_next(),
                 against_votes: x.read_next(),
                 quorum_votes: x.read_next(),
@@ -182,7 +186,7 @@ impl SqlxClient {
         let mut query = OwnedPartBuilder::new().starts_with(
                 "SELECT \
                 id, address, proposer, description, start_time, end_time, execution_time, \
-                grace_period, for_votes, against_votes, quorum_votes, message_hash, transaction_hash, \
+                grace_period, time_lock, voting_delay, for_votes, against_votes, quorum_votes, message_hash, transaction_hash, \
                 timestamp_block, actions, executed, canceled, queued, executed_at, canceled_at, queued_at, \
                 updated_at, created_at \
             FROM proposals");
@@ -227,6 +231,8 @@ impl SqlxClient {
                 end_time: x.read_next(),
                 execution_time: x.read_next(),
                 grace_period: x.read_next(),
+                time_lock: x.read_next(),
+                voting_delay: x.read_next(),
                 for_votes: x.read_next(),
                 against_votes: x.read_next(),
                 quorum_votes: x.read_next(),

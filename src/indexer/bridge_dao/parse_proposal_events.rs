@@ -12,6 +12,7 @@ pub async fn parse_proposal_executed_event(
     sqlx_client: &SqlxClient,
     node: &TransactionProducer,
 ) -> Result<(), anyhow::Error> {
+    log::debug!("Found proposal executed event");
     let timestamp_block = transaction.time() as i32;
     let proposal_address = transaction.contract_address()?;
 
@@ -34,6 +35,7 @@ pub async fn parse_proposal_canceled_event(
     sqlx_client: &SqlxClient,
     node: &TransactionProducer,
 ) -> Result<(), anyhow::Error> {
+    log::debug!("Found proposal canceled event");
     let timestamp_block = transaction.time() as i32;
     let proposal_address = transaction.contract_address()?;
 
@@ -57,6 +59,7 @@ pub async fn parse_proposal_queued_event(
     sqlx_client: &SqlxClient,
     node: &TransactionProducer,
 ) -> Result<(), anyhow::Error> {
+    log::debug!("Found proposal queued event");
     let timestamp_block = transaction.time() as i32;
     let proposal_address = transaction.contract_address()?;
 

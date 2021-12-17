@@ -17,6 +17,8 @@ pub struct ProposalResponse {
     pub end_time: i64,
     pub execution_time: Option<i64>,
     pub grace_period: i64,
+    pub time_lock: i64,
+    pub voting_delay: i64,
     #[opg("forVotes", string)]
     pub for_votes: Decimal,
     #[opg("againstVotes", string)]
@@ -73,6 +75,8 @@ impl From<ProposalFromDb> for ProposalResponse {
             end_time: x.end_time,
             execution_time,
             grace_period: x.grace_period,
+            time_lock: x.time_lock,
+            voting_delay: x.voting_delay,
             for_votes: x.for_votes,
             against_votes: x.against_votes,
             quorum_votes: x.quorum_votes,

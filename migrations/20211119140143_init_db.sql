@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS proposals
     end_time            BIGINT  NOT NULL,
     execution_time      BIGINT  NOT NULL,
     grace_period        BIGINT  NOT NULL,
+    time_lock           BIGINT  NOT NULL,
+    voting_delay        BIGINT  NOT NULL,
     for_votes           NUMERIC NOT NULL,
     against_votes       NUMERIC NOT NULL,
     quorum_votes        NUMERIC NOT NULL,

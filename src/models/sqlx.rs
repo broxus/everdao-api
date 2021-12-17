@@ -40,6 +40,8 @@ pub struct ProposalFromDb {
     pub end_time: i64,
     pub execution_time: i64,
     pub grace_period: i64,
+    pub time_lock: i64,
+    pub voting_delay: i64,
     pub for_votes: Decimal,
     pub against_votes: Decimal,
     pub quorum_votes: Decimal,
