@@ -18,6 +18,8 @@ pub struct ProposalFilters {
 
     pub proposer: Option<String>,
 
+    pub proposal_address: Option<String>,
+
     pub state: Option<ProposalState>,
 }
 

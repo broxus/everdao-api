@@ -297,6 +297,10 @@ fn proposal_filters(filters: ProposalFilters, args_len: &mut u32) -> impl QueryP
             *args_len += 1;
             (format!("proposer = ${}", *args_len), proposer)
         }),
+        filters.proposal_address.map(|proposal_address| {
+            *args_len += 1;
+            (format!("address = ${}", *args_len), proposal_address)
+        }),
         filters.state.map(|state| {
             let now = Utc::now().timestamp();
             match state {

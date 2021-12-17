@@ -152,6 +152,10 @@ fn voter_filters(address: String, filters: VoterFilters, args_len: &mut u32) -> 
             *args_len += 1;
             (format!("proposer = ${}", *args_len), proposer)
         }),
+        filters.proposal_address.map(|proposal_address| {
+            *args_len += 1;
+            (format!("address = ${}", *args_len), proposal_address)
+        }),
         filters.support.map(|support| {
             *args_len += 1;
             (format!("support = ${}", *args_len), support)

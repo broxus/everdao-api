@@ -17,6 +17,8 @@ pub struct VoterFilters {
 
     pub proposer: Option<String>,
 
+    pub proposal_address: Option<String>,
+
     pub support: Option<bool>,
 
     pub locked: Option<bool>,

@@ -34,6 +34,9 @@ pub struct ProposalsRequest {
     pub proposer: Option<String>,
 
     #[opg(optional)]
+    pub proposal_address: Option<String>,
+
+    #[opg(optional)]
     pub state: Option<ProposalState>,
 
     #[opg(optional)]
@@ -49,6 +52,7 @@ impl From<ProposalsRequest> for ProposalsSearch {
             end_time_le: w.end_time_le,
             proposal_id: w.proposal_id,
             proposer: w.proposer,
+            proposal_address: w.proposal_address,
             state: w.state,
         }
         .ordered(w.ordering)
@@ -112,6 +116,9 @@ pub struct VotersRequest {
     pub proposer: Option<String>,
 
     #[opg(optional)]
+    pub proposal_address: Option<String>,
+
+    #[opg(optional)]
     pub support: Option<bool>,
 
     #[opg(optional)]
@@ -133,6 +140,7 @@ impl From<VotersRequest> for VotersSearch {
             end_time_le: w.end_time_le,
             proposal_id: w.proposal_id,
             proposer: w.proposer,
+            proposal_address: w.proposal_address,
             support: w.support,
             locked: w.locked,
             state: w.state,
