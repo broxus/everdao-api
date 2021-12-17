@@ -1,6 +1,6 @@
 use nekoton_abi::*;
 use ton_block::MsgAddressInt;
-use ton_types::{Cell, UInt256};
+use ton_types::UInt256;
 
 #[derive(Debug, Clone, UnpackAbiPlain, KnownParamTypePlain)]
 pub struct ProposalCreated {
@@ -20,10 +20,10 @@ pub struct ProposalCreated {
 pub struct TonAction {
     #[abi(uint128)]
     pub value: u128,
-    #[abi(with = "address_only_hash")]
-    pub target: UInt256,
+    #[abi(address)]
+    pub target: MsgAddressInt,
     #[abi(cell)]
-    pub payload: Cell,
+    pub payload: ton_types::Cell,
 }
 
 #[derive(Debug, Clone, UnpackAbi, KnownParamType)]

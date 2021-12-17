@@ -62,6 +62,12 @@ pub async fn parse_proposal_created_event(
     let proposal_config: ProposalConfig =
         function_output.tokens.unwrap_or_default().unpack_first()?;
 
+    let ton_actions: Result<Vec<_>, _> = data
+        .ton_actions
+        .into_iter()
+        .map(TryFrom::try_from)
+        .collect();
+
     let proposal = CreateProposal {
         id: data.proposal_id as i32,
         address: proposal_address.to_string(),
@@ -80,7 +86,7 @@ pub async fn parse_proposal_created_event(
         transaction_hash,
         timestamp_block,
         actions: ProposalActions {
-            ton_actions: data.ton_actions.into_iter().map(From::from).collect(),
+            ton_actions: ton_actions?,
             eth_actions: data.eth_actions.into_iter().map(From::from).collect(),
         },
     };

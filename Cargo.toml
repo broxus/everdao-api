@@ -6,6 +6,7 @@ authors = ["Broxus team"]
 
 [dependencies]
 async-trait = "0.1"
+base64 = "0.13"
 cached = "0.23.0"
 chrono = { version = "*", features = ["serde"] }
 config = { version = "0.9", default-features = false }

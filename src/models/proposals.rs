@@ -79,13 +79,15 @@ impl From<EthAction> for ProposalEthAction {
     }
 }
 
-impl From<TonAction> for ProposalTonAction {
-    fn from(action: TonAction) -> Self {
-        Self {
+impl TryFrom<TonAction> for ProposalTonAction {
+    type Error = anyhow::Error;
+
+    fn try_from(action: TonAction) -> Result<Self, Self::Error> {
+        Ok(Self {
             value: action.value.to_string(),
-            target: action.target.to_hex_string(),
-            payload: action.payload.to_hex_string(true),
-        }
+            target: action.target.to_string(),
+            payload: base64::encode(ton_types::serialize_toc(&action.payload)?),
+        })
     }
 }
 
