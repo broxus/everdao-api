@@ -19,6 +19,8 @@ pub struct VoterFilters {
 
     pub support: Option<bool>,
 
+    pub locked: Option<bool>,
+
     pub state: Option<ProposalState>,
 }
 

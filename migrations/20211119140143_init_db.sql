@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS votes
     support             BOOLEAN NOT NULL,
     votes               NUMERIC NOT NULL,
     reason              VARCHAR NOT NULL,
+    locked              BOOLEAN NOT NULL,
     message_hash        BYTEA   NOT NULL,
     transaction_hash    BYTEA   NOT NULL,
     timestamp_block     INTEGER NOT NULL,

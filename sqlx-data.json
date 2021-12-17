@@ -28,25 +28,6 @@
       "nullable": []
     }
   },
-  "3ec57628af480bff5456c754d8c52291f013a1977da89b9767204f2b33878626": {
-    "query": "INSERT INTO votes (proposal_id, voter, support, reason, votes, message_hash, transaction_hash, timestamp_block)\n                          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
-          "Int4",
-          "Varchar",
-          "Bool",
-          "Varchar",
-          "Numeric",
-          "Bytea",
-          "Bytea",
-          "Int4"
-        ]
-      },
-      "nullable": []
-    }
-  },
   "4a761efb219465a96f699600f392e838d1d02c7d679ae8f80e21da76d210f7e7": {
     "query": "UPDATE proposals SET canceled = true, canceled_at = $1, updated_at = $2\n            WHERE id = $3",
     "describe": {
@@ -71,6 +52,40 @@
           "Int4",
           "Int8",
           "Int4"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "507d6385632bfa2a672134346b7f997f98b5345b5684ec3b84997cf5db30cc3b": {
+    "query": "INSERT INTO votes (proposal_id, voter, support, reason, votes, message_hash, transaction_hash, timestamp_block, locked)\n                          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Varchar",
+          "Bool",
+          "Varchar",
+          "Numeric",
+          "Bytea",
+          "Bytea",
+          "Int4",
+          "Bool"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "5aff0385280caa31aa9a95f0a2af33e23e7bb38add0748bf001592097f745b4d": {
+    "query": "UPDATE votes SET locked = $1 WHERE proposal_id = $2 AND voter = $3",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Bool",
+          "Int4",
+          "Text"
         ]
       },
       "nullable": []

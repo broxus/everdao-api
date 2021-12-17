@@ -115,6 +115,9 @@ pub struct VotersRequest {
     pub support: Option<bool>,
 
     #[opg(optional)]
+    pub locked: Option<bool>,
+
+    #[opg(optional)]
     pub state: Option<ProposalState>,
 
     #[opg(optional)]
@@ -131,6 +134,7 @@ impl From<VotersRequest> for VotersSearch {
             proposal_id: w.proposal_id,
             proposer: w.proposer,
             support: w.support,
+            locked: w.locked,
             state: w.state,
         }
         .ordered(w.ordering)

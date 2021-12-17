@@ -6,9 +6,11 @@ use crate::utils::*;
 
 impl SqlxClient {
     pub async fn create_vote(&self, vote: CreateVote) -> Result<()> {
+        let locked = true;
+
         sqlx::query!(
-            r#"INSERT INTO votes (proposal_id, voter, support, reason, votes, message_hash, transaction_hash, timestamp_block)
-                          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"#,
+            r#"INSERT INTO votes (proposal_id, voter, support, reason, votes, message_hash, transaction_hash, timestamp_block, locked)
+                          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"#,
             vote.proposal_id,
             vote.voter,
             vote.support,
@@ -16,10 +18,27 @@ impl SqlxClient {
             vote.votes,
             vote.message_hash,
             vote.transaction_hash,
-            vote.timestamp_block
+            vote.timestamp_block,
+            locked
         )
             .execute(&self.pool)
             .await?;
+
+        Ok(())
+    }
+
+    pub async fn unlock_vote(&self, vote: UnlockVote) -> Result<()> {
+        let locked = false;
+
+        sqlx::query!(
+            r#"UPDATE votes SET locked = $1 WHERE proposal_id = $2 AND voter = $3"#,
+            locked,
+            vote.proposal_id,
+            vote.voter
+        )
+        .execute(&self.pool)
+        .await?;
+
         Ok(())
     }
 
@@ -31,7 +50,7 @@ impl SqlxClient {
 
         let mut query = OwnedPartBuilder::new().starts_with(
             "SELECT \
-                proposal_id, voter, support, reason, votes, message_hash, transaction_hash, \
+                proposal_id, voter, support, reason, votes, locked, message_hash, transaction_hash, \
                 timestamp_block, created_at \
             FROM votes",
         );
@@ -71,6 +90,7 @@ impl SqlxClient {
                 support: x.read_next(),
                 reason: x.read_next(),
                 votes: x.read_next(),
+                locked: x.read_next(),
                 message_hash: x.read_next(),
                 transaction_hash: x.read_next(),
                 timestamp_block: x.read_next(),

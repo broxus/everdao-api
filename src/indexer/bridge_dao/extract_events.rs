@@ -84,8 +84,7 @@ pub async fn extract_userdata_parsed_events(
             "UnlockCastedVotes" => {
                 let proposal_id: u32 = event.input.unpack_first()?;
                 let voter = transaction.contract_address()?;
-
-                // todo
+                parse_unlock_casted_votes_event(proposal_id, voter, sqlx_client).await?
             }
             _ => {}
         }

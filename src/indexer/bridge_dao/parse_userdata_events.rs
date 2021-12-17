@@ -84,3 +84,20 @@ pub async fn parse_vote_cast_event(
 
     Ok(())
 }
+
+pub async fn parse_unlock_casted_votes_event(
+    proposal_id: u32,
+    voter: MsgAddressInt,
+    sqlx_client: &SqlxClient,
+) -> Result<(), anyhow::Error> {
+    log::debug!("Found unlock casted votes event");
+
+    let vote = UnlockVote {
+        proposal_id: proposal_id as i32,
+        voter: voter.to_string(),
+    };
+
+    sqlx_client.unlock_vote(vote).await?;
+
+    Ok(())
+}

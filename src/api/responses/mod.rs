@@ -115,6 +115,7 @@ pub struct VoteResponse {
     pub reason: String,
     #[opg("votes", string)]
     pub votes: Decimal,
+    pub locked: bool,
     pub message_hash: String,
     pub transaction_hash: String,
     pub timestamp_block: i32,
@@ -131,6 +132,7 @@ impl From<VoteFromDb> for VoteResponse {
             support: x.support,
             reason: x.reason,
             votes: x.votes,
+            locked: x.locked,
             timestamp_block: x.timestamp_block,
             created_at: x.created_at,
         }

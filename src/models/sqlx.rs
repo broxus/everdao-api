@@ -66,6 +66,7 @@ pub struct VoteFromDb {
     pub support: bool,
     pub reason: String,
     pub votes: Decimal,
+    pub locked: bool,
     pub message_hash: Vec<u8>,
     pub transaction_hash: Vec<u8>,
     pub timestamp_block: i32,

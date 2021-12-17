@@ -25,6 +25,12 @@ pub struct CreateVote {
     pub timestamp_block: i32,
 }
 
+#[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
+pub struct UnlockVote {
+    pub proposal_id: i32,
+    pub voter: String,
+}
+
 #[derive(Debug, Copy, Clone, Deserialize, Eq, PartialEq, Hash, opg::OpgModel)]
 #[opg("Votes ordering")]
 pub struct VotesOrdering {

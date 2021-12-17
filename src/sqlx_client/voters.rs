@@ -14,12 +14,13 @@ impl SqlxClient {
         let mut query = OwnedPartBuilder::new().starts_with(
             "SELECT \
             proposals.id, proposals.address, proposals.proposer, proposals.description, proposals.start_time, \
-            proposals.end_time, proposals.execution_time, proposals.grace_period,  proposals.time_lock,  proposals.voting_delay, proposals.for_votes, proposals.against_votes, \
-            proposals.quorum_votes, proposals.message_hash, proposals.transaction_hash, proposals.timestamp_block, \
-            proposals.actions, proposals.executed, proposals.canceled, proposals.queued, proposals.executed_at, \
-            proposals.canceled_at, proposals.queued_at, proposals.updated_at, proposals.created_at,\
-            votes.proposal_id, votes.voter, votes.support, votes.reason, votes.votes, votes.message_hash, votes.transaction_hash, \
-            votes.timestamp_block, votes.created_at \
+            proposals.end_time, proposals.execution_time, proposals.grace_period,  proposals.time_lock, \
+            proposals.voting_delay, proposals.for_votes, proposals.against_votes, proposals.quorum_votes, \
+            proposals.message_hash, proposals.transaction_hash, proposals.timestamp_block, proposals.actions, \
+            proposals.executed, proposals.canceled, proposals.queued, proposals.executed_at, proposals.canceled_at, \
+            proposals.queued_at, proposals.updated_at, proposals.created_at,\
+            votes.proposal_id, votes.voter, votes.support, votes.reason, votes.votes, votes.locked, votes.message_hash, \
+            votes.transaction_hash, votes.timestamp_block, votes.created_at \
             FROM proposals INNER JOIN votes on proposals.id = votes.proposal_id");
 
         let mut args_len = 0;
@@ -85,6 +86,7 @@ impl SqlxClient {
                     support: x.read_next(),
                     reason: x.read_next(),
                     votes: x.read_next(),
+                    locked: x.read_next(),
                     message_hash: x.read_next(),
                     transaction_hash: x.read_next(),
                     timestamp_block: x.read_next(),
@@ -153,6 +155,10 @@ fn voter_filters(address: String, filters: VoterFilters, args_len: &mut u32) -> 
         filters.support.map(|support| {
             *args_len += 1;
             (format!("support = ${}", *args_len), support)
+        }),
+        filters.locked.map(|locked| {
+            *args_len += 1;
+            (format!("locked = ${}", *args_len), locked)
         }),
         filters.state.map(|state| {
             let now = Utc::now().timestamp();
