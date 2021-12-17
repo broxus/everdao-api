@@ -2,13 +2,6 @@ use crate::models::*;
 use crate::services::*;
 
 impl Services {
-    pub async fn get_proposals(
-        &self,
-        ids: Vec<u32>,
-    ) -> Result<impl Iterator<Item = ProposalFromDb>, anyhow::Error> {
-        self.sqlx_client.get_proposals(ids).await
-    }
-
     pub async fn search_proposals(
         &self,
         input: ProposalsSearch,

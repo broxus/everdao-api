@@ -22,15 +22,6 @@ pub fn swagger() -> String {
             votes,
         },
         paths: {
-            ("proposals"): {
-                POST: {
-                    tags: { proposals },
-                    summary: "Proposals data",
-                    description: "Get proposals data by id's.",
-                    body: requests::ProposalsByIdRequest,
-                    200: Vec<responses::ProposalResponse>,
-                }
-            },
             ("proposals" / "search" ): {
                 POST: {
                     tags: { proposals },

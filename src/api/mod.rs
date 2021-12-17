@@ -61,7 +61,6 @@ mod filters {
         warp::path("v1")
             .and(
                 swagger()
-                    .or(post_proposals(ctx.clone()))
                     .or(post_proposals_search(ctx.clone()))
                     .or(post_votes_search(ctx.clone()))
                     .or(post_voters_search(ctx)),
@@ -74,15 +73,6 @@ mod filters {
         warp::path!("swagger.yaml")
             .and(warp::get())
             .map(move || docs.clone())
-            .boxed()
-    }
-
-    fn post_proposals(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
-        warp::path!("proposals")
-            .and(warp::post())
-            .and(with_ctx(ctx))
-            .and(json_body())
-            .and_then(controllers::proposals::post_proposals)
             .boxed()
     }
 

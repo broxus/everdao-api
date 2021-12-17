@@ -3,13 +3,6 @@ use serde::Deserialize;
 use crate::models::*;
 use crate::utils::*;
 
-#[derive(Debug, Clone, Deserialize, opg::OpgModel)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[opg("Proposal by id request")]
-pub struct ProposalsByIdRequest {
-    pub ids: Vec<u32>,
-}
-
 #[derive(Debug, Deserialize, Clone, opg::OpgModel)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[opg("Proposals request")]
