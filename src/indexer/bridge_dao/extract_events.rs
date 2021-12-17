@@ -1,4 +1,4 @@
-use indexer_lib::{split, AnyExtractableOutput, ParsedOutput};
+use indexer_lib::{split, AnyExtractableOutput, ParsedOutput, TransactionExt};
 use nekoton_abi::{UnpackAbiPlain, UnpackFirst};
 use ton_consumer::TransactionProducer;
 
@@ -68,17 +68,26 @@ pub async fn extract_userdata_parsed_events(
 
     let (_, events) = split(events.output);
     for event in events {
-        let message_hash = event.message_hash.to_vec();
-        if event.function_name.as_str() == "VoteCast" {
-            let vote: VoteCast = event.input.unpack()?;
-            parse_vote_cast_event(
-                vote,
-                message_hash,
-                transaction,
-                sqlx_client,
-                transaction_producer,
-            )
-            .await?;
+        match event.function_name.as_str() {
+            "VoteCast" => {
+                let vote: VoteCast = event.input.unpack()?;
+                let message_hash = event.message_hash.to_vec();
+                parse_vote_cast_event(
+                    vote,
+                    message_hash,
+                    transaction,
+                    sqlx_client,
+                    transaction_producer,
+                )
+                .await?;
+            }
+            "UnlockCastedVotes" => {
+                let proposal_id: u32 = event.input.unpack_first()?;
+                let voter = transaction.contract_address()?;
+
+                // todo
+            }
+            _ => {}
         }
     }
     Ok(())

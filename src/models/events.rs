@@ -77,8 +77,12 @@ fn user_data() -> Vec<AnyExtractable> {
     let contract = ton_abi::Contract::load(std::io::Cursor::new(USERDATA_ABI)).trust_me();
     let events = contract.events();
     let vote_cast = events.get("VoteCast").trust_me();
+    let unlock_casted_votes = events.get("UnlockCastedVotes").trust_me();
 
-    vec![AnyExtractable::Event(vote_cast.clone())]
+    vec![
+        AnyExtractable::Event(vote_cast.clone()),
+        AnyExtractable::Event(unlock_casted_votes.clone()),
+    ]
 }
 
 fn proposal() -> Vec<AnyExtractable> {
