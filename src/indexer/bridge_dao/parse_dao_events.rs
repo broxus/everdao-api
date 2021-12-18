@@ -1,5 +1,6 @@
 use anyhow::Context;
 use indexer_lib::TransactionExt;
+use itertools::Itertools;
 use nekoton_abi::*;
 use nekoton_utils::{repack_address, TrustMe};
 use sqlx::types::Decimal;
@@ -62,11 +63,13 @@ pub async fn parse_proposal_created_event(
     let proposal_config: ProposalConfig =
         function_output.tokens.unwrap_or_default().unpack_first()?;
 
-    let ton_actions: Result<Vec<_>, _> = data
-        .ton_actions
-        .into_iter()
-        .map(TryFrom::try_from)
-        .collect();
+    let for_votes = sqlx_client
+        .votes_sum((data.proposal_id, true).into())
+        .await?;
+
+    let against_votes = sqlx_client
+        .votes_sum((data.proposal_id, false).into())
+        .await?;
 
     let proposal = CreateProposal {
         id: data.proposal_id as i32,
@@ -79,14 +82,18 @@ pub async fn parse_proposal_created_event(
         grace_period: proposal_config.grace_period as i64,
         time_lock: proposal_config.time_lock as i64,
         voting_delay: proposal_config.voting_delay as i64,
-        for_votes: Decimal::from(proposal_overview.for_votes),
-        against_votes: Decimal::from(proposal_overview.against_votes),
+        for_votes,
+        against_votes,
         quorum_votes: Decimal::from(proposal_overview.quorum_votes),
         message_hash,
         transaction_hash,
         timestamp_block,
         actions: ProposalActions {
-            ton_actions: ton_actions?,
+            ton_actions: data
+                .ton_actions
+                .into_iter()
+                .map(TryFrom::try_from)
+                .try_collect()?,
             eth_actions: data.eth_actions.into_iter().map(From::from).collect(),
         },
     };

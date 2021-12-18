@@ -14,6 +14,17 @@ pub struct VoteFilters {
     pub locked: Option<bool>,
 }
 
+impl From<(u32, bool)> for VoteFilters {
+    fn from((proposal_id, support): (u32, bool)) -> Self {
+        VoteFilters {
+            proposal_id: Some(proposal_id),
+            support: Some(support),
+            voter: None,
+            locked: None,
+        }
+    }
+}
+
 #[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
 pub struct CreateVote {
     pub proposal_id: i32,
