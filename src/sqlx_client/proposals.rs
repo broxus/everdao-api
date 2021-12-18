@@ -100,7 +100,7 @@ impl SqlxClient {
     ) -> Result<()> {
         let updated_at = chrono::Utc::now().timestamp();
         sqlx::query!(
-            r#"UPDATE proposals SET for_votes = $2, against_votes = $3, updated_at = $4
+            r#"UPDATE proposals SET for_votes = for_votes + $2, against_votes = against_votes + $3, updated_at = $4
             WHERE id = $1
             "#,
             proposal_id,

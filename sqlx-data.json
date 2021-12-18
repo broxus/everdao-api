@@ -151,21 +151,6 @@
       "nullable": []
     }
   },
-  "bc6cffc7c60d2064fe116d69398b1053208c51feea185052ad067d71b9d25adb": {
-    "query": "UPDATE proposals SET for_votes = $2, against_votes = $3, updated_at = $4\n            WHERE id = $1\n            ",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
-          "Int4",
-          "Numeric",
-          "Numeric",
-          "Int8"
-        ]
-      },
-      "nullable": []
-    }
-  },
   "e7cbffda496e4b248b06df93ffbc360d2b8acf9c4bb5a1818aecd8eb62a24b0d": {
     "query": "UPDATE proposals SET executed = true, executed_at = $1, updated_at = $2\n            WHERE id = $3",
     "describe": {
@@ -175,6 +160,21 @@
           "Int4",
           "Int8",
           "Int4"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "fa1e388236d57bc68a316086fb1309ef572a73e44812e0dbaa03a06a8e32cddd": {
+    "query": "UPDATE proposals SET for_votes = for_votes + $2, against_votes = against_votes + $3, updated_at = $4\n            WHERE id = $1\n            ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Numeric",
+          "Numeric",
+          "Int8"
         ]
       },
       "nullable": []

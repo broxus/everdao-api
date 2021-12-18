@@ -31,7 +31,7 @@ pub async fn bridge_dao_indexer(
     let all_events = AllEvents::new();
     let prep_events = all_events.get_all_events();
 
-    while let Some(mut produced_transaction) = stream_transactions.next().await {
+    while let Some(produced_transaction) = stream_transactions.next().await {
         let transaction = produced_transaction.transaction.clone();
 
         if extract_events(&transaction, transaction.tx_hash().trust_me(), &prep_events).is_some() {

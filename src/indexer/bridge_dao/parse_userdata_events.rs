@@ -39,7 +39,7 @@ pub async fn parse_vote_cast_event(
 
     let payload = CreateVote {
         proposal_id: vote.proposal_id as i32,
-        voter: user_data_address.to_string(),
+        voter: details.user.to_string(),
         support: vote.support,
         reason: vote.reason,
         votes: Decimal::from(vote.votes),
@@ -50,32 +50,16 @@ pub async fn parse_vote_cast_event(
 
     sqlx_client.create_vote(payload).await?;
 
-    // get proposal address
-    let function_output = transaction_producer
-        .run_local(
-            &details.dao_root,
-            expected_proposal_address(),
-            &[
-                answer_id(),
-                vote.proposal_id.token_value().named("proposalId"),
-            ],
-        )
-        .await?
-        .context("none function output")?;
-    let proposal_address: MsgAddressInt =
-        function_output.tokens.unwrap_or_default().unpack_first()?;
-
-    // get proposal overview
-    let function_output = transaction_producer
-        .run_local(&proposal_address, get_overview(), &[answer_id()])
-        .await?
-        .context("none function output")?;
-    let proposal_overview: ProposalOverview =
-        function_output.tokens.unwrap_or_default().unpack()?;
-
-    let payload = UpdateProposalVotes {
-        for_votes: Decimal::from(proposal_overview.for_votes),
-        against_votes: Decimal::from(proposal_overview.against_votes),
+    let payload = if vote.support {
+        UpdateProposalVotes {
+            for_votes: Decimal::from(vote.votes),
+            against_votes: Decimal::ZERO,
+        }
+    } else {
+        UpdateProposalVotes {
+            for_votes: Decimal::ZERO,
+            against_votes: Decimal::from(vote.votes),
+        }
     };
 
     sqlx_client
