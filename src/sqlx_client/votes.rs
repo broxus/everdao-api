@@ -154,7 +154,7 @@ fn vote_filters(filters: VoteFilters, args_len: &mut u32) -> impl QueryPart {
         }),
         filters.locked.map(|locked| {
             *args_len += 1;
-            (format!("support = ${}", *args_len), locked)
+            (format!("locked = ${}", *args_len), locked)
         }),
     ))
 }
