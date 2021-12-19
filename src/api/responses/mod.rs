@@ -27,7 +27,6 @@ pub struct ProposalResponse {
     pub quorum_votes: Decimal,
     pub message_hash: String,
     pub transaction_hash: String,
-    pub timestamp_block: i32,
     pub actions: ProposalActions,
     pub executed: bool,
     pub canceled: bool,
@@ -35,8 +34,7 @@ pub struct ProposalResponse {
     pub executed_at: Option<i32>,
     pub canceled_at: Option<i32>,
     pub queued_at: Option<i32>,
-    pub updated_at: i64,
-    pub created_at: i64,
+    pub created_at: i32,
     pub state: ProposalState,
 }
 
@@ -82,7 +80,6 @@ impl From<ProposalFromDb> for ProposalResponse {
             quorum_votes: x.quorum_votes,
             message_hash: hex::encode(x.message_hash),
             transaction_hash: hex::encode(x.transaction_hash),
-            timestamp_block: x.timestamp_block,
             actions: serde_json::from_value(x.actions).trust_me(),
             executed: x.executed,
             canceled: x.canceled,
@@ -90,8 +87,7 @@ impl From<ProposalFromDb> for ProposalResponse {
             executed_at: x.executed_at,
             canceled_at: x.canceled_at,
             queued_at: x.queued_at,
-            updated_at: x.updated_at,
-            created_at: x.created_at,
+            created_at: x.timestamp_block,
             state,
         }
     }
@@ -118,8 +114,7 @@ pub struct VoteResponse {
     pub locked: bool,
     pub message_hash: String,
     pub transaction_hash: String,
-    pub timestamp_block: i32,
-    pub created_at: i64,
+    pub created_at: i32,
 }
 
 impl From<VoteFromDb> for VoteResponse {
@@ -133,8 +128,7 @@ impl From<VoteFromDb> for VoteResponse {
             reason: x.reason,
             votes: x.votes,
             locked: x.locked,
-            timestamp_block: x.timestamp_block,
-            created_at: x.created_at,
+            created_at: x.timestamp_block,
         }
     }
 }
