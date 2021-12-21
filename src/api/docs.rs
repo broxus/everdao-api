@@ -49,6 +49,24 @@ pub fn swagger() -> String {
                     200: responses::ProposalsWithVotesResponse,
                 }
             },
+            ("voters" / "proposals" / "count" ): {
+                POST: {
+                    tags: { voters },
+                    summary: "Voter proposals count",
+                    description: "Get proposals counts",
+                    body: requests::ProposalsCountRequest,
+                    200: Vec<responses::ProposalCountResponse>,
+                }
+            },
+            ("voters" / "proposals" / "count" / "search" ): {
+                POST: {
+                    tags: { voters },
+                    summary: "Voter proposals count search",
+                    description: "Get proposals counts",
+                    body: requests::ProposalsCountSearchRequest,
+                    200: Vec<responses::ProposalCountResponse>,
+                }
+            },
         }
     };
 

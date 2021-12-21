@@ -7,7 +7,10 @@ impl Services {
         input: ProposalsSearch,
     ) -> Result<(impl Iterator<Item = ProposalFromDb>, i64), anyhow::Error> {
         let proposals = self.sqlx_client.search_proposals(input.clone()).await?;
-        let total_count = self.sqlx_client.proposals_total_count(input).await?;
+        let total_count = self
+            .sqlx_client
+            .proposals_total_count(input.data.filters)
+            .await?;
 
         Ok((proposals, total_count))
     }

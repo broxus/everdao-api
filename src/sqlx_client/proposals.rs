@@ -185,12 +185,12 @@ impl SqlxClient {
             }))
     }
 
-    pub async fn proposals_total_count(&self, input: ProposalsSearch) -> Result<i64> {
+    pub async fn proposals_total_count(&self, input: ProposalFilters) -> Result<i64> {
         let mut args_len = 0;
 
         let mut query = OwnedPartBuilder::new().starts_with("SELECT COUNT(*) FROM proposals");
 
-        query.push_part(proposal_filters(input.data.filters, &mut args_len));
+        query.push_part(proposal_filters(input, &mut args_len));
 
         let (query, args) = query.split();
 

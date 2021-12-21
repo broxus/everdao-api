@@ -99,7 +99,7 @@ impl SqlxClient {
     pub async fn proposals_with_votes_total_count(
         &self,
         address: String,
-        input: VotersSearch,
+        input: VoterFilters,
     ) -> Result<i64> {
         let mut args_len = 0;
 
@@ -107,7 +107,7 @@ impl SqlxClient {
             "SELECT COUNT(*) FROM proposals INNER JOIN votes on proposals.id = votes.proposal_id",
         );
 
-        query.push_part(voter_filters(address, input.data.filters, &mut args_len));
+        query.push_part(voter_filters(address, input, &mut args_len));
 
         let (query, args) = query.split();
 
@@ -119,6 +119,67 @@ impl SqlxClient {
             .unwrap_or_default();
 
         Ok(total_count)
+    }
+
+    pub async fn proposals_count_search(
+        &self,
+        input: VotersProposalsCountSearch,
+    ) -> Result<impl Iterator<Item = (String, i64)> + Send + Sync> {
+        let mut query =
+            OwnedPartBuilder::new().starts_with("SELECT voter, COUNT(voter) FROM votes");
+
+        let mut args_len = 0;
+
+        if let Some(voters) = input.data.filters.voters {
+            let mut first = true;
+            for voter in voters {
+                if std::mem::take(&mut first) {
+                    query.push("WHERE");
+                } else {
+                    query.push("OR");
+                }
+                query.push_with_arg(
+                    format!("voter = ${}", {
+                        args_len += 1;
+                        args_len
+                    }),
+                    voter,
+                );
+            }
+        }
+        query.push("GROUP BY voter");
+
+        if let Some(ordering) = input.data.ordering {
+            query.push(voters_proposals_ordering(ordering));
+        }
+
+        query
+            .push_with_arg(
+                {
+                    format!("LIMIT ${}", {
+                        args_len += 1;
+                        args_len
+                    })
+                },
+                max_limit(input.limit),
+            )
+            .push_with_arg(
+                {
+                    format!("OFFSET ${}", {
+                        args_len += 1;
+                        args_len
+                    })
+                },
+                input.offset,
+            );
+
+        let (query, args) = query.split();
+
+        let proposals_count = sqlx::query_with(&query, args).fetch_all(&self.pool).await?;
+        Ok(proposals_count
+            .into_iter()
+            .map(RowReader::from_row)
+            .map(|mut x| (x.read_next(), x.read_next())))
     }
 }
 
@@ -245,6 +306,15 @@ fn voters_ordering(ordering: Option<VotersOrdering>) -> &'static str {
     match (column, direction) {
         (VoterColumn::CreatedAt, Direction::Ascending) => "ORDER BY votes.timestamp_block",
         (VoterColumn::CreatedAt, Direction::Descending) => "ORDER BY votes.timestamp_block DESC",
+    }
+}
+
+fn voters_proposals_ordering(ordering: VotersProposalsOrdering) -> &'static str {
+    let VotersProposalsOrdering { column, direction } = ordering;
+
+    match (column, direction) {
+        (VotersProposalColumn::Count, Direction::Ascending) => "ORDER BY count",
+        (VotersProposalColumn::Count, Direction::Descending) => "ORDER BY count DESC",
     }
 }
 

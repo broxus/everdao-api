@@ -63,7 +63,9 @@ mod filters {
                 swagger()
                     .or(post_proposals_search(ctx.clone()))
                     .or(post_votes_search(ctx.clone()))
-                    .or(post_voters_search(ctx)),
+                    .or(post_voters_search(ctx.clone()))
+                    .or(post_voters_proposals_count(ctx.clone()))
+                    .or(post_voters_proposals_count_search(ctx)),
             )
             .boxed()
     }
@@ -103,6 +105,24 @@ mod filters {
             .and(with_ctx(ctx))
             .and(json_body())
             .and_then(controllers::voters::post_voters_search)
+            .boxed()
+    }
+
+    fn post_voters_proposals_count(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
+        warp::path!("voters" / "proposals" / "count")
+            .and(warp::post())
+            .and(with_ctx(ctx))
+            .and(json_body())
+            .and_then(controllers::voters::post_voters_proposal_count)
+            .boxed()
+    }
+
+    fn post_voters_proposals_count_search(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
+        warp::path!("voters" / "proposals" / "count" / "search")
+            .and(warp::post())
+            .and(with_ctx(ctx))
+            .and(json_body())
+            .and_then(controllers::voters::post_voters_proposal_count_search)
             .boxed()
     }
 

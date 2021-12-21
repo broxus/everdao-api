@@ -99,12 +99,12 @@ impl SqlxClient {
             }))
     }
 
-    pub async fn votes_total_count(&self, input: VotesSearch) -> Result<i64> {
+    pub async fn votes_total_count(&self, input: VoteFilters) -> Result<i64> {
         let mut args_len = 0;
 
         let mut query = OwnedPartBuilder::new().starts_with("SELECT COUNT(*) FROM votes");
 
-        query.push_part(vote_filters(input.data.filters, &mut args_len));
+        query.push_part(vote_filters(input, &mut args_len));
 
         let (query, args) = query.split();
 

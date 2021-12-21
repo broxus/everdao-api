@@ -156,3 +156,11 @@ pub struct ProposalsWithVotesResponse {
     pub proposal_with_votes: Vec<ProposalWithVoteResponse>,
     pub total_count: i64,
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone, opg::OpgModel)]
+#[serde(rename_all = "camelCase")]
+#[opg("Proposals count response")]
+pub struct ProposalCountResponse {
+    pub voter: String,
+    pub count: i64,
+}

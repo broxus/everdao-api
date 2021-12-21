@@ -146,3 +146,32 @@ impl From<VotersRequest> for VotersSearch {
         .paginated(w.limit, w.offset)
     }
 }
+
+#[derive(Debug, Clone, Deserialize, opg::OpgModel)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[opg("Proposals count request")]
+pub struct ProposalsCountRequest {
+    pub voters: Vec<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, opg::OpgModel)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[opg("Proposals count search request")]
+pub struct ProposalsCountSearchRequest {
+    pub limit: u32,
+    pub offset: u32,
+
+    #[opg(optional)]
+    pub voters: Option<Vec<String>>,
+
+    #[opg(optional)]
+    pub ordering: Option<VotersProposalsOrdering>,
+}
+
+impl From<ProposalsCountSearchRequest> for VotersProposalsCountSearch {
+    fn from(w: ProposalsCountSearchRequest) -> Self {
+        VotersProposalsCountFilters { voters: w.voters }
+            .ordered(w.ordering)
+            .paginated(w.limit, w.offset)
+    }
+}

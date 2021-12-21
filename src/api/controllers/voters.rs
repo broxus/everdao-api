@@ -25,3 +25,39 @@ pub async fn post_voters_search(
         total_count,
     }))
 }
+
+pub async fn post_voters_proposal_count(
+    ctx: Context,
+    input: ProposalsCountRequest,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    let resp = ctx
+        .services
+        .proposals_count(input.voters)
+        .await
+        .map_err(BadRequestError)?;
+
+    Ok(warp::reply::json(
+        &resp
+            .into_iter()
+            .map(|(voter, count)| ProposalCountResponse { voter, count })
+            .collect::<Vec<_>>(),
+    ))
+}
+
+pub async fn post_voters_proposal_count_search(
+    ctx: Context,
+    input: ProposalsCountSearchRequest,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    let resp = ctx
+        .services
+        .search_proposals_count(input.into())
+        .await
+        .map_err(BadRequestError)?;
+
+    Ok(warp::reply::json(
+        &resp
+            .into_iter()
+            .map(|(voter, count)| ProposalCountResponse { voter, count })
+            .collect::<Vec<_>>(),
+    ))
+}

@@ -5,6 +5,9 @@ use crate::utils::*;
 
 pub type VotersSearch = Paginated<Ordered<VoterFilters, VotersOrdering>>;
 
+pub type VotersProposalsCountSearch =
+    Paginated<Ordered<VotersProposalsCountFilters, VotersProposalsOrdering>>;
+
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash)]
 pub struct VoterFilters {
     pub start_time_ge: Option<u32>,
@@ -47,4 +50,32 @@ impl Default for VotersOrdering {
 #[opg("Voter column")]
 pub enum VoterColumn {
     CreatedAt,
+}
+
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash)]
+pub struct VotersProposalsCountFilters {
+    pub voters: Option<Vec<String>>,
+}
+
+#[derive(Debug, Copy, Clone, Deserialize, Eq, PartialEq, Hash, opg::OpgModel)]
+#[opg("Voters proposals ordering")]
+pub struct VotersProposalsOrdering {
+    pub column: VotersProposalColumn,
+    pub direction: Direction,
+}
+
+impl Default for VotersProposalsOrdering {
+    fn default() -> Self {
+        Self {
+            column: VotersProposalColumn::Count,
+            direction: Direction::Descending,
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone, Deserialize, Eq, PartialEq, Hash, opg::OpgModel)]
+#[serde(rename_all = "camelCase")]
+#[opg("Voter column")]
+pub enum VotersProposalColumn {
+    Count,
 }
