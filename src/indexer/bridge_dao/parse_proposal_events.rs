@@ -18,7 +18,7 @@ pub async fn parse_proposal_executed_event(
 
     // get proposal id
     let function_output = node
-        .run_local(&proposal_address, get_id(), &[answer_id()])
+        .run_local(&proposal_address, get_id(), &[])
         .await?
         .context("none function output")?;
     let proposal_id: u32 = function_output.tokens.unwrap_or_default().unpack_first()?;
@@ -41,7 +41,7 @@ pub async fn parse_proposal_canceled_event(
 
     // get proposal id
     let function_output = node
-        .run_local(&proposal_address, get_id(), &[answer_id()])
+        .run_local(&proposal_address, get_id(), &[])
         .await?
         .context("none function output")?;
     let proposal_id: u32 = function_output.tokens.unwrap_or_default().unpack_first()?;
@@ -65,7 +65,7 @@ pub async fn parse_proposal_queued_event(
 
     // get proposal id
     let function_output = node
-        .run_local(&proposal_address, get_id(), &[answer_id()])
+        .run_local(&proposal_address, get_id(), &[])
         .await?
         .context("none function output")?;
     let proposal_id: u32 = function_output.tokens.unwrap_or_default().unpack_first()?;

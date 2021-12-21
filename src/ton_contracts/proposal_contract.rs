@@ -25,7 +25,7 @@ pub fn get_config() -> &'static ton_abi::Function {
 /// External responsible function
 pub fn get_id() -> &'static ton_abi::Function {
     crate::once!(ton_abi::Function, || {
-        FunctionBuilder::new_responsible("id")
+        FunctionBuilder::new("id")
             .time_header()
             .output("id", ton_abi::ParamType::Uint(32))
             .build()
