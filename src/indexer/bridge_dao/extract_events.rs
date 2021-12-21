@@ -1,4 +1,4 @@
-use indexer_lib::{split, AnyExtractableOutput, ParsedOutput, TransactionExt};
+use indexer_lib::{split, AnyExtractableOutput, ParsedOutput};
 use nekoton_abi::{UnpackAbiPlain, UnpackFirst};
 use ton_consumer::TransactionProducer;
 
@@ -83,8 +83,13 @@ pub async fn extract_userdata_parsed_events(
             }
             "UnlockCastedVotes" => {
                 let proposal_id: u32 = event.input.unpack_first()?;
-                let voter = transaction.contract_address()?;
-                parse_unlock_casted_votes_event(proposal_id, voter, sqlx_client).await?
+                parse_unlock_casted_votes_event(
+                    proposal_id,
+                    transaction,
+                    sqlx_client,
+                    transaction_producer,
+                )
+                .await?
             }
             _ => {}
         }

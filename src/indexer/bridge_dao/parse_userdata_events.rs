@@ -3,7 +3,7 @@ use indexer_lib::TransactionExt;
 use nekoton_abi::*;
 use nekoton_utils::{repack_address, TrustMe};
 use sqlx::types::Decimal;
-use ton_block::{MsgAddressInt, Transaction};
+use ton_block::Transaction;
 use ton_consumer::TransactionProducer;
 
 use crate::models::*;
@@ -71,15 +71,26 @@ pub async fn parse_vote_cast_event(
 
 pub async fn parse_unlock_casted_votes_event(
     proposal_id: u32,
-    voter: MsgAddressInt,
+    transaction: &Transaction,
     sqlx_client: &SqlxClient,
+    transaction_producer: &TransactionProducer,
 ) -> Result<(), anyhow::Error> {
     log::debug!("Found unlock casted votes event");
 
+    // get userdata details
+    let user_data_address = transaction.contract_address()?;
+    let function_output = transaction_producer
+        .run_local(&user_data_address, get_user_data_details(), &[answer_id()])
+        .await?
+        .context("none function output")?;
+    let details: GetDetails = function_output.tokens.unwrap_or_default().unpack_first()?;
+
     let vote = UnlockVote {
         proposal_id: proposal_id as i32,
-        voter: voter.to_string(),
+        voter: details.user.to_string(),
     };
+
+    log::debug!("Unlock event details {:?}", vote);
 
     sqlx_client.unlock_vote(vote).await?;
 
