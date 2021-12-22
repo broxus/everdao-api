@@ -225,6 +225,36 @@ fn voter_filters(address: String, filters: VoterFilters, args_len: &mut u32) -> 
             *args_len += 1;
             (format!("locked = ${}", *args_len), locked)
         }),
+        filters.available_for_unlock.map(|available_for_unlock| {
+            let now = Utc::now().timestamp();
+            if available_for_unlock {
+                let parts = format!(
+                    "start_time > ${} AND end_time <= ${}",
+                    {
+                        *args_len += 1;
+                        *args_len
+                    },
+                    {
+                        *args_len += 1;
+                        *args_len
+                    }
+                );
+                CustomBuild(parts, vec![CustomBuildType::Int(now), CustomBuildType::Int(now)])
+            } else {
+                let parts = format!(
+                    "start_time <= ${} AND end_time > ${}",
+                    {
+                        *args_len += 1;
+                        *args_len
+                    },
+                    {
+                        *args_len += 1;
+                        *args_len
+                    }
+                );
+                CustomBuild(parts, vec![CustomBuildType::Int(now), CustomBuildType::Int(now)])
+            }
+        }),
         filters.state.map(|state| {
             let now = Utc::now().timestamp();
             match state {

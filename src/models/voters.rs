@@ -26,6 +26,8 @@ pub struct VoterFilters {
 
     pub locked: Option<bool>,
 
+    pub available_for_unlock: Option<bool>,
+
     pub state: Option<ProposalState>,
 }
 
