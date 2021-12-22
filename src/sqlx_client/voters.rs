@@ -229,7 +229,7 @@ fn voter_filters(address: String, filters: VoterFilters, args_len: &mut u32) -> 
             let now = Utc::now().timestamp();
             if available_for_unlock {
                 let parts = format!(
-                    "start_time > ${} AND end_time <= ${}",
+                    "(start_time > ${} OR end_time <= ${})",
                     {
                         *args_len += 1;
                         *args_len
