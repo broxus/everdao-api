@@ -17,8 +17,8 @@ pub enum ProposalActionType {
     Vote(UpdateProposalVotes),
 }
 
-pub fn save_proposal_action_in_cache(propsal_id: i32, action: ProposalActionType) {
-    match PROPOSAL_CACHE.write().entry(propsal_id) {
+pub fn save_proposal_action_in_cache(proposal_id: i32, action: ProposalActionType) {
+    match PROPOSAL_CACHE.write().entry(proposal_id) {
         hash_map::Entry::Vacant(entry) => {
             entry.insert(vec![action]);
         }
@@ -28,20 +28,15 @@ pub fn save_proposal_action_in_cache(propsal_id: i32, action: ProposalActionType
     }
 }
 
-pub fn get_proposal_actions_from_cache(propsal_id: i32) -> Result<Vec<ProposalActionType>> {
-    let res = PROPOSAL_CACHE
-        .read()
-        .get(&propsal_id)
-        .ok_or(GlobalCacheError::ProposalNotFound(propsal_id))?
-        .to_vec();
-
-    PROPOSAL_CACHE.write().remove(&propsal_id);
-
-    Ok(res)
+pub fn remove_proposal_actions_from_cache(proposal_id: i32) -> Result<Vec<ProposalActionType>> {
+    PROPOSAL_CACHE
+        .write()
+        .remove(&proposal_id)
+        .ok_or_else(|| GlobalProposalCacheError::ProposalNotFound(proposal_id).into())
 }
 
 #[derive(thiserror::Error, Debug)]
-enum GlobalCacheError {
-    #[error("Proposal `{0}` not found in global cache")]
+enum GlobalProposalCacheError {
+    #[error("Proposal `{0}` not found in the cache")]
     ProposalNotFound(i32),
 }

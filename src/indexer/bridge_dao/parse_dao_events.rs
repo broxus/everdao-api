@@ -7,6 +7,7 @@ use sqlx::types::Decimal;
 use ton_block::{MsgAddressInt, Transaction};
 use ton_consumer::TransactionProducer;
 
+use crate::global_cache::*;
 use crate::models::*;
 use crate::sqlx_client::*;
 use crate::ton_contracts::*;
@@ -99,6 +100,36 @@ pub async fn parse_proposal_created_event(
     };
 
     sqlx_client.create_proposal(proposal).await?;
+
+    let proposal_actions = remove_proposal_actions_from_cache(data.proposal_id as i32)?;
+    for proposal_action in proposal_actions {
+        match proposal_action {
+            ProposalActionType::Executed(timestamp_block) => {
+                sqlx_client
+                    .update_proposal_executed(data.proposal_id as i32, timestamp_block)
+                    .await?;
+            }
+            ProposalActionType::Canceled(timestamp_block) => {
+                sqlx_client
+                    .update_proposal_canceled(data.proposal_id as i32, timestamp_block)
+                    .await?;
+            }
+            ProposalActionType::Queued(timestamp_block, execution_time) => {
+                sqlx_client
+                    .update_proposal_queued(
+                        execution_time,
+                        data.proposal_id as i32,
+                        timestamp_block,
+                    )
+                    .await?;
+            }
+            ProposalActionType::Vote(proposal_votes) => {
+                sqlx_client
+                    .update_proposal_votes(data.proposal_id as i32, proposal_votes)
+                    .await?;
+            }
+        }
+    }
 
     Ok(())
 }

@@ -37,7 +37,7 @@ pub struct CreateVote {
     pub timestamp_block: i32,
 }
 
-#[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
+#[derive(Debug, serde::Deserialize, serde::Serialize, Clone, PartialEq, Eq, Hash)]
 pub struct UnlockVote {
     pub proposal_id: i32,
     pub voter: String,

@@ -28,35 +28,6 @@
       "nullable": []
     }
   },
-  "4a761efb219465a96f699600f392e838d1d02c7d679ae8f80e21da76d210f7e7": {
-    "query": "UPDATE proposals SET canceled = true, canceled_at = $1, updated_at = $2\n            WHERE id = $3",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
-          "Int4",
-          "Int8",
-          "Int4"
-        ]
-      },
-      "nullable": []
-    }
-  },
-  "505f361b86850c3c9bb7aacaf321d2e929e16082c9e8f9ff6cbdcfc2e2fe9d0d": {
-    "query": "UPDATE proposals SET queued = true, execution_time = $1, queued_at = $2, updated_at = $3\n            WHERE id = $4\n            ",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
-          "Int8",
-          "Int4",
-          "Int8",
-          "Int4"
-        ]
-      },
-      "nullable": []
-    }
-  },
   "507d6385632bfa2a672134346b7f997f98b5345b5684ec3b84997cf5db30cc3b": {
     "query": "INSERT INTO votes (proposal_id, voter, support, reason, votes, message_hash, transaction_hash, timestamp_block, locked)\n                          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
     "describe": {
@@ -72,20 +43,6 @@
           "Bytea",
           "Int4",
           "Bool"
-        ]
-      },
-      "nullable": []
-    }
-  },
-  "5aff0385280caa31aa9a95f0a2af33e23e7bb38add0748bf001592097f745b4d": {
-    "query": "UPDATE votes SET locked = $1 WHERE proposal_id = $2 AND voter = $3",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
-          "Bool",
-          "Int4",
-          "Text"
         ]
       },
       "nullable": []
@@ -145,35 +102,6 @@
           "Bytea",
           "Bytea",
           "Int4",
-          "Int8"
-        ]
-      },
-      "nullable": []
-    }
-  },
-  "e7cbffda496e4b248b06df93ffbc360d2b8acf9c4bb5a1818aecd8eb62a24b0d": {
-    "query": "UPDATE proposals SET executed = true, executed_at = $1, updated_at = $2\n            WHERE id = $3",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
-          "Int4",
-          "Int8",
-          "Int4"
-        ]
-      },
-      "nullable": []
-    }
-  },
-  "fa1e388236d57bc68a316086fb1309ef572a73e44812e0dbaa03a06a8e32cddd": {
-    "query": "UPDATE proposals SET for_votes = for_votes + $2, against_votes = against_votes + $3, updated_at = $4\n            WHERE id = $1\n            ",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
-          "Int4",
-          "Numeric",
-          "Numeric",
           "Int8"
         ]
       },

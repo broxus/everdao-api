@@ -6,6 +6,7 @@ use sqlx::types::Decimal;
 use ton_block::Transaction;
 use ton_consumer::TransactionProducer;
 
+use crate::global_cache::*;
 use crate::models::*;
 use crate::sqlx_client::*;
 use crate::ton_contracts::*;
@@ -50,6 +51,14 @@ pub async fn parse_vote_cast_event(
 
     sqlx_client.create_vote(payload).await?;
 
+    let unlock_vote = UnlockVote {
+        proposal_id: vote.proposal_id as i32,
+        voter: details.user.to_string(),
+    };
+    if remove_vote_actions_from_cache(unlock_vote.clone()) {
+        sqlx_client.unlock_vote(unlock_vote).await?;
+    }
+
     let payload = if vote.support {
         UpdateProposalVotes {
             for_votes: Decimal::from(vote.votes),
@@ -62,9 +71,16 @@ pub async fn parse_vote_cast_event(
         }
     };
 
-    sqlx_client
-        .update_proposal_votes(vote.proposal_id as i32, payload)
-        .await?;
+    if sqlx_client
+        .update_proposal_votes(vote.proposal_id as i32, payload.clone())
+        .await?
+        == 0
+    {
+        save_proposal_action_in_cache(
+            vote.proposal_id as i32 as i32,
+            ProposalActionType::Vote(payload),
+        )
+    }
 
     Ok(())
 }
@@ -92,7 +108,9 @@ pub async fn parse_unlock_casted_votes_event(
 
     log::debug!("Unlock event details {:?}", vote);
 
-    sqlx_client.unlock_vote(vote).await?;
+    if sqlx_client.unlock_vote(vote.clone()).await? == 0 {
+        save_locked_vote_in_cache(vote)?;
+    }
 
     Ok(())
 }

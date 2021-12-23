@@ -3,6 +3,7 @@
 #![allow(clippy::inconsistent_struct_constructor)]
 
 pub mod api;
+pub mod global_cache;
 pub mod indexer;
 pub mod models;
 pub mod server;

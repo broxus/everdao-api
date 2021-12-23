@@ -40,36 +40,40 @@ impl SqlxClient {
         &self,
         proposal_id: i32,
         timestamp_block: i32,
-    ) -> Result<()> {
+    ) -> Result<i64> {
         let updated_at = chrono::Utc::now().timestamp();
-        sqlx::query!(
-            r#"UPDATE proposals SET executed = true, executed_at = $1, updated_at = $2
-            WHERE id = $3"#,
-            timestamp_block,
-            updated_at,
-            proposal_id,
+        let row: (i64,) = sqlx::query_as(
+            "WITH pr AS (UPDATE proposals SET executed = true, executed_at = $1, updated_at = $2 \
+                WHERE id = $3 RETURNING 1) \
+            SELECT count(*) FROM pr",
         )
-        .execute(&self.pool)
+        .bind(timestamp_block)
+        .bind(updated_at)
+        .bind(proposal_id)
+        .fetch_one(&self.pool)
         .await?;
-        Ok(())
+
+        Ok(row.0)
     }
 
     pub async fn update_proposal_canceled(
         &self,
         proposal_id: i32,
         timestamp_block: i32,
-    ) -> Result<()> {
+    ) -> Result<i64> {
         let updated_at = chrono::Utc::now().timestamp();
-        sqlx::query!(
-            r#"UPDATE proposals SET canceled = true, canceled_at = $1, updated_at = $2
-            WHERE id = $3"#,
-            timestamp_block,
-            updated_at,
-            proposal_id,
+        let row: (i64,) = sqlx::query_as(
+            "WITH pr AS (UPDATE proposals SET canceled = true, canceled_at = $1, updated_at = $2 \
+                WHERE id = $3 RETURNING 1) \
+            SELECT count(*) FROM pr",
         )
-        .execute(&self.pool)
+        .bind(timestamp_block)
+        .bind(updated_at)
+        .bind(proposal_id)
+        .fetch_one(&self.pool)
         .await?;
-        Ok(())
+
+        Ok(row.0)
     }
 
     pub async fn update_proposal_queued(
@@ -77,40 +81,42 @@ impl SqlxClient {
         execution_time: i64,
         proposal_id: i32,
         timestamp_block: i32,
-    ) -> Result<()> {
+    ) -> Result<i64> {
         let updated_at = chrono::Utc::now().timestamp();
-        sqlx::query!(
-            r#"UPDATE proposals SET queued = true, execution_time = $1, queued_at = $2, updated_at = $3
-            WHERE id = $4
-            "#,
-            execution_time,
-            timestamp_block,
-            updated_at,
-            proposal_id,
+        let row: (i64,) = sqlx::query_as(
+            "WITH pr AS (UPDATE proposals SET queued = true, execution_time = $1, queued_at = $2, \
+                updated_at = $3 WHERE id = $4 RETURNING 1) \
+            SELECT count(*) FROM pr",
         )
-            .execute(&self.pool)
-            .await?;
-        Ok(())
+        .bind(execution_time)
+        .bind(timestamp_block)
+        .bind(updated_at)
+        .bind(proposal_id)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(row.0)
     }
 
     pub async fn update_proposal_votes(
         &self,
         proposal_id: i32,
         proposal_votes: UpdateProposalVotes,
-    ) -> Result<()> {
+    ) -> Result<i64> {
         let updated_at = chrono::Utc::now().timestamp();
-        sqlx::query!(
-            r#"UPDATE proposals SET for_votes = for_votes + $2, against_votes = against_votes + $3, updated_at = $4
-            WHERE id = $1
-            "#,
-            proposal_id,
-            proposal_votes.for_votes,
-            proposal_votes.against_votes,
-            updated_at,
+        let row: (i64,) = sqlx::query_as(
+            "WITH pr AS (UPDATE proposals SET for_votes = for_votes + $2, against_votes = against_votes + $3, \
+            updated_at = $4 WHERE id = $1 RETURNING 1) \
+            SELECT count(*) FROM pr",
         )
-        .execute(&self.pool)
-        .await?;
-        Ok(())
+            .bind(proposal_id)
+            .bind(proposal_votes.for_votes,)
+            .bind(proposal_votes.against_votes,)
+            .bind(updated_at)
+            .fetch_one(&self.pool)
+            .await?;
+
+        Ok(row.0)
     }
 
     pub async fn search_proposals(

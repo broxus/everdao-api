@@ -4,6 +4,7 @@ use nekoton_abi::*;
 use ton_block::Transaction;
 use ton_consumer::TransactionProducer;
 
+use crate::global_cache::*;
 use crate::sqlx_client::*;
 use crate::ton_contracts::*;
 
@@ -23,9 +24,16 @@ pub async fn parse_proposal_executed_event(
         .context("none function output")?;
     let proposal_id: u32 = function_output.tokens.unwrap_or_default().unpack_first()?;
 
-    sqlx_client
+    if sqlx_client
         .update_proposal_executed(proposal_id as i32, timestamp_block)
-        .await?;
+        .await?
+        == 0
+    {
+        save_proposal_action_in_cache(
+            proposal_id as i32,
+            ProposalActionType::Executed(timestamp_block),
+        )
+    }
 
     Ok(())
 }
@@ -46,9 +54,16 @@ pub async fn parse_proposal_canceled_event(
         .context("none function output")?;
     let proposal_id: u32 = function_output.tokens.unwrap_or_default().unpack_first()?;
 
-    sqlx_client
+    if sqlx_client
         .update_proposal_canceled(proposal_id as i32, timestamp_block)
-        .await?;
+        .await?
+        == 0
+    {
+        save_proposal_action_in_cache(
+            proposal_id as i32,
+            ProposalActionType::Canceled(timestamp_block),
+        )
+    }
 
     Ok(())
 }
@@ -70,9 +85,16 @@ pub async fn parse_proposal_queued_event(
         .context("none function output")?;
     let proposal_id: u32 = function_output.tokens.unwrap_or_default().unpack_first()?;
 
-    sqlx_client
+    if sqlx_client
         .update_proposal_queued(execution_time as i64, proposal_id as i32, timestamp_block)
-        .await?;
+        .await?
+        == 0
+    {
+        save_proposal_action_in_cache(
+            proposal_id as i32,
+            ProposalActionType::Queued(timestamp_block, execution_time as i64),
+        )
+    }
 
     Ok(())
 }
