@@ -53,5 +53,7 @@ ton_abi = { git = "https://github.com/broxus/ton-labs-abi" }
 ton_block = { git = "https://github.com/broxus/ton-labs-block.git" }
 ton_types = { git = "https://github.com/broxus/ton-labs-types" }
 
+tiny-adnl = { git = "https://github.com/broxus/tiny-adnl" }
+
 [dev-dependencies]
 env_logger = "0.8.4"

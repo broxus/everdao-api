@@ -1,13 +1,14 @@
-use std::collections::{hash_map, HashMap};
+use std::collections::hash_map;
 
 use anyhow::Result;
 use once_cell::sync::Lazy;
 use parking_lot::RwLock;
+use tiny_adnl::utils::FxHashMap;
 
 use crate::models::*;
 
-static PROPOSAL_CACHE: Lazy<RwLock<HashMap<i32, Vec<ProposalActionType>>>> =
-    Lazy::new(|| RwLock::new(HashMap::new()));
+static PROPOSAL_CACHE: Lazy<RwLock<FxHashMap<i32, Vec<ProposalActionType>>>> =
+    Lazy::new(|| RwLock::new(FxHashMap::with_hasher(Default::default())));
 
 #[derive(Clone)]
 pub enum ProposalActionType {
