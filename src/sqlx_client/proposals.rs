@@ -38,18 +38,18 @@ impl SqlxClient {
 
     pub async fn update_proposal_executed(
         &self,
-        proposal_id: i32,
+        address: String,
         timestamp_block: i32,
     ) -> Result<i64> {
         let updated_at = chrono::Utc::now().timestamp();
         let row: (i64,) = sqlx::query_as(
             "WITH pr AS (UPDATE proposals SET executed = true, executed_at = $1, updated_at = $2 \
-                WHERE id = $3 RETURNING 1) \
+                WHERE address = $3 RETURNING 1) \
             SELECT count(*) FROM pr",
         )
         .bind(timestamp_block)
         .bind(updated_at)
-        .bind(proposal_id)
+        .bind(address)
         .fetch_one(&self.pool)
         .await?;
 
@@ -58,18 +58,18 @@ impl SqlxClient {
 
     pub async fn update_proposal_canceled(
         &self,
-        proposal_id: i32,
+        address: String,
         timestamp_block: i32,
     ) -> Result<i64> {
         let updated_at = chrono::Utc::now().timestamp();
         let row: (i64,) = sqlx::query_as(
             "WITH pr AS (UPDATE proposals SET canceled = true, canceled_at = $1, updated_at = $2 \
-                WHERE id = $3 RETURNING 1) \
+                WHERE address = $3 RETURNING 1) \
             SELECT count(*) FROM pr",
         )
         .bind(timestamp_block)
         .bind(updated_at)
-        .bind(proposal_id)
+        .bind(address)
         .fetch_one(&self.pool)
         .await?;
 
@@ -78,20 +78,20 @@ impl SqlxClient {
 
     pub async fn update_proposal_queued(
         &self,
-        execution_time: i64,
-        proposal_id: i32,
+        address: String,
         timestamp_block: i32,
+        execution_time: i64,
     ) -> Result<i64> {
         let updated_at = chrono::Utc::now().timestamp();
         let row: (i64,) = sqlx::query_as(
             "WITH pr AS (UPDATE proposals SET queued = true, execution_time = $1, queued_at = $2, \
-                updated_at = $3 WHERE id = $4 RETURNING 1) \
+                updated_at = $3 WHERE address = $4 RETURNING 1) \
             SELECT count(*) FROM pr",
         )
         .bind(execution_time)
         .bind(timestamp_block)
         .bind(updated_at)
-        .bind(proposal_id)
+        .bind(address)
         .fetch_one(&self.pool)
         .await?;
 

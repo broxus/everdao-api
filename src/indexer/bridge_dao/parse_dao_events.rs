@@ -106,20 +106,20 @@ pub async fn parse_proposal_created_event(
         match proposal_action {
             ProposalActionType::Executed(timestamp_block) => {
                 sqlx_client
-                    .update_proposal_executed(data.proposal_id as i32, timestamp_block)
+                    .update_proposal_executed(proposal_address.to_string(), timestamp_block)
                     .await?;
             }
             ProposalActionType::Canceled(timestamp_block) => {
                 sqlx_client
-                    .update_proposal_canceled(data.proposal_id as i32, timestamp_block)
+                    .update_proposal_canceled(proposal_address.to_string(), timestamp_block)
                     .await?;
             }
             ProposalActionType::Queued(timestamp_block, execution_time) => {
                 sqlx_client
                     .update_proposal_queued(
-                        execution_time,
-                        data.proposal_id as i32,
+                        proposal_address.to_string(),
                         timestamp_block,
+                        execution_time,
                     )
                     .await?;
             }
