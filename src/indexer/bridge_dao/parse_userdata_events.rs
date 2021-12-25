@@ -1,7 +1,7 @@
 use anyhow::Context;
 use indexer_lib::TransactionExt;
 use nekoton_abi::*;
-use nekoton_utils::{repack_address, TrustMe};
+use nekoton_utils::TrustMe;
 use sqlx::types::Decimal;
 use ton_block::Transaction;
 use ton_consumer::TransactionProducer;
@@ -19,6 +19,7 @@ pub async fn parse_vote_cast_event(
     transaction_producer: &TransactionProducer,
 ) -> Result<(), anyhow::Error> {
     log::debug!("Found vote cast event - {:?}", vote);
+
     let timestamp_block = transaction.time() as i32;
     let transaction_hash = transaction.tx_hash().trust_me().as_slice().to_vec();
 
@@ -30,14 +31,13 @@ pub async fn parse_vote_cast_event(
         .context("none function output")?;
     let details: GetDetails = function_output.tokens.unwrap_or_default().unpack_first()?;
 
-    if details.dao_root != repack_address(super::DAO_ROOT_ADDRESS)? {
-        log::error!(
-            "Wrong dao root address in vote cast user data - {}",
-            details.dao_root.to_string()
-        );
+    // check dao address
+    if details.dao_root != *super::DAO_ROOT_ADDRESS {
+        // skip event
         return Ok(());
     }
 
+    // create vote
     let payload = CreateVote {
         proposal_id: vote.proposal_id as i32,
         voter: details.user.to_string(),
@@ -48,9 +48,9 @@ pub async fn parse_vote_cast_event(
         transaction_hash,
         timestamp_block,
     };
-
     sqlx_client.create_vote(payload).await?;
 
+    // unlock vote if exist in cache
     let unlock_vote = UnlockVote {
         proposal_id: vote.proposal_id as i32,
         voter: details.user.to_string(),
@@ -59,6 +59,7 @@ pub async fn parse_vote_cast_event(
         sqlx_client.unlock_vote(unlock_vote).await?;
     }
 
+    // update proposal
     let payload = if vote.support {
         UpdateProposalVotes {
             for_votes: Decimal::from(vote.votes),
@@ -71,16 +72,9 @@ pub async fn parse_vote_cast_event(
         }
     };
 
-    if sqlx_client
+    sqlx_client
         .update_proposal_votes(vote.proposal_id as i32, payload.clone())
-        .await?
-        == 0
-    {
-        save_proposal_action_in_cache(
-            vote.proposal_id as i32 as i32,
-            ProposalActionType::Vote(payload),
-        )
-    }
+        .await?;
 
     Ok(())
 }
@@ -100,6 +94,12 @@ pub async fn parse_unlock_casted_votes_event(
         .await?
         .context("none function output")?;
     let details: GetDetails = function_output.tokens.unwrap_or_default().unpack_first()?;
+
+    // check dao address
+    if details.dao_root != *super::DAO_ROOT_ADDRESS {
+        // skip event
+        return Ok(());
+    }
 
     let vote = UnlockVote {
         proposal_id: proposal_id as i32,

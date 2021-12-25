@@ -214,6 +214,7 @@ dependencies = [
  "hyper",
  "indexer-lib",
  "itertools",
+ "lazy_static",
  "log",
  "nekoton",
  "nekoton-abi",

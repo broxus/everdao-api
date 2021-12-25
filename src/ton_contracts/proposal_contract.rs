@@ -22,12 +22,20 @@ pub fn get_config() -> &'static ton_abi::Function {
     })
 }
 
-/// External responsible function
 pub fn get_id() -> &'static ton_abi::Function {
     crate::once!(ton_abi::Function, || {
         FunctionBuilder::new("id")
             .time_header()
             .output("id", ton_abi::ParamType::Uint(32))
+            .build()
+    })
+}
+
+pub fn get_dao_root() -> &'static ton_abi::Function {
+    crate::once!(ton_abi::Function, || {
+        FunctionBuilder::new("root")
+            .time_header()
+            .output("address", ton_abi::ParamType::Address)
             .build()
     })
 }

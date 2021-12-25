@@ -4,8 +4,8 @@ use dexpa::net::futures::Stream;
 use futures::StreamExt;
 use indexer_lib::{split, AnyExtractableOutput, ExtractInput, ParsedOutput, TransactionExt};
 use nekoton::transport::models::RawTransaction;
-use nekoton_utils::TrustMe;
-use ton_block::{GetRepresentationHash, Transaction};
+use nekoton_utils::{repack_address, TrustMe};
+use ton_block::{GetRepresentationHash, MsgAddressInt, Transaction};
 use ton_consumer::{ProducedTransaction, TransactionProducer};
 use ton_types::UInt256;
 
@@ -19,7 +19,10 @@ mod parse_dao_events;
 mod parse_proposal_events;
 mod parse_userdata_events;
 
-const DAO_ROOT_ADDRESS: &str = "0:3c33153078ea2b94144ad058812563f4896cadbb84e7cc55c08e24e0a394fb3e";
+lazy_static::lazy_static! {
+    static ref DAO_ROOT_ADDRESS: MsgAddressInt =
+        repack_address(&std::env::var("DAO_ROOT").trust_me()).trust_me();
+}
 
 pub async fn bridge_dao_indexer(
     sqlx_client: SqlxClient,

@@ -2,7 +2,7 @@ use anyhow::Context;
 use indexer_lib::TransactionExt;
 use itertools::Itertools;
 use nekoton_abi::*;
-use nekoton_utils::{repack_address, TrustMe};
+use nekoton_utils::TrustMe;
 use sqlx::types::Decimal;
 use ton_block::{MsgAddressInt, Transaction};
 use ton_consumer::TransactionProducer;
@@ -21,10 +21,11 @@ pub async fn parse_proposal_created_event(
 ) -> Result<(), anyhow::Error> {
     log::debug!("Found new proposal : {:?}", data);
     log::debug!(
-        "transaction DAO ROOT address: {}",
-        transaction.contract_address()?.address().to_hex_string()
+        "Transaction DAO ROOT address: {}",
+        transaction.contract_address()?.to_string()
     );
-    if transaction.contract_address()? != repack_address(super::DAO_ROOT_ADDRESS)? {
+
+    if transaction.contract_address()? != *super::DAO_ROOT_ADDRESS {
         // skip event
         return Ok(());
     }
@@ -101,7 +102,7 @@ pub async fn parse_proposal_created_event(
 
     sqlx_client.create_proposal(proposal).await?;
 
-    let proposal_actions = remove_proposal_actions_from_cache(data.proposal_id as i32)?;
+    let proposal_actions = remove_proposal_actions_from_cache(&proposal_address)?;
     for proposal_action in proposal_actions {
         match proposal_action {
             ProposalActionType::Executed(timestamp_block) => {
@@ -121,11 +122,6 @@ pub async fn parse_proposal_created_event(
                         timestamp_block,
                         execution_time,
                     )
-                    .await?;
-            }
-            ProposalActionType::Vote(proposal_votes) => {
-                sqlx_client
-                    .update_proposal_votes(data.proposal_id as i32, proposal_votes)
                     .await?;
             }
         }
