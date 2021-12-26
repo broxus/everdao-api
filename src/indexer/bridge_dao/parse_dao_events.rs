@@ -111,7 +111,7 @@ pub async fn parse_proposal_created_event(
 
     sqlx_client.create_proposal(proposal).await?;
 
-    let proposal_actions = remove_proposal_actions_from_cache(&proposal_address)?;
+    let proposal_actions = remove_proposal_actions_from_cache(&proposal_address);
     for proposal_action in proposal_actions {
         match proposal_action {
             ProposalActionType::Executed(timestamp_block) => {

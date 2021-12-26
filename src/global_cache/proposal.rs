@@ -1,6 +1,5 @@
 use std::collections::hash_map;
 
-use anyhow::Result;
 use once_cell::sync::Lazy;
 use parking_lot::RwLock;
 use tiny_adnl::utils::FxHashMap;
@@ -29,17 +28,9 @@ pub fn save_proposal_action_in_cache(proposal_address: MsgAddressInt, action: Pr
 
 pub fn remove_proposal_actions_from_cache(
     proposal_address: &MsgAddressInt,
-) -> Result<Vec<ProposalActionType>> {
+) -> Vec<ProposalActionType> {
     PROPOSAL_CACHE
         .write()
         .remove(proposal_address)
-        .ok_or_else(|| {
-            GlobalProposalCacheError::ProposalNotFound(proposal_address.to_string()).into()
-        })
-}
-
-#[derive(thiserror::Error, Debug)]
-enum GlobalProposalCacheError {
-    #[error("Proposal address `{0}` not found in the cache")]
-    ProposalNotFound(String),
+        .unwrap_or_default()
 }
