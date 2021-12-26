@@ -11,6 +11,7 @@ use crate::global_cache::*;
 use crate::models::*;
 use crate::sqlx_client::*;
 use crate::ton_contracts::*;
+use crate::utils::*;
 
 pub async fn parse_proposal_created_event(
     data: ProposalCreated,
@@ -50,18 +51,26 @@ pub async fn parse_proposal_created_event(
         function_output.tokens.unwrap_or_default().unpack_first()?;
 
     // get proposal overview
-    let function_output = transaction_producer
-        .run_local(&proposal_address, get_overview(), &[answer_id()])
-        .await?
-        .context("none function output")?;
+    let function_output = poll_run_local(
+        transaction_producer,
+        &proposal_address,
+        get_overview(),
+        &[answer_id()],
+        60,
+    )
+    .await?;
     let proposal_overview: ProposalOverview =
         function_output.tokens.unwrap_or_default().unpack()?;
 
     // get proposal config
-    let function_output = transaction_producer
-        .run_local(&proposal_address, get_config(), &[answer_id()])
-        .await?
-        .context("none function output")?;
+    let function_output = poll_run_local(
+        transaction_producer,
+        &proposal_address,
+        get_config(),
+        &[answer_id()],
+        60,
+    )
+    .await?;
     let proposal_config: ProposalConfig =
         function_output.tokens.unwrap_or_default().unpack_first()?;
 

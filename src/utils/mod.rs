@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 pub use self::part_builder::*;
 pub use self::row_reader::*;
 
@@ -50,4 +52,28 @@ macro_rules! once {
         static ONCE: once_cell::race::OnceBox<$ty> = once_cell::race::OnceBox::new();
         ONCE.get_or_init(|| Box::new($expr))
     }};
+}
+
+pub async fn poll_run_local(
+    transaction_producer: &ton_consumer::TransactionProducer,
+    contract_address: &ton_block::MsgAddressInt,
+    function: &ton_abi::Function,
+    input: &[ton_abi::Token],
+    timeout: u64,
+) -> anyhow::Result<nekoton_abi::ExecutionOutput> {
+    let now = std::time::Instant::now();
+    loop {
+        if let Some(function_output) = transaction_producer
+            .run_local(contract_address, function, input)
+            .await?
+        {
+            break Ok(function_output);
+        }
+
+        if now.elapsed().as_secs() > timeout {
+            break Err(anyhow::Error::msg("none function output"));
+        }
+
+        tokio::time::sleep(Duration::from_secs(5)).await;
+    }
 }
