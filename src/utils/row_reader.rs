@@ -13,10 +13,10 @@ impl<D: sqlx::Database> RowReader<D> {
     #[inline]
     pub fn read_next<'r, T>(&'r mut self) -> T
     where
-        T: sqlx::Decode<'r, D> + sqlx::Type<D>,
+        T: sqlx::Decode<'r, D> + sqlx::Type<D> + Default,
         usize: sqlx::ColumnIndex<<D as sqlx::Database>::Row>,
     {
-        let result = self.row.try_get::<T, _>(self.index).unwrap();
+        let result = self.row.try_get::<T, _>(self.index).unwrap_or_default();
         self.index += 1;
         result
     }
