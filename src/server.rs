@@ -44,8 +44,6 @@ pub async fn start_server() -> StdResult<()> {
     )
     .expect("Falied to get transaction producer");
 
-    transaction_producer.reset_offsets()?;
-
     let stream_transactions = transaction_producer
         .clone()
         .stream_transactions()
