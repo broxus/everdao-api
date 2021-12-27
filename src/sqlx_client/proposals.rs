@@ -41,7 +41,7 @@ impl SqlxClient {
         address: String,
         timestamp_block: i32,
     ) -> Result<i64> {
-        let updated_at = chrono::Utc::now().timestamp();
+        let updated_at = chrono::Utc::now().timestamp_millis();
         let row: (i64,) = sqlx::query_as(
             "WITH pr AS (UPDATE proposals SET executed = true, executed_at = $1, updated_at = $2 \
                 WHERE address = $3 RETURNING 1) \
@@ -61,7 +61,7 @@ impl SqlxClient {
         address: String,
         timestamp_block: i32,
     ) -> Result<i64> {
-        let updated_at = chrono::Utc::now().timestamp();
+        let updated_at = chrono::Utc::now().timestamp_millis();
         let row: (i64,) = sqlx::query_as(
             "WITH pr AS (UPDATE proposals SET canceled = true, canceled_at = $1, updated_at = $2 \
                 WHERE address = $3 RETURNING 1) \
@@ -82,7 +82,7 @@ impl SqlxClient {
         timestamp_block: i32,
         execution_time: i64,
     ) -> Result<i64> {
-        let updated_at = chrono::Utc::now().timestamp();
+        let updated_at = chrono::Utc::now().timestamp_millis();
         let row: (i64,) = sqlx::query_as(
             "WITH pr AS (UPDATE proposals SET queued = true, execution_time = $1, queued_at = $2, \
                 updated_at = $3 WHERE address = $4 RETURNING 1) \
@@ -103,7 +103,7 @@ impl SqlxClient {
         proposal_id: i32,
         proposal_votes: UpdateProposalVotes,
     ) -> Result<i64> {
-        let updated_at = chrono::Utc::now().timestamp();
+        let updated_at = chrono::Utc::now().timestamp_millis();
         let row: (i64,) = sqlx::query_as(
             "WITH pr AS (UPDATE proposals SET for_votes = for_votes + $2, against_votes = against_votes + $3, \
             updated_at = $4 WHERE id = $1 RETURNING 1) \
