@@ -6,4 +6,4 @@ spec:
   type: NodePort
   ports:
     - port: 9000
-      nodePort: 30167
+      nodePort: 30169
