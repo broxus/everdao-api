@@ -34,3 +34,7 @@ pub fn remove_proposal_actions_from_cache(
         .remove(proposal_address)
         .unwrap_or_default()
 }
+
+pub fn is_proposal_cache_empty() -> bool {
+    PROPOSAL_CACHE.read().is_empty()
+}

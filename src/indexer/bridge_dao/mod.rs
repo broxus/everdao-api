@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
+use crate::global_cache::{is_proposal_cache_empty, is_vote_cache_empty};
 use dexpa::net::futures::Stream;
 use futures::StreamExt;
 use indexer_lib::{split, AnyExtractableOutput, ExtractInput, ParsedOutput, TransactionExt};
@@ -100,7 +101,9 @@ pub async fn bridge_dao_indexer(
                 }
             }
 
-            produced_transaction.commit().trust_me();
+            if is_proposal_cache_empty() && is_vote_cache_empty() {
+                produced_transaction.commit().trust_me();
+            }
         }
     }
 

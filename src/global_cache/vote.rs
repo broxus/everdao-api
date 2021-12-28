@@ -20,6 +20,10 @@ pub fn remove_vote_actions_from_cache(vote: UnlockVote) -> bool {
     VOTE_CACHE.write().remove(&vote)
 }
 
+pub fn is_vote_cache_empty() -> bool {
+    VOTE_CACHE.read().is_empty()
+}
+
 #[derive(thiserror::Error, Debug)]
 enum GlobalVoteCacheError {
     #[error("Vote `{0} {1}` is exist in the cache")]
