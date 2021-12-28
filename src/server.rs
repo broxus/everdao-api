@@ -8,9 +8,9 @@ use nekoton_utils::TrustMe;
 use sqlx::postgres::PgPoolOptions;
 use ton_consumer::TransactionProducer;
 
-use crate::api::http_service;
+use crate::api::*;
 use crate::indexer::*;
-use crate::services::Services;
+use crate::services::*;
 use crate::settings::*;
 use crate::sqlx_client::*;
 
@@ -42,7 +42,9 @@ pub async fn start_server() -> StdResult<()> {
             .map(|(x, y)| (x.as_str(), y.as_str()))
             .collect::<HashMap<_, _>>(),
     )
-    .expect("Falied to get transaction producer");
+    .expect("Failed to get transaction producer");
+
+    transaction_producer.reset_offsets()?;
 
     let stream_transactions = transaction_producer
         .clone()

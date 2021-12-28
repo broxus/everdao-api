@@ -71,7 +71,11 @@ pub async fn poll_run_local(
         }
 
         if now.elapsed().as_secs() > timeout {
-            break Err(anyhow::Error::msg("none function output timeout"));
+            break Err(anyhow::Error::msg(format!(
+                "none function output: address - {}, function - {}",
+                contract_address.to_string(),
+                function.name
+            )));
         }
 
         tokio::time::sleep(Duration::from_secs(5)).await;
