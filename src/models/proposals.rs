@@ -35,8 +35,6 @@ pub struct CreateProposal {
     pub grace_period: i64,
     pub time_lock: i64,
     pub voting_delay: i64,
-    pub for_votes: Decimal,
-    pub against_votes: Decimal,
     pub quorum_votes: Decimal,
     pub message_hash: Vec<u8>,
     pub transaction_hash: Vec<u8>,

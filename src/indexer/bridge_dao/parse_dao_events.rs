@@ -74,14 +74,6 @@ pub async fn parse_proposal_created_event(
     let proposal_config: ProposalConfig =
         function_output.tokens.unwrap_or_default().unpack_first()?;
 
-    let for_votes = sqlx_client
-        .votes_sum((data.proposal_id, true).into())
-        .await?;
-
-    let against_votes = sqlx_client
-        .votes_sum((data.proposal_id, false).into())
-        .await?;
-
     let proposal = CreateProposal {
         id: data.proposal_id as i32,
         address: proposal_address.to_string(),
@@ -93,8 +85,6 @@ pub async fn parse_proposal_created_event(
         grace_period: proposal_config.grace_period as i64,
         time_lock: proposal_config.time_lock as i64,
         voting_delay: proposal_config.voting_delay as i64,
-        for_votes,
-        against_votes,
         quorum_votes: Decimal::from(proposal_overview.quorum_votes),
         message_hash,
         transaction_hash,

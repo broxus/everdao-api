@@ -1,5 +1,4 @@
 use anyhow::Result;
-use rust_decimal::Decimal;
 
 use crate::models::*;
 use crate::sqlx_client::*;
@@ -116,25 +115,6 @@ impl SqlxClient {
             .unwrap_or_default();
 
         Ok(total_count)
-    }
-
-    pub async fn votes_sum(&self, input: VoteFilters) -> Result<Decimal> {
-        let mut args_len = 0;
-
-        let mut query = OwnedPartBuilder::new().starts_with("SELECT SUM(votes) FROM votes");
-
-        query.push_part(vote_filters(input, &mut args_len));
-
-        let (query, args) = query.split();
-
-        let sum: Decimal = sqlx::query_with(&query, args)
-            .fetch_one(&self.pool)
-            .await
-            .map(RowReader::from_row)
-            .map(|mut x| x.read_next())
-            .unwrap_or_default();
-
-        Ok(sum)
     }
 }
 

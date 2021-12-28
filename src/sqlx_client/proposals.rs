@@ -1,5 +1,6 @@
 use anyhow::Result;
 use chrono::Utc;
+use rust_decimal::Decimal;
 
 use crate::models::*;
 use crate::sqlx_client::*;
@@ -7,6 +8,22 @@ use crate::utils::*;
 
 impl SqlxClient {
     pub async fn create_proposal(&self, proposal: CreateProposal) -> Result<()> {
+        let mut tx = self.pool.begin().await?;
+
+        let sql = "SELECT SUM(votes) FROM votes WHERE proposal_id = $1 AND support = $2";
+        let for_votes: (Decimal,) = sqlx::query_as(sql)
+            .bind(proposal.id)
+            .bind(true)
+            .fetch_one(&mut tx)
+            .await
+            .unwrap_or_default();
+        let against_votes: (Decimal,) = sqlx::query_as(sql)
+            .bind(proposal.id)
+            .bind(false)
+            .fetch_one(&mut tx)
+            .await
+            .unwrap_or_default();
+
         sqlx::query!(
             r#"INSERT INTO proposals (
             id, address, proposer, description, start_time, end_time, execution_time, grace_period, time_lock, voting_delay, for_votes,
@@ -23,16 +40,19 @@ impl SqlxClient {
             proposal.grace_period,
             proposal.time_lock,
             proposal.voting_delay,
-            proposal.for_votes,
-            proposal.against_votes,
+            for_votes.0,
+            against_votes.0,
             proposal.quorum_votes,
             proposal.message_hash,
             proposal.transaction_hash,
             proposal.timestamp_block,
             serde_json::to_value(proposal.actions).unwrap(),
         )
-            .execute(&self.pool)
+            .execute(&mut tx)
             .await?;
+
+        tx.commit().await?;
+
         Ok(())
     }
 
