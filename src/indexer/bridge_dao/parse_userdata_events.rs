@@ -72,9 +72,9 @@ pub async fn parse_vote_cast_event(
         }
     };
 
-    sqlx_client
+    let _ = sqlx_client
         .update_proposal_votes(vote.proposal_id as i32, payload.clone())
-        .await?;
+        .await;
 
     Ok(())
 }
@@ -108,7 +108,7 @@ pub async fn parse_unlock_casted_votes_event(
 
     log::debug!("Unlock event details {:?}", vote);
 
-    if sqlx_client.unlock_vote(vote.clone()).await? == 0 {
+    if sqlx_client.unlock_vote(vote.clone()).await.is_err() {
         save_locked_vote_in_cache(vote)?;
     }
 

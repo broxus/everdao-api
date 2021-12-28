@@ -32,8 +32,8 @@ pub async fn parse_proposal_executed_event(
 
     if sqlx_client
         .update_proposal_executed(proposal_address.to_string(), timestamp_block)
-        .await?
-        == 0
+        .await
+        .is_err()
     {
         save_proposal_action_in_cache(
             proposal_address,
@@ -68,8 +68,8 @@ pub async fn parse_proposal_canceled_event(
 
     if sqlx_client
         .update_proposal_canceled(proposal_address.to_string(), timestamp_block)
-        .await?
-        == 0
+        .await
+        .is_err()
     {
         save_proposal_action_in_cache(
             proposal_address,
@@ -108,8 +108,8 @@ pub async fn parse_proposal_queued_event(
             timestamp_block,
             execution_time as i64,
         )
-        .await?
-        == 0
+        .await
+        .is_err()
     {
         save_proposal_action_in_cache(
             proposal_address,

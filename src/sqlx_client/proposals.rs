@@ -60,40 +60,44 @@ impl SqlxClient {
         &self,
         address: String,
         timestamp_block: i32,
-    ) -> Result<i64> {
+    ) -> Result<i32> {
         let updated_at = chrono::Utc::now().timestamp_millis();
-        let row: (i64,) = sqlx::query_as(
-            "WITH pr AS (UPDATE proposals SET executed = true, executed_at = $1, updated_at = $2 \
-                WHERE address = $3 RETURNING 1) \
-            SELECT count(*) FROM pr",
-        )
-        .bind(timestamp_block)
-        .bind(updated_at)
-        .bind(address)
-        .fetch_one(&self.pool)
-        .await?;
 
-        Ok(row.0)
+        sqlx::query!(
+            r#"
+            UPDATE proposals SET executed = true, executed_at = $1, updated_at = $2
+            WHERE address = $3
+            RETURNING id"#,
+            timestamp_block,
+            updated_at,
+            address,
+        )
+        .fetch_one(&self.pool)
+        .await
+        .map(|x| x.id)
+        .map_err(From::from)
     }
 
     pub async fn update_proposal_canceled(
         &self,
         address: String,
         timestamp_block: i32,
-    ) -> Result<i64> {
+    ) -> Result<i32> {
         let updated_at = chrono::Utc::now().timestamp_millis();
-        let row: (i64,) = sqlx::query_as(
-            "WITH pr AS (UPDATE proposals SET canceled = true, canceled_at = $1, updated_at = $2 \
-                WHERE address = $3 RETURNING 1) \
-            SELECT count(*) FROM pr",
-        )
-        .bind(timestamp_block)
-        .bind(updated_at)
-        .bind(address)
-        .fetch_one(&self.pool)
-        .await?;
 
-        Ok(row.0)
+        sqlx::query!(
+            r#"
+            UPDATE proposals SET canceled = true, canceled_at = $1, updated_at = $2
+            WHERE address = $3
+            RETURNING id"#,
+            timestamp_block,
+            updated_at,
+            address,
+        )
+        .fetch_one(&self.pool)
+        .await
+        .map(|x| x.id)
+        .map_err(From::from)
     }
 
     pub async fn update_proposal_queued(
@@ -101,42 +105,46 @@ impl SqlxClient {
         address: String,
         timestamp_block: i32,
         execution_time: i64,
-    ) -> Result<i64> {
+    ) -> Result<i32> {
         let updated_at = chrono::Utc::now().timestamp_millis();
-        let row: (i64,) = sqlx::query_as(
-            "WITH pr AS (UPDATE proposals SET queued = true, execution_time = $1, queued_at = $2, \
-                updated_at = $3 WHERE address = $4 RETURNING 1) \
-            SELECT count(*) FROM pr",
-        )
-        .bind(execution_time)
-        .bind(timestamp_block)
-        .bind(updated_at)
-        .bind(address)
-        .fetch_one(&self.pool)
-        .await?;
 
-        Ok(row.0)
+        sqlx::query!(
+            r#"
+            UPDATE proposals SET queued = true, execution_time = $1, queued_at = $2, updated_at = $3
+            WHERE address = $4
+            RETURNING id"#,
+            execution_time,
+            timestamp_block,
+            updated_at,
+            address,
+        )
+        .fetch_one(&self.pool)
+        .await
+        .map(|x| x.id)
+        .map_err(From::from)
     }
 
     pub async fn update_proposal_votes(
         &self,
         proposal_id: i32,
         proposal_votes: UpdateProposalVotes,
-    ) -> Result<i64> {
+    ) -> Result<i32> {
         let updated_at = chrono::Utc::now().timestamp_millis();
-        let row: (i64,) = sqlx::query_as(
-            "WITH pr AS (UPDATE proposals SET for_votes = for_votes + $2, against_votes = against_votes + $3, \
-            updated_at = $4 WHERE id = $1 RETURNING 1) \
-            SELECT count(*) FROM pr",
-        )
-            .bind(proposal_id)
-            .bind(proposal_votes.for_votes,)
-            .bind(proposal_votes.against_votes,)
-            .bind(updated_at)
-            .fetch_one(&self.pool)
-            .await?;
 
-        Ok(row.0)
+        sqlx::query!(
+            r#"
+            UPDATE proposals SET for_votes = for_votes + $2, against_votes = against_votes + $3, updated_at = $4
+            WHERE id = $1
+            RETURNING id"#,
+            proposal_id,
+            proposal_votes.for_votes,
+            proposal_votes.against_votes,
+            updated_at,
+        )
+            .fetch_one(&self.pool)
+            .await
+            .map(|x| x.id)
+            .map_err(From::from)
     }
 
     pub async fn search_proposals(

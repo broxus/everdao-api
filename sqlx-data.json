@@ -48,6 +48,126 @@
       "nullable": []
     }
   },
+  "6451a9cfe09700e2eb9848375f7e5eb56b6b39db4b9eee1026236ccd26dd29db": {
+    "query": "\n            UPDATE proposals SET canceled = true, canceled_at = $1, updated_at = $2\n            WHERE address = $3\n            RETURNING id",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Int8",
+          "Text"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "6f074848afc3962d788aa680f3881fdcd417d511f7857f98a3a7bb86d90b1748": {
+    "query": "\n            UPDATE proposals SET executed = true, executed_at = $1, updated_at = $2\n            WHERE address = $3\n            RETURNING id",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Int8",
+          "Text"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "746b25ad725b14f69f7eb520ff5688dd70d5e4d8219f5f973fa0f8cd4f13ed8a": {
+    "query": "\n            UPDATE votes SET locked = $1\n            WHERE proposal_id = $2 AND voter = $3\n            RETURNING proposal_id,\n                voter,\n                support,\n                reason,\n                votes,\n                locked,\n                message_hash,\n                transaction_hash,\n                timestamp_block,\n                created_at",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "proposal_id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "voter",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "support",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 3,
+          "name": "reason",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 4,
+          "name": "votes",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 5,
+          "name": "locked",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 6,
+          "name": "message_hash",
+          "type_info": "Bytea"
+        },
+        {
+          "ordinal": 7,
+          "name": "transaction_hash",
+          "type_info": "Bytea"
+        },
+        {
+          "ordinal": 8,
+          "name": "timestamp_block",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 9,
+          "name": "created_at",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Bool",
+          "Int4",
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
   "8e87f63c443489a65c3ee05f30d1c5a214ba47324bb944c7143a8e53618238f4": {
     "query": "\n            SELECT transaction, transaction_hash, timestamp_block, timestamp_lt, created_at, state as \"state: _\"\n            FROM raw_transactions\n            WHERE state = $1\n            ORDER BY timestamp_block",
     "describe": {
@@ -210,6 +330,52 @@
         ]
       },
       "nullable": []
+    }
+  },
+  "ac636a66269d7c83a77bdd32012cf598b6fd900233dc862b1c070a8c8b3dcb9c": {
+    "query": "\n            UPDATE proposals SET for_votes = for_votes + $2, against_votes = against_votes + $3, updated_at = $4\n            WHERE id = $1\n            RETURNING id",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Numeric",
+          "Numeric",
+          "Int8"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "ad555d2fac18401b22b5cbf0fa2fd3bca30212c91a18b64fc332c647da402095": {
+    "query": "\n            UPDATE proposals SET queued = true, execution_time = $1, queued_at = $2, updated_at = $3\n            WHERE address = $4\n            RETURNING id",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int4",
+          "Int8",
+          "Text"
+        ]
+      },
+      "nullable": [
+        false
+      ]
     }
   }
 }

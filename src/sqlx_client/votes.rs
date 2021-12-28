@@ -27,19 +27,31 @@ impl SqlxClient {
         Ok(())
     }
 
-    pub async fn unlock_vote(&self, vote: UnlockVote) -> Result<i64> {
+    pub async fn unlock_vote(&self, vote: UnlockVote) -> Result<VoteFromDb> {
         let locked = false;
-        let row: (i64,) = sqlx::query_as(
-            "WITH pr AS (UPDATE votes SET locked = $1 WHERE proposal_id = $2 AND voter = $3 RETURNING 1) \
-            SELECT count(*) FROM pr",
-        )
-            .bind(locked)
-            .bind(vote.proposal_id)
-            .bind(vote.voter)
-            .fetch_one(&self.pool)
-            .await?;
 
-        Ok(row.0)
+        sqlx::query_as!(
+            VoteFromDb,
+            r#"
+            UPDATE votes SET locked = $1
+            WHERE proposal_id = $2 AND voter = $3
+            RETURNING proposal_id,
+                voter,
+                support,
+                reason,
+                votes,
+                locked,
+                message_hash,
+                transaction_hash,
+                timestamp_block,
+                created_at"#,
+            locked,
+            vote.proposal_id,
+            vote.voter,
+        )
+        .fetch_one(&self.pool)
+        .await
+        .map_err(From::from)
     }
 
     pub async fn search_votes(
