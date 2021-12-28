@@ -1,7 +1,6 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use crate::global_cache::{is_proposal_cache_empty, is_vote_cache_empty};
 use dexpa::net::futures::Stream;
 use futures::StreamExt;
 use indexer_lib::{split, AnyExtractableOutput, ExtractInput, ParsedOutput, TransactionExt};
@@ -11,6 +10,7 @@ use ton_block::{Deserializable, MsgAddressInt, Transaction};
 use ton_consumer::{ProducedTransaction, TransactionProducer};
 use ton_types::UInt256;
 
+use crate::global_cache::*;
 use crate::models::*;
 use crate::sqlx_client::*;
 
