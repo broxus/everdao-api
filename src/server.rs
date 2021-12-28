@@ -52,11 +52,17 @@ pub async fn start_server() -> StdResult<()> {
 
     {
         let sqlx_client = sqlx_client.clone();
+        let transaction_producer = transaction_producer.clone();
         tokio::spawn(bridge_dao_indexer(
             sqlx_client,
             transaction_producer,
             stream_transactions,
         ));
+    }
+
+    {
+        let sqlx_client = sqlx_client.clone();
+        tokio::spawn(fail_transaction_monitor(sqlx_client, transaction_producer));
     }
 
     log::debug!("start http server");

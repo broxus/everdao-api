@@ -1,31 +1,46 @@
 use std::convert::TryFrom;
 
-use nekoton::transport::models::RawTransaction;
 use rust_decimal::Decimal;
-use ton_block::{GetRepresentationHash, Serializable};
+use ton_block::{GetRepresentationHash, Serializable, Transaction};
 
-#[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
+#[derive(Debug, serde::Deserialize, serde::Serialize, Clone, sqlx::Type)]
+#[sqlx(type_name = "raw_transaction_state_type", rename_all = "PascalCase")]
+pub enum RawTransactionState {
+    Idle,
+    Fail,
+    Success,
+    InProgress,
+}
+
+impl Default for RawTransactionState {
+    fn default() -> RawTransactionState {
+        RawTransactionState::InProgress
+    }
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize, Clone, Default)]
 pub struct RawTransactionFromDb {
     pub transaction: Vec<u8>,
     pub transaction_hash: Vec<u8>,
     pub timestamp_block: i32,
     pub timestamp_lt: i64,
     pub created_at: i64,
+    pub state: RawTransactionState,
 }
 
-impl TryFrom<RawTransaction> for RawTransactionFromDb {
+impl TryFrom<Transaction> for RawTransactionFromDb {
     type Error = anyhow::Error;
 
-    fn try_from(raw_transaction: RawTransaction) -> Result<Self, Self::Error> {
-        let raw_transaction_hash = raw_transaction.data.hash()?.as_slice().to_vec();
-        let bytes = raw_transaction.data.write_to_bytes()?;
+    fn try_from(transaction: Transaction) -> Result<Self, Self::Error> {
+        let bytes = transaction.write_to_bytes()?;
+        let transaction_hash = transaction.hash()?.as_slice().to_vec();
 
         Ok(RawTransactionFromDb {
             transaction: bytes,
-            transaction_hash: raw_transaction_hash,
-            timestamp_block: raw_transaction.data.now as i32,
-            timestamp_lt: raw_transaction.data.lt as i64,
-            created_at: 0,
+            transaction_hash,
+            timestamp_block: transaction.now as i32,
+            timestamp_lt: transaction.lt as i64,
+            ..Default::default()
         })
     }
 }

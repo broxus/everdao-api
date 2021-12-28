@@ -48,8 +48,8 @@
       "nullable": []
     }
   },
-  "7974d19fd4f2b23caae0537325954025fcda4f20f3e6407f441a3fd94d69e34a": {
-    "query": "SELECT * FROM raw_transactions ORDER BY timestamp_block, timestamp_lt LIMIT $1 OFFSET $2",
+  "8e87f63c443489a65c3ee05f30d1c5a214ba47324bb944c7143a8e53618238f4": {
+    "query": "\n            SELECT transaction, transaction_hash, timestamp_block, timestamp_lt, created_at, state as \"state: _\"\n            FROM raw_transactions\n            WHERE state = $1\n            ORDER BY timestamp_block",
     "describe": {
       "columns": [
         {
@@ -76,15 +76,119 @@
           "ordinal": 4,
           "name": "created_at",
           "type_info": "Int8"
+        },
+        {
+          "ordinal": 5,
+          "name": "state: _",
+          "type_info": {
+            "Custom": {
+              "name": "raw_transaction_state_type",
+              "kind": {
+                "Enum": [
+                  "Idle",
+                  "Fail",
+                  "Success",
+                  "InProgress"
+                ]
+              }
+            }
+          }
         }
       ],
       "parameters": {
         "Left": [
-          "Int8",
-          "Int8"
+          {
+            "Custom": {
+              "name": "raw_transaction_state_type",
+              "kind": {
+                "Enum": [
+                  "Idle",
+                  "Fail",
+                  "Success",
+                  "InProgress"
+                ]
+              }
+            }
+          }
         ]
       },
       "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "90baf30d160c7057deab80fde089e0352822c09bd187f669d74453652fa06fa9": {
+    "query": "\n            UPDATE raw_transactions SET state = $1\n            WHERE transaction_hash = $2\n            RETURNING transaction,\n                transaction_hash,\n                timestamp_block,\n                timestamp_lt,\n                created_at,\n                state as \"state: _\"",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "transaction",
+          "type_info": "Bytea"
+        },
+        {
+          "ordinal": 1,
+          "name": "transaction_hash",
+          "type_info": "Bytea"
+        },
+        {
+          "ordinal": 2,
+          "name": "timestamp_block",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 3,
+          "name": "timestamp_lt",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 4,
+          "name": "created_at",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 5,
+          "name": "state: _",
+          "type_info": {
+            "Custom": {
+              "name": "raw_transaction_state_type",
+              "kind": {
+                "Enum": [
+                  "Idle",
+                  "Fail",
+                  "Success",
+                  "InProgress"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "parameters": {
+        "Left": [
+          {
+            "Custom": {
+              "name": "raw_transaction_state_type",
+              "kind": {
+                "Enum": [
+                  "Idle",
+                  "Fail",
+                  "Success",
+                  "InProgress"
+                ]
+              }
+            }
+          },
+          "Bytea"
+        ]
+      },
+      "nullable": [
+        false,
         false,
         false,
         false,

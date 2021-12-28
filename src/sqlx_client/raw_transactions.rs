@@ -19,19 +19,45 @@ impl SqlxClient {
         Ok(())
     }
 
-    pub async fn get_raw_transactions(
+    pub async fn get_raw_transactions_by_state(
         &self,
-        limit: i64,
-        offset: i64,
+        state: RawTransactionState,
     ) -> Result<Vec<RawTransactionFromDb>, anyhow::Error> {
         sqlx::query_as!(
             RawTransactionFromDb,
-            r#"SELECT * FROM raw_transactions ORDER BY timestamp_block, timestamp_lt LIMIT $1 OFFSET $2"#,
-            limit,
-            offset
+            r#"
+            SELECT transaction, transaction_hash, timestamp_block, timestamp_lt, created_at, state as "state: _"
+            FROM raw_transactions
+            WHERE state = $1
+            ORDER BY timestamp_block"#,
+            state as RawTransactionState,
         )
         .fetch_all(&self.pool)
         .await
         .map_err(anyhow::Error::from)
+    }
+
+    pub async fn update_raw_transactions(
+        &self,
+        transaction_hash: &[u8],
+        state: RawTransactionState,
+    ) -> Result<RawTransactionFromDb, anyhow::Error> {
+        sqlx::query_as!(
+            RawTransactionFromDb,
+            r#"
+            UPDATE raw_transactions SET state = $1
+            WHERE transaction_hash = $2
+            RETURNING transaction,
+                transaction_hash,
+                timestamp_block,
+                timestamp_lt,
+                created_at,
+                state as "state: _""#,
+            state as RawTransactionState,
+            transaction_hash,
+        )
+        .fetch_one(&self.pool)
+        .await
+        .map_err(From::from)
     }
 }
