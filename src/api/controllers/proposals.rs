@@ -19,3 +19,9 @@ pub async fn post_proposals_search(
         total_count,
     }))
 }
+
+pub async fn get_proposals_overview(ctx: Context) -> Result<impl warp::Reply, warp::Rejection> {
+    let overview = ctx.services.overview().await.map_err(BadRequestError)?;
+
+    Ok(warp::reply::json(&overview))
+}

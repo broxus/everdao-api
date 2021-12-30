@@ -65,6 +65,7 @@ mod filters {
                     .or(post_votes_search(ctx.clone()))
                     .or(post_voters_search(ctx.clone()))
                     .or(post_voters_proposals_count(ctx.clone()))
+                    .or(get_proposals_overview(ctx.clone()))
                     .or(post_voters_proposals_count_search(ctx)),
             )
             .boxed()
@@ -84,6 +85,14 @@ mod filters {
             .and(with_ctx(ctx))
             .and(json_body())
             .and_then(controllers::proposals::post_proposals_search)
+            .boxed()
+    }
+
+    fn get_proposals_overview(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
+        warp::path!("proposals" / "overview")
+            .and(warp::get())
+            .and(with_ctx(ctx))
+            .and_then(controllers::proposals::get_proposals_overview)
             .boxed()
     }
 
