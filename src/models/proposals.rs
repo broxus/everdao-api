@@ -1,5 +1,6 @@
 use rust_decimal::Decimal;
 use serde::Deserialize;
+use serde::Serialize;
 
 use crate::models::*;
 use crate::utils::*;
@@ -95,6 +96,13 @@ impl TryFrom<TonAction> for ProposalTonAction {
 pub struct UpdateProposalVotes {
     pub for_votes: Decimal,
     pub against_votes: Decimal,
+}
+
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq, Hash, opg::OpgModel)]
+#[opg("Proposals overview")]
+#[serde(rename_all = "camelCase")]
+pub struct ProposalsOverview {
+    pub proposals_total_count: i64,
 }
 
 #[derive(Debug, Copy, Clone, Deserialize, Eq, PartialEq, Hash, opg::OpgModel)]

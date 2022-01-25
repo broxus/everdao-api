@@ -14,4 +14,14 @@ impl Services {
 
         Ok((proposals, total_count))
     }
+    pub async fn overview(&self) -> Result<ProposalsOverview, anyhow::Error> {
+        let proposals_total_count = self
+            .sqlx_client
+            .proposals_total_count(ProposalFilters::default())
+            .await?;
+
+        Ok(ProposalsOverview {
+            proposals_total_count,
+        })
+    }
 }

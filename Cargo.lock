@@ -1602,7 +1602,7 @@ dependencies = [
 [[package]]
 name = "nekoton"
 version = "0.9.0"
-source = "git+https://github.com/broxus/nekoton.git#d7897f9350f4306a0bdc2119c242ca6c3dcc1823"
+source = "git+https://github.com/broxus/nekoton.git#b7d7b524a7a3cdf3cb20f6157b26c862bc6d2ec9"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1645,7 +1645,7 @@ dependencies = [
 [[package]]
 name = "nekoton-abi"
 version = "0.9.0"
-source = "git+https://github.com/broxus/nekoton.git#d7897f9350f4306a0bdc2119c242ca6c3dcc1823"
+source = "git+https://github.com/broxus/nekoton.git#b7d7b524a7a3cdf3cb20f6157b26c862bc6d2ec9"
 dependencies = [
  "anyhow",
  "base64",
@@ -1671,7 +1671,7 @@ dependencies = [
 [[package]]
 name = "nekoton-contracts"
 version = "0.9.0"
-source = "git+https://github.com/broxus/nekoton.git#d7897f9350f4306a0bdc2119c242ca6c3dcc1823"
+source = "git+https://github.com/broxus/nekoton.git#b7d7b524a7a3cdf3cb20f6157b26c862bc6d2ec9"
 dependencies = [
  "once_cell",
  "ton_abi",
@@ -1681,7 +1681,7 @@ dependencies = [
 [[package]]
 name = "nekoton-derive"
 version = "0.9.0"
-source = "git+https://github.com/broxus/nekoton.git#d7897f9350f4306a0bdc2119c242ca6c3dcc1823"
+source = "git+https://github.com/broxus/nekoton.git#b7d7b524a7a3cdf3cb20f6157b26c862bc6d2ec9"
 dependencies = [
  "either",
  "proc-macro2 1.0.34",
@@ -1692,7 +1692,7 @@ dependencies = [
 [[package]]
 name = "nekoton-utils"
 version = "0.9.0"
-source = "git+https://github.com/broxus/nekoton.git#d7897f9350f4306a0bdc2119c242ca6c3dcc1823"
+source = "git+https://github.com/broxus/nekoton.git#b7d7b524a7a3cdf3cb20f6157b26c862bc6d2ec9"
 dependencies = [
  "anyhow",
  "base64",
@@ -3212,8 +3212,8 @@ dependencies = [
 
 [[package]]
 name = "ton-consumer"
-version = "0.2.0"
-source = "git+ssh://git@gitlab.dexpa.io/beton/ton-consumer#6ce5c5b79d5fe3ae20a0d5f36dd459bfee6514f1"
+version = "0.3.0"
+source = "git+ssh://git@gitlab.dexpa.io/beton/ton-consumer#4c26897d549a1a1ded183734cadab706150f03be"
 dependencies = [
  "anyhow",
  "base64",
@@ -3302,12 +3302,11 @@ dependencies = [
 
 [[package]]
 name = "ton_executor"
-version = "1.15.34"
-source = "git+https://github.com/broxus/ton-labs-executor.git#dbdf43da28045abf41fe11d817bb89e7c2739c00"
+version = "1.15.50"
+source = "git+https://github.com/broxus/ton-labs-executor.git#595ae53b7b4e08e38790098e6df9c82efae2c5af"
 dependencies = [
  "anyhow",
  "base64",
- "clear_on_drop",
  "log",
  "num",
  "num-traits",
@@ -3333,7 +3332,7 @@ dependencies = [
 [[package]]
 name = "ton_types"
 version = "1.10.2"
-source = "git+https://github.com/broxus/ton-labs-types#002e2eaffa29f5f7c3a829bfd70e8e7a90e4efde"
+source = "git+https://github.com/broxus/ton-labs-types#30fa2aa9abbb85e5fd781fe7248af670f3caba6c"
 dependencies = [
  "anyhow",
  "base64",
@@ -3352,8 +3351,8 @@ dependencies = [
 
 [[package]]
 name = "ton_vm"
-version = "1.8.20"
-source = "git+https://github.com/broxus/ton-labs-vm.git#b4d9455e9a3cc781f6649a2b15e98f84abde576e"
+version = "1.8.29"
+source = "git+https://github.com/broxus/ton-labs-vm.git#a484c0becf58e831d6d3a843bee77ccbc3cd8772"
 dependencies = [
  "anyhow",
  "ed25519",

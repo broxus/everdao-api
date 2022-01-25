@@ -4,6 +4,7 @@ use opg::*;
 
 use crate::api::requests;
 use crate::api::responses;
+use crate::models::ProposalsOverview;
 
 pub fn swagger() -> String {
     let api = describe_api! {
@@ -22,6 +23,14 @@ pub fn swagger() -> String {
             votes,
         },
         paths: {
+            ("proposals" / "overview" ): {
+                GET: {
+                    tags: { proposals },
+                    summary: "Proposals overview",
+                    description: "Get proposals overview.",
+                    200: ProposalsOverview,
+                }
+            },
             ("proposals" / "search" ): {
                 POST: {
                     tags: { proposals },
