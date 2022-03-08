@@ -33,6 +33,7 @@ deploy:config-everdao:
       -r kustomize/service-http-expose.everdao.prod.yaml \
       -p deploy/broxus/kustomize/env.prod.yaml \
       -p kustomize/overrides.everdao.prod.yaml \
+      -c deploy/broxus/config/kafka-settings.prod.json \
       > kustomization.yaml
 
 deploy:rollout-everdao:
