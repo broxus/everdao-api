@@ -15,7 +15,8 @@ pub fn swagger() -> String {
         },
         servers: {
             "https://bridge-dao-indexer-test.broxus.com/v1",
-            "https://bridge-dao-indexer.broxus.com/v1"
+            "https://bridge-dao-indexer.broxus.com/v1",
+            "https://everdao.broxus.com/v1"
         },
         tags: {
             proposals,
