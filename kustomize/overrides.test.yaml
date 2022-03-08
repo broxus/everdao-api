@@ -53,4 +53,4 @@ spec:
             - name: KAFKA_CLIENT_ID
               value: "ton-bridge-dao-indexer-test-client"
             - name: DAO_ROOT
-              value: "0:3c33153078ea2b94144ad058812563f4896cadbb84e7cc55c08e24e0a394fb3e"
+              value: "0:6da8defd136c0227dfa24edde79728142d2bfb74bc9edf66ad86ae7cd8e56a86"
