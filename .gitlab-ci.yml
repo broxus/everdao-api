@@ -5,6 +5,7 @@ include:
   - project: 'broxus/trading/infrastructure'
     ref: master
     file: '/gitlab-ci/rust-prod.gitlab-ci.yaml'
+  - local: '.gitlab-ci.everdao.yaml'
 
 deploy:config-master:
   script:
