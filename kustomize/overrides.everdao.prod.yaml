@@ -49,8 +49,8 @@ spec:
             - name: STATES_RPC_ENDPOINT
               value: "http://35.240.13.113:8081"
             - name: KAFKA_GROUP_ID
-              value: "everdao-indexer-prod-0"
+              value: "ton-everdao-indexer-prod-0"
             - name: KAFKA_CLIENT_ID
-              value: "everdao-indexer-prod-client"
+              value: "ton-everdao-indexer-prod-client"
             - name: DAO_ROOT
               value: "0:cd809fb1cde24b6d3cd4a3dd9102e10c0f73ddfa21c7118f233dc7309bbb0b73"
