@@ -36,6 +36,67 @@ pub async fn bridge_dao_indexer(
     let all_events = AllEvents::new();
     let prep_events = all_events.get_all_events();
 
+    {
+        let raw_transaction = sqlx_client
+            .get_raw_transactions_by_state(RawTransactionState::Success)
+            .await
+            .unwrap()
+            .first()
+            .unwrap()
+            .clone();
+
+        let transaction =
+            ton_block::Transaction::construct_from_bytes(&raw_transaction.transaction).unwrap();
+        let transaction_hash = transaction.tx_hash().trust_me();
+
+        match parse_new_event(
+            transaction,
+            transaction_hash,
+            &sqlx_client,
+            &all_events,
+            &transaction_producer,
+        )
+        .await
+        {
+            Ok(_) => {
+                log::info!("Proposal parsed");
+
+                if let Err(err) = sqlx_client
+                    .update_raw_transactions(
+                        transaction_hash.as_slice(),
+                        RawTransactionState::Success,
+                    )
+                    .await
+                {
+                    log::error!(
+                        "Failed to set transaction state to 'Success': {}; Transaction hash: {}",
+                        err,
+                        transaction_hash.to_hex_string()
+                    );
+                }
+
+                log::info!("Statis updated");
+            }
+            Err(err) => {
+                log::error!(
+                    "Failed to parse event: {}; Transaction hash: {}",
+                    err,
+                    transaction_hash.to_hex_string()
+                );
+                if let Err(err) = sqlx_client
+                    .update_raw_transactions(transaction_hash.as_slice(), RawTransactionState::Fail)
+                    .await
+                {
+                    log::error!(
+                        "Failed to set transaction state to 'Fail': {}; Transaction hash: {}",
+                        err,
+                        transaction_hash.to_hex_string()
+                    );
+                }
+            }
+        }
+    }
+
     while let Some(mut produced_transaction) = stream_transactions.next().await {
         let transaction = produced_transaction.transaction.clone();
         let transaction_hash = transaction.tx_hash().trust_me();
