@@ -219,27 +219,15 @@ async fn parse_new_event(
     transaction_producer: &TransactionProducer,
 ) -> Result<(), anyhow::Error> {
     if let Some(events) = extract_events(&transaction, transaction_hash, &all_events.dao_root) {
-        if let Err(e) =
-            extract_dao_root_parsed_events(sqlx_client, transaction_producer, events).await
-        {
-            log::error!("{}", e);
-        }
+        extract_dao_root_parsed_events(sqlx_client, transaction_producer, events).await?;
     }
 
     if let Some(events) = extract_events(&transaction, transaction_hash, &all_events.proposal) {
-        if let Err(e) =
-            extract_proposal_parsed_events(sqlx_client, transaction_producer, events).await
-        {
-            log::error!("{}", e);
-        }
+        extract_proposal_parsed_events(sqlx_client, transaction_producer, events).await?;
     }
 
     if let Some(events) = extract_events(&transaction, transaction_hash, &all_events.user_data) {
-        if let Err(e) =
-            extract_userdata_parsed_events(sqlx_client, transaction_producer, events).await
-        {
-            log::error!("{}", e);
-        }
+        extract_userdata_parsed_events(sqlx_client, transaction_producer, events).await?;
     }
 
     Ok(())
