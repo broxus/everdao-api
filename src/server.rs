@@ -5,7 +5,7 @@ use anyhow::Result;
 use futures::prelude::*;
 use nekoton_utils::TrustMe;
 use sqlx::postgres::PgPoolOptions;
-use ton_consumer::TransactionProducer;
+use transaction_consumer::TransactionConsumer;
 
 use crate::api::*;
 use crate::indexer::*;
@@ -32,7 +32,7 @@ pub async fn start_server() -> Result<()> {
 
     // kafka connection
     let (group_id, topic, states_rpc_endpoint, options) = get_kafka_settings(&config);
-    let transaction_producer = TransactionProducer::new(
+    let transaction_consumer = TransactionConsumer::new(
         &group_id,
         &topic,
         states_rpc_endpoint,
@@ -43,25 +43,25 @@ pub async fn start_server() -> Result<()> {
     )
     .expect("Failed to get transaction producer");
 
-    let stream_transactions = transaction_producer
+    let stream_transactions = transaction_consumer
         .clone()
-        .stream_transactions()
+        .stream_transactions(false)
         .await
         .trust_me();
 
     {
         let sqlx_client = sqlx_client.clone();
-        let transaction_producer = transaction_producer.clone();
+        let transaction_consumer = transaction_consumer.clone();
         tokio::spawn(bridge_dao_indexer(
             sqlx_client,
-            transaction_producer,
+            transaction_consumer,
             stream_transactions,
         ));
     }
 
     {
         let sqlx_client = sqlx_client.clone();
-        tokio::spawn(fail_transaction_monitor(sqlx_client, transaction_producer));
+        tokio::spawn(fail_transaction_monitor(sqlx_client, transaction_consumer));
     }
 
     log::debug!("start http server");

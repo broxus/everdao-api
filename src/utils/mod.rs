@@ -55,7 +55,7 @@ macro_rules! once {
 }
 
 pub async fn poll_run_local(
-    transaction_producer: &ton_consumer::TransactionProducer,
+    transaction_consumer: &transaction_consumer::TransactionConsumer,
     contract_address: &ton_block::MsgAddressInt,
     function: &ton_abi::Function,
     input: &[ton_abi::Token],
@@ -63,7 +63,7 @@ pub async fn poll_run_local(
 ) -> anyhow::Result<nekoton_abi::ExecutionOutput> {
     let now = std::time::Instant::now();
     loop {
-        if let Some(function_output) = transaction_producer
+        if let Some(function_output) = transaction_consumer
             .run_local(contract_address, function, input)
             .await?
         {

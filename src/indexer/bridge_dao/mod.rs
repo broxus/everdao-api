@@ -6,8 +6,8 @@ use indexer_lib::{split, AnyExtractableOutput, ExtractInput, ParsedOutput, Trans
 use nekoton_utils::{repack_address, TrustMe};
 use tokio::time;
 use ton_block::{Deserializable, MsgAddressInt, Transaction};
-use ton_consumer::{ProducedTransaction, TransactionProducer};
 use ton_types::UInt256;
+use transaction_consumer::{ConsumedTransaction, TransactionConsumer};
 
 use crate::global_cache::*;
 use crate::models::*;
@@ -27,15 +27,15 @@ lazy_static::lazy_static! {
 
 pub async fn bridge_dao_indexer(
     sqlx_client: SqlxClient,
-    transaction_producer: Arc<TransactionProducer>,
-    mut stream_transactions: impl Stream<Item = ProducedTransaction> + std::marker::Unpin,
+    transaction_consumer: Arc<TransactionConsumer>,
+    mut stream_transactions: impl Stream<Item = ConsumedTransaction> + std::marker::Unpin,
 ) {
     log::info!("Start Bridge-Dao indexer...");
 
     let all_events = AllEvents::new();
     let prep_events = all_events.get_all_events();
 
-    while let Some(mut produced_transaction) = stream_transactions.next().await {
+    while let Some(produced_transaction) = stream_transactions.next().await {
         let transaction = produced_transaction.transaction.clone();
         let transaction_hash = transaction.tx_hash().trust_me();
 
@@ -59,7 +59,7 @@ pub async fn bridge_dao_indexer(
                 transaction_hash,
                 &sqlx_client,
                 &all_events,
-                &transaction_producer,
+                &transaction_consumer,
             )
             .await
             {
@@ -111,7 +111,7 @@ pub async fn bridge_dao_indexer(
 
 pub async fn fail_transaction_monitor(
     sqlx_client: SqlxClient,
-    transaction_producer: Arc<TransactionProducer>,
+    transaction_consumer: Arc<TransactionConsumer>,
 ) {
     log::info!("Start Fail Transaction Monitor...");
 
@@ -148,7 +148,7 @@ pub async fn fail_transaction_monitor(
                     transaction_hash,
                     &sqlx_client,
                     &all_events,
-                    &transaction_producer,
+                    &transaction_consumer,
                 )
                 .await
                 {
@@ -215,18 +215,18 @@ async fn parse_new_event(
     transaction_hash: UInt256,
     sqlx_client: &SqlxClient,
     all_events: &AllEvents,
-    transaction_producer: &TransactionProducer,
+    transaction_consumer: &TransactionConsumer,
 ) -> Result<(), anyhow::Error> {
     if let Some(events) = extract_events(&transaction, transaction_hash, &all_events.dao_root) {
-        extract_dao_root_parsed_events(sqlx_client, transaction_producer, events).await?;
+        extract_dao_root_parsed_events(sqlx_client, transaction_consumer, events).await?;
     }
 
     if let Some(events) = extract_events(&transaction, transaction_hash, &all_events.proposal) {
-        extract_proposal_parsed_events(sqlx_client, transaction_producer, events).await?;
+        extract_proposal_parsed_events(sqlx_client, transaction_consumer, events).await?;
     }
 
     if let Some(events) = extract_events(&transaction, transaction_hash, &all_events.user_data) {
-        extract_userdata_parsed_events(sqlx_client, transaction_producer, events).await?;
+        extract_userdata_parsed_events(sqlx_client, transaction_consumer, events).await?;
     }
 
     Ok(())

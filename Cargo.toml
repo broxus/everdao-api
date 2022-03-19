@@ -36,7 +36,7 @@ warp = { version = "0.3" }
 anyhow = "1.0.38"
 sqlx = { version = "0.5", features = ["runtime-tokio-native-tls", "postgres", "uuid", "decimal", "offline", "chrono", "json"] }
 itertools = "0.10.0"
-reqwest = "0.11.4"
+reqwest = "0.11.10"
 regex = "1.5.4"
 urlencoding = "2.1.0"
 
@@ -47,7 +47,7 @@ nekoton-abi = { git = "https://github.com/broxus/nekoton.git" }
 nekoton-utils = { git = "https://github.com/broxus/nekoton.git" }
 
 indexer-lib = { git = "ssh://git@gitlab.dexpa.io/broxus/legacy-node-indexer" }
-ton-consumer = { git = "ssh://git@gitlab.dexpa.io/beton/ton-consumer" }
+transaction-consumer = { git = "https://github.com/broxus/transaction-consumer" }
 
 ton_abi = { git = "https://github.com/broxus/ton-labs-abi" }
 ton_block = { git = "https://github.com/broxus/ton-labs-block.git" }

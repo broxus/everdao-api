@@ -1,6 +1,6 @@
 use indexer_lib::{split, AnyExtractableOutput, ParsedOutput};
 use nekoton_abi::{UnpackAbiPlain, UnpackFirst};
-use ton_consumer::TransactionProducer;
+use transaction_consumer::TransactionConsumer;
 
 use super::parse_dao_events::*;
 use super::parse_proposal_events::*;
@@ -10,7 +10,7 @@ use crate::sqlx_client::*;
 
 pub async fn extract_dao_root_parsed_events(
     sqlx_client: &SqlxClient,
-    transaction_producer: &TransactionProducer,
+    transaction_consumer: &TransactionConsumer,
     events: ParsedOutput<AnyExtractableOutput>,
 ) -> Result<(), anyhow::Error> {
     let transaction = &events.transaction;
@@ -25,7 +25,7 @@ pub async fn extract_dao_root_parsed_events(
                 message_hash,
                 transaction,
                 sqlx_client,
-                transaction_producer,
+                transaction_consumer,
             )
             .await?;
         }
@@ -35,7 +35,7 @@ pub async fn extract_dao_root_parsed_events(
 
 pub async fn extract_proposal_parsed_events(
     sqlx_client: &SqlxClient,
-    node: &TransactionProducer,
+    node: &TransactionConsumer,
     events: ParsedOutput<AnyExtractableOutput>,
 ) -> Result<(), anyhow::Error> {
     let transaction = &events.transaction;
@@ -61,7 +61,7 @@ pub async fn extract_proposal_parsed_events(
 
 pub async fn extract_userdata_parsed_events(
     sqlx_client: &SqlxClient,
-    transaction_producer: &TransactionProducer,
+    transaction_consumer: &TransactionConsumer,
     events: ParsedOutput<AnyExtractableOutput>,
 ) -> Result<(), anyhow::Error> {
     let transaction = &events.transaction;
@@ -77,7 +77,7 @@ pub async fn extract_userdata_parsed_events(
                     message_hash,
                     transaction,
                     sqlx_client,
-                    transaction_producer,
+                    transaction_consumer,
                 )
                 .await?;
             }
@@ -87,7 +87,7 @@ pub async fn extract_userdata_parsed_events(
                     proposal_id,
                     transaction,
                     sqlx_client,
-                    transaction_producer,
+                    transaction_consumer,
                 )
                 .await?
             }

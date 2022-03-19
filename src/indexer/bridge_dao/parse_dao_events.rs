@@ -5,7 +5,7 @@ use nekoton_abi::*;
 use nekoton_utils::TrustMe;
 use sqlx::types::Decimal;
 use ton_block::{MsgAddressInt, Transaction};
-use ton_consumer::TransactionProducer;
+use transaction_consumer::TransactionConsumer;
 
 use crate::global_cache::*;
 use crate::models::*;
@@ -18,7 +18,7 @@ pub async fn parse_proposal_created_event(
     message_hash: Vec<u8>,
     transaction: &Transaction,
     sqlx_client: &SqlxClient,
-    transaction_producer: &TransactionProducer,
+    transaction_consumer: &TransactionConsumer,
 ) -> Result<(), anyhow::Error> {
     log::debug!("Found new proposal : {:?}", data);
     log::debug!(
@@ -36,7 +36,7 @@ pub async fn parse_proposal_created_event(
 
     // get expected proposal address
     let dao_root_address = transaction.contract_address()?;
-    let function_output = transaction_producer
+    let function_output = transaction_consumer
         .run_local(
             &dao_root_address,
             expected_proposal_address(),
@@ -52,7 +52,7 @@ pub async fn parse_proposal_created_event(
 
     // get proposal overview
     let function_output = poll_run_local(
-        transaction_producer,
+        transaction_consumer,
         &proposal_address,
         get_overview(),
         &[answer_id()],
@@ -64,7 +64,7 @@ pub async fn parse_proposal_created_event(
 
     // get proposal config
     let function_output = poll_run_local(
-        transaction_producer,
+        transaction_consumer,
         &proposal_address,
         get_config(),
         &[answer_id()],

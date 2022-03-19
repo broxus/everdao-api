@@ -4,7 +4,7 @@ use nekoton_abi::*;
 use nekoton_utils::TrustMe;
 use sqlx::types::Decimal;
 use ton_block::Transaction;
-use ton_consumer::TransactionProducer;
+use transaction_consumer::TransactionConsumer;
 
 use crate::global_cache::*;
 use crate::models::*;
@@ -16,7 +16,7 @@ pub async fn parse_vote_cast_event(
     message_hash: Vec<u8>,
     transaction: &Transaction,
     sqlx_client: &SqlxClient,
-    transaction_producer: &TransactionProducer,
+    transaction_consumer: &TransactionConsumer,
 ) -> Result<(), anyhow::Error> {
     log::debug!("Found vote cast event - {:?}", vote);
 
@@ -25,7 +25,7 @@ pub async fn parse_vote_cast_event(
 
     // get userdata details
     let user_data_address = transaction.contract_address()?;
-    let function_output = transaction_producer
+    let function_output = transaction_consumer
         .run_local(&user_data_address, get_user_data_details(), &[answer_id()])
         .await?
         .context("none function output")?;
@@ -83,13 +83,13 @@ pub async fn parse_unlock_casted_votes_event(
     proposal_id: u32,
     transaction: &Transaction,
     sqlx_client: &SqlxClient,
-    transaction_producer: &TransactionProducer,
+    transaction_consumer: &TransactionConsumer,
 ) -> Result<(), anyhow::Error> {
     log::debug!("Found unlock casted votes event");
 
     // get userdata details
     let user_data_address = transaction.contract_address()?;
-    let function_output = transaction_producer
+    let function_output = transaction_consumer
         .run_local(&user_data_address, get_user_data_details(), &[answer_id()])
         .await?
         .context("none function output")?;
