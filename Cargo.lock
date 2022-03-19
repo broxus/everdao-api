@@ -1146,7 +1146,7 @@ dependencies = [
 [[package]]
 name = "indexer-lib"
 version = "0.4.0"
-source = "git+ssh://git@gitlab.dexpa.io/broxus/legacy-node-indexer#b279618482189331d2f70f19860a97355d503f89"
+source = "git+https://github.com/broxus/legacy-node-indexer#b279618482189331d2f70f19860a97355d503f89"
 dependencies = [
  "anyhow",
  "log",

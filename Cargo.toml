@@ -46,7 +46,7 @@ nekoton = { git = "https://github.com/broxus/nekoton.git", default-features = fa
 nekoton-abi = { git = "https://github.com/broxus/nekoton.git" }
 nekoton-utils = { git = "https://github.com/broxus/nekoton.git" }
 
-indexer-lib = { git = "ssh://git@gitlab.dexpa.io/broxus/legacy-node-indexer" }
+indexer-lib = { git = "https://github.com/broxus/legacy-node-indexer" }
 transaction-consumer = { git = "https://github.com/broxus/transaction-consumer" }
 
 ton_abi = { git = "https://github.com/broxus/ton-labs-abi" }
