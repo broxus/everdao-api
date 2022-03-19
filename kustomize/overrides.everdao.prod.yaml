@@ -21,7 +21,7 @@ spec:
               memory: 256Mi
           env:
             - name: RUST_LOG
-              value: "bridge_dao_indexer=debug,dexpa=debug,warp=debug"
+              value: "bridge_dao_indexer=info,dexpa=debug,warp=debug"
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
