@@ -1,8 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use dexpa::prelude::StdResult;
-use dexpa::utils::handle_panic;
+use anyhow::Result;
 use futures::prelude::*;
 use nekoton_utils::TrustMe;
 use sqlx::postgres::PgPoolOptions;
@@ -14,7 +13,7 @@ use crate::services::*;
 use crate::settings::*;
 use crate::sqlx_client::*;
 
-pub async fn start_server() -> StdResult<()> {
+pub async fn start_server() -> Result<()> {
     let config = Arc::new(get_config());
     stackdriver_logger::init_with_cargo!();
 
@@ -22,7 +21,7 @@ pub async fn start_server() -> StdResult<()> {
     let _guard = sentry::init(
         sentry::ClientOptions::default().add_integration(sentry_panic::PanicIntegration::default()),
     );
-    tokio::spawn(dexpa::net::healthcheck_service(config.healthcheck_addr));
+    tokio::spawn(healthcheck_service(config.healthcheck_addr));
 
     let pool = PgPoolOptions::new()
         .max_connections(config.db_pool_size)
@@ -100,4 +99,16 @@ fn get_kafka_settings(config: &Config) -> (String, String, String, HashMap<Strin
         config.states_rpc_endpoint.clone(), // states_rpc_endpoint
         kafka_settings,
     )
+}
+
+async fn healthcheck_service<A: tokio::net::ToSocketAddrs>(addr: A) {
+    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+    loop {
+        listener.accept().await.unwrap();
+    }
+}
+
+fn handle_panic(panic_info: &std::panic::PanicInfo<'_>) {
+    log::error!("{:?}", panic_info);
+    std::process::exit(1);
 }

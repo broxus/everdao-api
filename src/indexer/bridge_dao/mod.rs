@@ -1,8 +1,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use dexpa::net::futures::Stream;
-use futures::StreamExt;
+use futures::{Stream, StreamExt};
 use indexer_lib::{split, AnyExtractableOutput, ExtractInput, ParsedOutput, TransactionExt};
 use nekoton_utils::{repack_address, TrustMe};
 use tokio::time;
