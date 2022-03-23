@@ -45,7 +45,7 @@ pub async fn start_server() -> Result<()> {
 
     let stream_transactions = transaction_consumer
         .clone()
-        .stream_transactions(true)
+        .stream_transactions(false)
         .await
         .trust_me();
 
