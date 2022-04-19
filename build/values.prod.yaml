@@ -1,0 +1,44 @@
+env:
+  RUST_LOG: "bridge_dao_indexer=info,dexpa=debug,warp=debug"
+  SERVER_ADDR: 0.0.0.0:9000
+  HEALTHCHECK_ADDR: 0.0.0.0:9001
+  DB_POOL_SIZE: "200"
+  STATES_RPC_ENDPOINT: "http://10.1.0.32:8081/rpc"
+  BROKERS: "kafka-broker-1:9092,kafka-broker-2:9092,kafka-broker-3:9092"
+  KAFKA_TOPIC: "mainnet-raw-transactions"
+  KAFKA_GROUP_ID: "mainnet-bridge-dao"
+  KAFKA_CLIENT_ID: "mainnet-bridge-dao-api"
+  DATABASE_URL: postgresql://$(DAO_INDEXER_DB_USER):$(DAO_INDEXER_DB_PASSWORD)@cloudsqlproxy.default:5432/dao-indexer-mainnet
+  DAO_ROOT: "0:9f3389dd38af5b726ae50d9c7f1cd29b5414be78615c2b1930446a9573862f57"
+
+controller: statefulset
+
+service:
+  port: 9000
+
+ingress:
+  enabled: true
+  hosts:
+    - host: dao.venombridge.com
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: dao-venombridge-com-tls
+      hosts:
+        - dao.venombridge.com
+
+livenessProbe:
+  tcpSocket:
+    port: 9001
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+readinessProbe:
+  tcpSocket:
+    port: 9001
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+sharedSecrets:
+  - daoIndexer
