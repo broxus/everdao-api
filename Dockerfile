@@ -2,6 +2,7 @@ FROM europe-west1-docker.pkg.dev/venom-network/docker/rust-builder:v1.59 AS buil
 
 WORKDIR /build
 
+RUN rustup component add rustfmt
 # Build dependencies only, when source code changes,
 # this build can be cached, we don't need to compile dependency again.
 RUN mkdir src && touch src/lib.rs
