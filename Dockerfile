@@ -17,6 +17,8 @@ RUN RUSTFLAGS=-g cargo build --release
 FROM europe-west1-docker.pkg.dev/venom-network/docker/rust-runtime:v1.59
 COPY --from=builder /build/target/release/bridge-dao-indexer /app/application
 COPY --from=builder /build/entrypoint.sh /app/entrypoint.sh
+COPY --from=builder /build/migrations /app/migrations
+COPY --from=builder /build/sqlx-data.json /app/sqlx-data.json
 USER runuser
 EXPOSE 9000
 ENTRYPOINT ["/app/entrypoint.sh"]
