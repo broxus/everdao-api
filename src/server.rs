@@ -28,6 +28,9 @@ pub async fn start_server() -> Result<()> {
         .connect(&config.database_url)
         .await
         .expect("fail pg pool");
+
+    sqlx::migrate!().run(&pool).await?;
+
     let sqlx_client = SqlxClient::new(pool);
 
     // kafka connection
