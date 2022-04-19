@@ -73,7 +73,7 @@ pub async fn poll_run_local(
         if now.elapsed().as_secs() > timeout {
             break Err(anyhow::Error::msg(format!(
                 "none function output: address - {}, function - {}",
-                contract_address.to_string(),
+                contract_address,
                 function.name
             )));
         }

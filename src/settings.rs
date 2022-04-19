@@ -9,12 +9,12 @@ pub struct Config {
     pub healthcheck_addr: SocketAddr,
     pub database_url: String,
     pub db_pool_size: u32,
-    pub kafka_settings_path: String,
     pub states_rpc_endpoint: String,
+
+    pub brokers: String,
+    pub kafka_topic: String,
     pub kafka_group_id: String,
     pub kafka_client_id: String,
-    pub kafka_user: String,
-    pub kafka_password: String,
 }
 
 impl Config {
