@@ -76,26 +76,13 @@ fn get_config() -> Config {
 }
 
 fn get_kafka_settings(config: &Config) -> (String, String, String, HashMap<String, String>) {
-    use std::fs::File;
-    use std::io::Read;
-
-    let mut file =
-        File::open(config.kafka_settings_path.clone()).expect("Can't find kafka settings");
-
-    let mut contents = String::new();
-
-    file.read_to_string(&mut contents)
-        .expect("can't read from kafka file");
-
-    let mut kafka_settings: HashMap<String, String> =
-        serde_json::from_str(&contents).expect("Can't parse kafka from config");
+    let mut kafka_settings: HashMap<String, String> = Default::default();
+    kafka_settings.insert("bootstrap.servers".into(), config.brokers.clone());
     kafka_settings.insert("client.id".into(), config.kafka_client_id.clone());
-    kafka_settings.insert("sasl.username".into(), config.kafka_user.clone());
-    kafka_settings.insert("sasl.password".into(), config.kafka_password.clone());
 
     (
         config.kafka_group_id.clone(),      // group_id
-        "ton-transactions-1".into(),        // topic
+        config.kafka_topic.clone(),         // topic
         config.states_rpc_endpoint.clone(), // states_rpc_endpoint
         kafka_settings,
     )
