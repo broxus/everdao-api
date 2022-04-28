@@ -6,7 +6,7 @@ use crate::api::requests;
 use crate::api::responses;
 use crate::models::ProposalsOverview;
 
-pub fn swagger() -> String {
+pub fn swagger(prod_url: &str, test_url: &str) -> String {
     let api = describe_api! {
         info: {
             title: "DAO",
@@ -14,9 +14,8 @@ pub fn swagger() -> String {
             description: r##"This API allows you to get the information of DAO"##,
         },
         servers: {
-            "https://bridge-dao-indexer-test.broxus.com/v1",
-            "https://bridge-dao-indexer.broxus.com/v1",
-            "https://everdao.broxus.com/v1"
+            prod_url,
+            test_url
         },
         tags: {
             proposals,

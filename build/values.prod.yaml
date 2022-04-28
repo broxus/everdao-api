@@ -10,6 +10,8 @@ env:
   KAFKA_CLIENT_ID: "mainnet-bridge-dao-api"
   DATABASE_URL: postgresql://$(DAO_INDEXER_DB_USER):$(DAO_INDEXER_DB_PASSWORD)@cloudsqlproxy.default:5432/dao-indexer-mainnet
   DAO_ROOT: "0:9f3389dd38af5b726ae50d9c7f1cd29b5414be78615c2b1930446a9573862f57"
+  INDEXER_PROD_URL: "https://dao.venombridge.com/v1"
+  INDEXER_TEST_URL: "https://dao.venombridge.com/v1"
 
 controller: statefulset
 

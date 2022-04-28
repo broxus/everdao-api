@@ -69,7 +69,10 @@ pub async fn start_server() -> Result<()> {
 
     log::debug!("start http server");
     let service = Arc::new(Services::new(sqlx_client.clone()));
-    tokio::spawn(http_service(config.server_addr, service, sqlx_client));
+
+    let prod_url = config.indexer_prod_url.clone();
+    let test_url = config.indexer_test_url.clone();
+    tokio::spawn(http_service(config.server_addr, service, sqlx_client, prod_url, test_url));
 
     future::pending().await
 }

@@ -19,10 +19,14 @@ pub async fn http_service(
     server_http_address: SocketAddr,
     services: Arc<Services>,
     sqlx_client: SqlxClient,
+    prod_url: String,
+    test_url: String
 ) {
     let ctx = Context {
         services,
         sqlx_client,
+        prod_url,
+        test_url
     };
 
     let api = filters::server(ctx);
@@ -60,7 +64,7 @@ mod filters {
     fn api_v1(ctx: Context) -> BoxedFilter<(impl warp::Reply,)> {
         warp::path("v1")
             .and(
-                swagger()
+                swagger(&ctx.prod_url, &ctx.test_url)
                     .or(post_proposals_search(ctx.clone()))
                     .or(post_votes_search(ctx.clone()))
                     .or(post_voters_search(ctx.clone()))
@@ -71,8 +75,8 @@ mod filters {
             .boxed()
     }
 
-    fn swagger() -> BoxedFilter<(impl warp::Reply,)> {
-        let docs = docs::swagger();
+    fn swagger(prod_url: &str, test_url: &str) -> BoxedFilter<(impl warp::Reply,)> {
+        let docs = docs::swagger(prod_url, test_url);
         warp::path!("swagger.yaml")
             .and(warp::get())
             .map(move || docs.clone())

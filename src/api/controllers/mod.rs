@@ -11,4 +11,6 @@ pub mod votes;
 pub struct Context {
     pub services: Arc<Services>,
     pub sqlx_client: SqlxClient,
+    pub prod_url: String,
+    pub test_url: String,
 }

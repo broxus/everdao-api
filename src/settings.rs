@@ -15,6 +15,9 @@ pub struct Config {
     pub kafka_topic: String,
     pub kafka_group_id: String,
     pub kafka_client_id: String,
+
+    pub indexer_prod_url: String,
+    pub indexer_test_url: String
 }
 
 impl Config {
