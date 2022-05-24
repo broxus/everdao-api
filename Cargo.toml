@@ -52,6 +52,7 @@ transaction-consumer = { git = "https://github.com/broxus/transaction-consumer" 
 ton_abi = { git = "https://github.com/broxus/ton-labs-abi" }
 ton_block = { git = "https://github.com/broxus/ton-labs-block.git" }
 ton_types = { git = "https://github.com/broxus/ton-labs-types" }
+transaction-buffer = {git = "https://github.com/broxus/transaction-buffer.git"}
 
 tiny-adnl = { git = "https://github.com/broxus/tiny-adnl" }
 

@@ -66,16 +66,16 @@ impl AllEvents {
 }
 
 fn dao_root() -> Vec<AnyExtractable> {
-    let contract = ton_abi::Contract::load(std::io::Cursor::new(DAO_ROOT_ABI)).trust_me();
-    let events = contract.events();
+    let contract = ton_abi::Contract::load(DAO_ROOT_ABI).trust_me();
+    let events = contract.events;
     let proposal_created = events.get("ProposalCreated").trust_me();
 
     vec![AnyExtractable::Event(proposal_created.clone())]
 }
 
 fn user_data() -> Vec<AnyExtractable> {
-    let contract = ton_abi::Contract::load(std::io::Cursor::new(USERDATA_ABI)).trust_me();
-    let events = contract.events();
+    let contract = ton_abi::Contract::load(USERDATA_ABI).trust_me();
+    let events = contract.events;
     let vote_cast = events.get("VoteCast").trust_me();
     let unlock_casted_votes = events.get("UnlockCastedVotes").trust_me();
 
@@ -86,8 +86,8 @@ fn user_data() -> Vec<AnyExtractable> {
 }
 
 fn proposal() -> Vec<AnyExtractable> {
-    let contract = ton_abi::Contract::load(std::io::Cursor::new(PROPOSAL_ABI)).trust_me();
-    let events = contract.events();
+    let contract = ton_abi::Contract::load(PROPOSAL_ABI).trust_me();
+    let events = contract.events;
     let executed = events.get("Executed").trust_me();
     let canceled = events.get("Canceled").trust_me();
     let queued = events.get("Queued").trust_me();

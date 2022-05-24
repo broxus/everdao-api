@@ -1,15 +1,15 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use futures::{Stream, StreamExt};
+use futures::channel::mpsc::{Receiver, Sender};
+use futures::{SinkExt, StreamExt};
 use indexer_lib::{split, AnyExtractableOutput, ExtractInput, ParsedOutput, TransactionExt};
 use nekoton_utils::{repack_address, TrustMe};
 use tokio::time;
 use ton_block::{Deserializable, MsgAddressInt, Transaction};
 use ton_types::UInt256;
-use transaction_consumer::{ConsumedTransaction, TransactionConsumer};
+use transaction_consumer::{TransactionConsumer};
 
-use crate::global_cache::*;
 use crate::models::*;
 use crate::sqlx_client::*;
 
@@ -28,20 +28,24 @@ lazy_static::lazy_static! {
 pub async fn bridge_dao_indexer(
     sqlx_client: SqlxClient,
     transaction_consumer: Arc<TransactionConsumer>,
-    mut stream_transactions: impl Stream<Item = ConsumedTransaction> + std::marker::Unpin,
+    mut rx_raw_transactions: Receiver<
+        Vec<(
+            ParsedOutput<AnyExtractableOutput>,
+            transaction_buffer::models::RawTransaction,
+        )>,
+    >,
+    mut tx_commit: Sender<()>,
 ) {
     log::info!("Start Bridge-Dao indexer...");
 
     let all_events = AllEvents::new();
-    let prep_events = all_events.get_all_events();
+    while let Some(message) = rx_raw_transactions.next().await {
+        for (_, raw_transaction) in message {
+            let transaction = raw_transaction.data.clone();
+            let transaction_hash = transaction.tx_hash().trust_me();
 
-    while let Some(produced_transaction) = stream_transactions.next().await {
-        let transaction = produced_transaction.transaction.clone();
-        let transaction_hash = transaction.tx_hash().trust_me();
-
-        if extract_events(&transaction, transaction_hash, &prep_events).is_some() {
             let raw_transaction_from_db: RawTransactionFromDb =
-                transaction.clone().try_into().trust_me();
+                raw_transaction.data.clone().try_into().trust_me();
 
             if let Err(err) = sqlx_client
                 .create_raw_transaction(raw_transaction_from_db)
@@ -99,11 +103,8 @@ pub async fn bridge_dao_indexer(
                     }
                 }
             }
-
-            if is_proposal_cache_empty() && is_vote_cache_empty() {
-                produced_transaction.commit().trust_me();
-            }
         }
+        tx_commit.send(()).await.expect("dead commit sender");
     }
 
     panic!("rip kafka consumer");

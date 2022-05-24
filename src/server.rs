@@ -3,12 +3,14 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use futures::prelude::*;
-use nekoton_utils::TrustMe;
 use sqlx::postgres::PgPoolOptions;
-use transaction_consumer::TransactionConsumer;
+use transaction_buffer::models::{BufferedConsumerChannels, BufferedConsumerConfig};
+use transaction_buffer::start_parsing_and_get_channels;
+use transaction_consumer::{ConsumerOptions, TransactionConsumer};
 
 use crate::api::*;
 use crate::indexer::*;
+use crate::models::AllEvents;
 use crate::services::*;
 use crate::settings::*;
 use crate::sqlx_client::*;
@@ -31,26 +33,36 @@ pub async fn start_server() -> Result<()> {
 
     sqlx::migrate!().run(&pool).await?;
 
-    let sqlx_client = SqlxClient::new(pool);
+    let sqlx_client = SqlxClient::new(pool.clone());
 
     // kafka connection
     let (group_id, topic, states_rpc_endpoint, options) = get_kafka_settings(&config);
     let transaction_consumer = TransactionConsumer::new(
         &group_id,
         &topic,
-        states_rpc_endpoint,
-        options
-            .iter()
-            .map(|(x, y)| (x.as_str(), y.as_str()))
-            .collect::<HashMap<_, _>>(),
+        vec![states_rpc_endpoint],
+        None,
+        ConsumerOptions {
+            kafka_options: options
+                .iter()
+                .map(|(x, y)| (x.as_str(), y.as_str()))
+                .collect::<HashMap<_, _>>(),
+            skip_0_partition: true,
+        },
     )
+    .await
     .expect("Failed to get transaction producer");
 
-    let stream_transactions = transaction_consumer
-        .clone()
-        .stream_transactions(false)
-        .await
-        .trust_me();
+    let BufferedConsumerChannels {
+        rx_parsed_events,
+        tx_commit,
+        notify_for_services,
+    } = start_parsing_and_get_channels(BufferedConsumerConfig {
+        delay: 15,
+        transaction_consumer: transaction_consumer.clone(),
+        pg_pool: pool,
+        events_to_parse: AllEvents::new().get_all_events().any_extractable,
+    });
 
     {
         let sqlx_client = sqlx_client.clone();
@@ -58,7 +70,8 @@ pub async fn start_server() -> Result<()> {
         tokio::spawn(bridge_dao_indexer(
             sqlx_client,
             transaction_consumer,
-            stream_transactions,
+            rx_parsed_events,
+            tx_commit,
         ));
     }
 
@@ -72,7 +85,15 @@ pub async fn start_server() -> Result<()> {
 
     let prod_url = config.indexer_prod_url.clone();
     let test_url = config.indexer_test_url.clone();
-    tokio::spawn(http_service(config.server_addr, service, sqlx_client, prod_url, test_url));
+    notify_for_services.notified().await;
+    log::info!("start http service");
+    tokio::spawn(http_service(
+        config.server_addr,
+        service,
+        sqlx_client,
+        prod_url,
+        test_url,
+    ));
 
     future::pending().await
 }
