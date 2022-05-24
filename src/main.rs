@@ -1,6 +1,6 @@
 use anyhow::Result;
 
-use bridge_dao_indexer::server::*;
+use dao_api::server::*;
 
 #[tokio::main(worker_threads = 8)]
 async fn main() -> Result<()> {
