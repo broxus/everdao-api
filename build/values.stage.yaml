@@ -1,5 +1,5 @@
 env:
-  RUST_LOG: "dao_api=info,dexpa=debug,sqlx=warn,transaction_buffer=info,transaction_consumer=info""
+  RUST_LOG: "dao_api=info,dexpa=debug,sqlx=warn,transaction_buffer=info,transaction_consumer=info"
 
   SERVER_ADDR: 0.0.0.0:9000
   HEALTHCHECK_ADDR: 0.0.0.0:9001
