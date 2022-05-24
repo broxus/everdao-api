@@ -7,7 +7,7 @@ impl SqlxClient {
         transaction: RawTransactionFromDb,
     ) -> anyhow::Result<()> {
         sqlx::query!(
-            r#"INSERT INTO raw_transactions (transaction, transaction_hash, timestamp_block, timestamp_lt) VALUES($1, $2, $3, $4) ON CONFLICT DO NOTHING"#,
+            r#"INSERT INTO raw_transactions_service (transaction, transaction_hash, timestamp_block, timestamp_lt) VALUES($1, $2, $3, $4) ON CONFLICT DO NOTHING"#,
             transaction.transaction,
             transaction.transaction_hash,
             transaction.timestamp_block,
@@ -27,7 +27,7 @@ impl SqlxClient {
             RawTransactionFromDb,
             r#"
             SELECT transaction, transaction_hash, timestamp_block, timestamp_lt, created_at, state as "state: _"
-            FROM raw_transactions
+            FROM raw_transactions_service
             WHERE state = $1
             ORDER BY timestamp_block"#,
             state as RawTransactionState,
@@ -45,7 +45,7 @@ impl SqlxClient {
         sqlx::query_as!(
             RawTransactionFromDb,
             r#"
-            UPDATE raw_transactions SET state = $1
+            UPDATE raw_transactions_service SET state = $1
             WHERE transaction_hash = $2
             RETURNING transaction,
                 transaction_hash,

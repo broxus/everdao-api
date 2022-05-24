@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS raw_transactions
+CREATE TABLE IF NOT EXISTS raw_transactions_service
 (
     transaction      BYTEA   NOT NULL,
     transaction_hash BYTEA   NOT NULL,

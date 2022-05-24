@@ -7,4 +7,4 @@ CREATE TYPE raw_transaction_state_type as ENUM (
     'InProgress'
     );
 
-ALTER TABLE raw_transactions ADD COLUMN state raw_transaction_state_type NOT NULL DEFAULT 'Idle';
+ALTER TABLE raw_transactions_service ADD COLUMN state raw_transaction_state_type NOT NULL DEFAULT 'Idle';

@@ -1,9 +1,9 @@
 {
   "db": "PostgreSQL",
   "19f399d54f7f241555accb25e2add7902a7040e84ed0fec467ff27f9f617e466": {
-    "query": "INSERT INTO proposals (\n            id, address, proposer, description, start_time, end_time, execution_time, grace_period, time_lock, voting_delay, for_votes,\n            against_votes, quorum_votes, message_hash, transaction_hash, timestamp_block, actions)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)\n            ",
     "describe": {
       "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int4",
@@ -24,14 +24,89 @@
           "Int4",
           "Jsonb"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "INSERT INTO proposals (\n            id, address, proposer, description, start_time, end_time, execution_time, grace_period, time_lock, voting_delay, for_votes,\n            against_votes, quorum_votes, message_hash, transaction_hash, timestamp_block, actions)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)\n            "
+  },
+  "2ced460075c07a8a50c4da460f05b3713aebfbe42f3c3ab26314dc67563bb2bf": {
+    "describe": {
+      "columns": [
+        {
+          "name": "transaction",
+          "ordinal": 0,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "transaction_hash",
+          "ordinal": 1,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "timestamp_block",
+          "ordinal": 2,
+          "type_info": "Int4"
+        },
+        {
+          "name": "timestamp_lt",
+          "ordinal": 3,
+          "type_info": "Int8"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 4,
+          "type_info": "Int8"
+        },
+        {
+          "name": "state: _",
+          "ordinal": 5,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Enum": [
+                  "Idle",
+                  "Fail",
+                  "Success",
+                  "InProgress"
+                ]
+              },
+              "name": "raw_transaction_state_type"
+            }
+          }
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          {
+            "Custom": {
+              "kind": {
+                "Enum": [
+                  "Idle",
+                  "Fail",
+                  "Success",
+                  "InProgress"
+                ]
+              },
+              "name": "raw_transaction_state_type"
+            }
+          },
+          "Bytea"
+        ]
+      }
+    },
+    "query": "\n            UPDATE raw_transactions_service SET state = $1\n            WHERE transaction_hash = $2\n            RETURNING transaction,\n                transaction_hash,\n                timestamp_block,\n                timestamp_lt,\n                created_at,\n                state as \"state: _\""
   },
   "507d6385632bfa2a672134346b7f997f98b5345b5684ec3b84997cf5db30cc3b": {
-    "query": "INSERT INTO votes (proposal_id, voter, support, reason, votes, message_hash, transaction_hash, timestamp_block, locked)\n                          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
     "describe": {
       "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int4",
@@ -44,19 +119,21 @@
           "Int4",
           "Bool"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "INSERT INTO votes (proposal_id, voter, support, reason, votes, message_hash, transaction_hash, timestamp_block, locked)\n                          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"
   },
   "6451a9cfe09700e2eb9848375f7e5eb56b6b39db4b9eee1026236ccd26dd29db": {
-    "query": "\n            UPDATE proposals SET canceled = true, canceled_at = $1, updated_at = $2\n            WHERE address = $3\n            RETURNING id",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "id",
+          "ordinal": 0,
           "type_info": "Int4"
         }
+      ],
+      "nullable": [
+        false
       ],
       "parameters": {
         "Left": [
@@ -64,88 +141,171 @@
           "Int8",
           "Text"
         ]
-      },
-      "nullable": [
-        false
-      ]
-    }
+      }
+    },
+    "query": "\n            UPDATE proposals SET canceled = true, canceled_at = $1, updated_at = $2\n            WHERE address = $3\n            RETURNING id"
   },
-  "6f074848afc3962d788aa680f3881fdcd417d511f7857f98a3a7bb86d90b1748": {
-    "query": "\n            UPDATE proposals SET executed = true, executed_at = $1, updated_at = $2\n            WHERE address = $3\n            RETURNING id",
+  "66cc17da617e509cdfcec140463bfedbe534e5964d5e50b7ce24dfa42bd57611": {
     "describe": {
       "columns": [
         {
+          "name": "transaction",
           "ordinal": 0,
-          "name": "id",
-          "type_info": "Int4"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Int4",
-          "Int8",
-          "Text"
-        ]
-      },
-      "nullable": [
-        false
-      ]
-    }
-  },
-  "746b25ad725b14f69f7eb520ff5688dd70d5e4d8219f5f973fa0f8cd4f13ed8a": {
-    "query": "\n            UPDATE votes SET locked = $1\n            WHERE proposal_id = $2 AND voter = $3\n            RETURNING proposal_id,\n                voter,\n                support,\n                reason,\n                votes,\n                locked,\n                message_hash,\n                transaction_hash,\n                timestamp_block,\n                created_at",
-    "describe": {
-      "columns": [
+          "type_info": "Bytea"
+        },
         {
-          "ordinal": 0,
-          "name": "proposal_id",
+          "name": "transaction_hash",
+          "ordinal": 1,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "timestamp_block",
+          "ordinal": 2,
           "type_info": "Int4"
         },
         {
-          "ordinal": 1,
+          "name": "timestamp_lt",
+          "ordinal": 3,
+          "type_info": "Int8"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 4,
+          "type_info": "Int8"
+        },
+        {
+          "name": "state: _",
+          "ordinal": 5,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Enum": [
+                  "Idle",
+                  "Fail",
+                  "Success",
+                  "InProgress"
+                ]
+              },
+              "name": "raw_transaction_state_type"
+            }
+          }
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          {
+            "Custom": {
+              "kind": {
+                "Enum": [
+                  "Idle",
+                  "Fail",
+                  "Success",
+                  "InProgress"
+                ]
+              },
+              "name": "raw_transaction_state_type"
+            }
+          }
+        ]
+      }
+    },
+    "query": "\n            SELECT transaction, transaction_hash, timestamp_block, timestamp_lt, created_at, state as \"state: _\"\n            FROM raw_transactions_service\n            WHERE state = $1\n            ORDER BY timestamp_block"
+  },
+  "6f074848afc3962d788aa680f3881fdcd417d511f7857f98a3a7bb86d90b1748": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Int8",
+          "Text"
+        ]
+      }
+    },
+    "query": "\n            UPDATE proposals SET executed = true, executed_at = $1, updated_at = $2\n            WHERE address = $3\n            RETURNING id"
+  },
+  "746b25ad725b14f69f7eb520ff5688dd70d5e4d8219f5f973fa0f8cd4f13ed8a": {
+    "describe": {
+      "columns": [
+        {
+          "name": "proposal_id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        },
+        {
           "name": "voter",
+          "ordinal": 1,
           "type_info": "Varchar"
         },
         {
-          "ordinal": 2,
           "name": "support",
+          "ordinal": 2,
           "type_info": "Bool"
         },
         {
-          "ordinal": 3,
           "name": "reason",
+          "ordinal": 3,
           "type_info": "Varchar"
         },
         {
-          "ordinal": 4,
           "name": "votes",
+          "ordinal": 4,
           "type_info": "Numeric"
         },
         {
-          "ordinal": 5,
           "name": "locked",
+          "ordinal": 5,
           "type_info": "Bool"
         },
         {
-          "ordinal": 6,
           "name": "message_hash",
+          "ordinal": 6,
           "type_info": "Bytea"
         },
         {
-          "ordinal": 7,
           "name": "transaction_hash",
+          "ordinal": 7,
           "type_info": "Bytea"
         },
         {
-          "ordinal": 8,
           "name": "timestamp_block",
+          "ordinal": 8,
           "type_info": "Int4"
         },
         {
-          "ordinal": 9,
           "name": "created_at",
+          "ordinal": 9,
           "type_info": "Int8"
         }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
       ],
       "parameters": {
         "Left": [
@@ -153,194 +313,21 @@
           "Int4",
           "Text"
         ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ]
-    }
-  },
-  "8e87f63c443489a65c3ee05f30d1c5a214ba47324bb944c7143a8e53618238f4": {
-    "query": "\n            SELECT transaction, transaction_hash, timestamp_block, timestamp_lt, created_at, state as \"state: _\"\n            FROM raw_transactions\n            WHERE state = $1\n            ORDER BY timestamp_block",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "transaction",
-          "type_info": "Bytea"
-        },
-        {
-          "ordinal": 1,
-          "name": "transaction_hash",
-          "type_info": "Bytea"
-        },
-        {
-          "ordinal": 2,
-          "name": "timestamp_block",
-          "type_info": "Int4"
-        },
-        {
-          "ordinal": 3,
-          "name": "timestamp_lt",
-          "type_info": "Int8"
-        },
-        {
-          "ordinal": 4,
-          "name": "created_at",
-          "type_info": "Int8"
-        },
-        {
-          "ordinal": 5,
-          "name": "state: _",
-          "type_info": {
-            "Custom": {
-              "name": "raw_transaction_state_type",
-              "kind": {
-                "Enum": [
-                  "Idle",
-                  "Fail",
-                  "Success",
-                  "InProgress"
-                ]
-              }
-            }
-          }
-        }
-      ],
-      "parameters": {
-        "Left": [
-          {
-            "Custom": {
-              "name": "raw_transaction_state_type",
-              "kind": {
-                "Enum": [
-                  "Idle",
-                  "Fail",
-                  "Success",
-                  "InProgress"
-                ]
-              }
-            }
-          }
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ]
-    }
-  },
-  "90baf30d160c7057deab80fde089e0352822c09bd187f669d74453652fa06fa9": {
-    "query": "\n            UPDATE raw_transactions SET state = $1\n            WHERE transaction_hash = $2\n            RETURNING transaction,\n                transaction_hash,\n                timestamp_block,\n                timestamp_lt,\n                created_at,\n                state as \"state: _\"",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "transaction",
-          "type_info": "Bytea"
-        },
-        {
-          "ordinal": 1,
-          "name": "transaction_hash",
-          "type_info": "Bytea"
-        },
-        {
-          "ordinal": 2,
-          "name": "timestamp_block",
-          "type_info": "Int4"
-        },
-        {
-          "ordinal": 3,
-          "name": "timestamp_lt",
-          "type_info": "Int8"
-        },
-        {
-          "ordinal": 4,
-          "name": "created_at",
-          "type_info": "Int8"
-        },
-        {
-          "ordinal": 5,
-          "name": "state: _",
-          "type_info": {
-            "Custom": {
-              "name": "raw_transaction_state_type",
-              "kind": {
-                "Enum": [
-                  "Idle",
-                  "Fail",
-                  "Success",
-                  "InProgress"
-                ]
-              }
-            }
-          }
-        }
-      ],
-      "parameters": {
-        "Left": [
-          {
-            "Custom": {
-              "name": "raw_transaction_state_type",
-              "kind": {
-                "Enum": [
-                  "Idle",
-                  "Fail",
-                  "Success",
-                  "InProgress"
-                ]
-              }
-            }
-          },
-          "Bytea"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ]
-    }
-  },
-  "953e2bd219fcd6a98b5e8ab3becb36999479ea12fea2e79dd0b09f5ef7a02bbf": {
-    "query": "INSERT INTO raw_transactions (transaction, transaction_hash, timestamp_block, timestamp_lt) VALUES($1, $2, $3, $4) ON CONFLICT DO NOTHING",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
-          "Bytea",
-          "Bytea",
-          "Int4",
-          "Int8"
-        ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "\n            UPDATE votes SET locked = $1\n            WHERE proposal_id = $2 AND voter = $3\n            RETURNING proposal_id,\n                voter,\n                support,\n                reason,\n                votes,\n                locked,\n                message_hash,\n                transaction_hash,\n                timestamp_block,\n                created_at"
   },
   "ac636a66269d7c83a77bdd32012cf598b6fd900233dc862b1c070a8c8b3dcb9c": {
-    "query": "\n            UPDATE proposals SET for_votes = for_votes + $2, against_votes = against_votes + $3, updated_at = $4\n            WHERE id = $1\n            RETURNING id",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "id",
+          "ordinal": 0,
           "type_info": "Int4"
         }
+      ],
+      "nullable": [
+        false
       ],
       "parameters": {
         "Left": [
@@ -349,21 +336,21 @@
           "Numeric",
           "Int8"
         ]
-      },
-      "nullable": [
-        false
-      ]
-    }
+      }
+    },
+    "query": "\n            UPDATE proposals SET for_votes = for_votes + $2, against_votes = against_votes + $3, updated_at = $4\n            WHERE id = $1\n            RETURNING id"
   },
   "ad555d2fac18401b22b5cbf0fa2fd3bca30212c91a18b64fc332c647da402095": {
-    "query": "\n            UPDATE proposals SET queued = true, execution_time = $1, queued_at = $2, updated_at = $3\n            WHERE address = $4\n            RETURNING id",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "id",
+          "ordinal": 0,
           "type_info": "Int4"
         }
+      ],
+      "nullable": [
+        false
       ],
       "parameters": {
         "Left": [
@@ -372,10 +359,23 @@
           "Int8",
           "Text"
         ]
-      },
-      "nullable": [
-        false
-      ]
-    }
+      }
+    },
+    "query": "\n            UPDATE proposals SET queued = true, execution_time = $1, queued_at = $2, updated_at = $3\n            WHERE address = $4\n            RETURNING id"
+  },
+  "b42195e1dedadcf1f04429c18eac2d11065c079229d04d131c044a7780563608": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Bytea",
+          "Bytea",
+          "Int4",
+          "Int8"
+        ]
+      }
+    },
+    "query": "INSERT INTO raw_transactions_service (transaction, transaction_hash, timestamp_block, timestamp_lt) VALUES($1, $2, $3, $4) ON CONFLICT DO NOTHING"
   }
 }
