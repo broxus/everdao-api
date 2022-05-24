@@ -1,4 +1,6 @@
 env:
+  RUST_LOG: "dao_api=info,dexpa=debug,warp=debug"
+
   SERVER_ADDR: 0.0.0.0:9000
   HEALTHCHECK_ADDR: 0.0.0.0:9001
 
