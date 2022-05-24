@@ -1,8 +1,7 @@
-FROM europe-west1-docker.pkg.dev/venom-network/docker/rust-builder:v1.59 AS builder
+FROM europe-west1-docker.pkg.dev/broxus-infrastructure/docker/rust-builder:v1.59 AS builder
 
 WORKDIR /build
 
-RUN rustup component add rustfmt
 # Build dependencies only, when source code changes,
 # this build can be cached, we don't need to compile dependency again.
 RUN mkdir src && touch src/lib.rs
@@ -14,8 +13,8 @@ COPY . .
 RUN RUSTFLAGS=-g cargo build --release
 
 
-FROM europe-west1-docker.pkg.dev/venom-network/docker/rust-runtime:v1.59
-COPY --from=builder /build/target/release/bridge-dao-indexer /app/application
+FROM europe-west1-docker.pkg.dev/broxus-infrastructure/docker/rust-runtime:v1.59
+COPY --from=builder /build/target/release/dao-api /app/application
 COPY --from=builder /build/entrypoint.sh /app/entrypoint.sh
 COPY --from=builder /build/migrations /app/migrations
 COPY --from=builder /build/sqlx-data.json /app/sqlx-data.json

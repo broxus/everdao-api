@@ -1,0 +1,52 @@
+env:
+  SERVER_ADDR: 0.0.0.0:9000
+  HEALTHCHECK_ADDR: 0.0.0.0:9001
+
+  STATES_RPC_ENDPOINT: "http://ever-indexer-mainnet-raw.europe-west1-c.c.broxus.internal:8081/rpc"
+
+  BROKERS: "kafka-broker-1.europe-west1-c.c.broxus.internal:9092,\
+            kafka-broker-2.europe-west1-c.c.broxus.internal:9092,\
+            kafka-broker-3.europe-west1-c.c.broxus.internal:9092"
+  KAFKA_TOPIC: "mainnet-raw-transactions"
+  KAFKA_GROUP_ID: "bridge-dao-stage"
+  KAFKA_CLIENT_ID: "bridge-dao-stage-api"
+
+  DB_POOL_SIZE: "200"
+  DATABASE_URL: postgresql://$(BRIDGE_DAO_API_USER):$(BRIDGE_DAO_API_PASSWORD)@cloudsqlproxy.default:5432/bridge-dao-api
+
+  INDEXER_PROD_URL: "https://dao.octusbridge.io/v1"
+  INDEXER_TEST_URL: "https://dao-test.octusbridge.io/v1"
+
+  DAO_ROOT: "0:6da8defd136c0227dfa24edde79728142d2bfb74bc9edf66ad86ae7cd8e56a86"
+
+controller: statefulset
+
+service:
+  port: 9000
+
+ingress:
+  enabled: true
+  hosts:
+    - host: dao-test.octusbridge.io
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: dao-test-octusbridge-io-tls
+      hosts:
+        - dao-test.octusbridge.io
+
+livenessProbe:
+  tcpSocket:
+    port: 9001
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+readinessProbe:
+  tcpSocket:
+    port: 9001
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+sharedSecrets:
+  - bridgeDaoApi

@@ -1,2 +1,1 @@
-# Bridge DAO Indexer
-
+# DAO API
