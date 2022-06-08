@@ -10,16 +10,16 @@ env:
             kafka-broker-2.europe-west1-c.c.broxus.internal:9092,\
             kafka-broker-3.europe-west1-c.c.broxus.internal:9092"
   KAFKA_TOPIC: "mainnet-raw-transactions"
-  KAFKA_GROUP_ID: "bridge-dao-green"
-  KAFKA_CLIENT_ID: "bridge-dao-green-api"
+  KAFKA_GROUP_ID: "dao-green"
+  KAFKA_CLIENT_ID: "dao-green-api"
 
   DB_POOL_SIZE: "200"
-  DATABASE_URL: postgresql://$(BRIDGE_DAO_API_USER):$(BRIDGE_DAO_API_PASSWORD)@cloudsqlproxy.default:5432/bridge-dao-api-green
+  DATABASE_URL: postgresql://$(DAO_API_USER):$(DAO_API_PASSWORD)@cloudsqlproxy.default:5432/dao-api-green
 
-  INDEXER_PROD_URL: "https://dao.octusbridge.io/v1"
-  INDEXER_TEST_URL: "https://dao-test.octusbridge.io/v1"
+  INDEXER_PROD_URL: "https://api.everdao.net/v1"
+  INDEXER_TEST_URL: "https://api-test.everdao.net/v1"
 
-  DAO_ROOT: "0:6da8defd136c0227dfa24edde79728142d2bfb74bc9edf66ad86ae7cd8e56a86"
+  DAO_ROOT: "0:cd809fb1cde24b6d3cd4a3dd9102e10c0f73ddfa21c7118f233dc7309bbb0b73"
 
 controller: statefulset
 
@@ -29,14 +29,14 @@ service:
 ingress:
   enabled: true
   hosts:
-    - host: dao-green.octusbridge.io
+    - host: api-green.everdao.net
       paths:
         - path: /
           pathType: ImplementationSpecific
   tls:
-    - secretName: dao-green-octusbridge-io-tls
+    - secretName: api-green-everdao-net-tls
       hosts:
-        - dao-green.octusbridge.io
+        - api-green.everdao.net
 
 livenessProbe:
   tcpSocket:
@@ -51,4 +51,4 @@ readinessProbe:
   periodSeconds: 10
 
 sharedSecrets:
-  - bridgeDaoApi
+  - daoApi
