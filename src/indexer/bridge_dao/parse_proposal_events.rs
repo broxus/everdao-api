@@ -6,7 +6,7 @@ use transaction_consumer::TransactionConsumer;
 
 use crate::global_cache::*;
 use crate::sqlx_client::*;
-use crate::ton_contracts::*;
+use crate::everdao_contracts::*;
 
 pub async fn parse_proposal_executed_event(
     transaction: &Transaction,

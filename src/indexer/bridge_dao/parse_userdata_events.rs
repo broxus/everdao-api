@@ -9,7 +9,7 @@ use transaction_consumer::TransactionConsumer;
 use crate::global_cache::*;
 use crate::models::*;
 use crate::sqlx_client::*;
-use crate::ton_contracts::*;
+use crate::everdao_contracts::*;
 
 pub async fn parse_vote_cast_event(
     vote: VoteCast,
