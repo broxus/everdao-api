@@ -8,17 +8,17 @@ mod row_reader;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct Paginated<T> {
-    pub limit: u32,
-    pub offset: u32,
+    pub limit: i32,
+    pub offset: i32,
     pub data: T,
 }
 
 pub trait AsPaginated: Sized {
-    fn paginated(self, limit: u32, offset: u32) -> Paginated<Self>;
+    fn paginated(self, limit: i32, offset: i32) -> Paginated<Self>;
 }
 
 impl<T> AsPaginated for T {
-    fn paginated(self, limit: u32, offset: u32) -> Paginated<Self> {
+    fn paginated(self, limit: i32, offset: i32) -> Paginated<Self> {
         Paginated {
             limit,
             offset,
@@ -73,8 +73,7 @@ pub async fn poll_run_local(
         if now.elapsed().as_secs() > timeout {
             break Err(anyhow::Error::msg(format!(
                 "none function output: address - {}, function - {}",
-                contract_address,
-                function.name
+                contract_address, function.name
             )));
         }
 

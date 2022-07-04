@@ -353,6 +353,6 @@ fn proposals_ordering(ordering: Option<ProposalsOrdering>) -> &'static str {
     }
 }
 
-fn max_limit(limit: u32) -> u32 {
+fn max_limit(limit: i32) -> i32 {
     std::cmp::min(limit, 100)
 }

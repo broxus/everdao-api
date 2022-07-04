@@ -58,10 +58,11 @@ pub async fn start_server() -> Result<()> {
         tx_commit,
         notify_for_services,
     } = start_parsing_and_get_channels(BufferedConsumerConfig {
-        delay: 15,
         transaction_consumer: transaction_consumer.clone(),
         pg_pool: pool,
         events_to_parse: AllEvents::new().get_all_events().any_extractable,
+        buff_size: 100_000,
+        commit_time_secs: 100,
     });
 
     {

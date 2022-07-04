@@ -1,8 +1,8 @@
 use std::collections::hash_map;
 
+use everscale_network::utils::FxHashMap;
 use once_cell::sync::Lazy;
 use parking_lot::RwLock;
-use tiny_adnl::utils::FxHashMap;
 use ton_block::MsgAddressInt;
 
 static PROPOSAL_CACHE: Lazy<RwLock<FxHashMap<MsgAddressInt, Vec<ProposalActionType>>>> =

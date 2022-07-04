@@ -10,6 +10,7 @@ base64 = "0.13"
 cached = "0.23.0"
 chrono = { version = "*", features = ["serde"] }
 config = { version = "0.9", default-features = false }
+everscale-network = "0.3.4"
 derive_more = "*"
 futures = { version = "0.3" }
 http = "0.2"
@@ -34,7 +35,7 @@ uuid = { version = "0.8", features = ["v4", "serde"] }
 url = { version = "2.2.0", features = ["serde"] }
 warp = { version = "0.3" }
 anyhow = "1.0.38"
-sqlx = { version = "0.5", features = ["runtime-tokio-native-tls", "postgres", "uuid", "decimal", "offline", "chrono", "json"] }
+sqlx = { version = "0.6", features = ["runtime-tokio-native-tls", "postgres", "uuid", "decimal", "offline", "chrono", "json"] }
 itertools = "0.10.0"
 reqwest = "0.11.10"
 regex = "1.5.4"
@@ -53,8 +54,6 @@ ton_abi = { git = "https://github.com/broxus/ton-labs-abi" }
 ton_block = { git = "https://github.com/broxus/ton-labs-block.git" }
 ton_types = { git = "https://github.com/broxus/ton-labs-types" }
 transaction-buffer = {git = "https://github.com/broxus/transaction-buffer.git"}
-
-tiny-adnl = { git = "https://github.com/broxus/tiny-adnl" }
 
 [dev-dependencies]
 env_logger = "0.8.4"

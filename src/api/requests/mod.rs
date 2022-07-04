@@ -7,21 +7,21 @@ use crate::utils::*;
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[opg("Proposals request")]
 pub struct ProposalsRequest {
-    pub limit: u32,
-    pub offset: u32,
+    pub limit: i32,
+    pub offset: i32,
 
     #[opg(optional)]
-    pub start_time_ge: Option<u32>,
+    pub start_time_ge: Option<i32>,
     #[opg(optional)]
-    pub start_time_le: Option<u32>,
+    pub start_time_le: Option<i32>,
 
     #[opg(optional)]
-    pub end_time_ge: Option<u32>,
+    pub end_time_ge: Option<i32>,
     #[opg(optional)]
-    pub end_time_le: Option<u32>,
+    pub end_time_le: Option<i32>,
 
     #[opg(optional)]
-    pub proposal_id: Option<u32>,
+    pub proposal_id: Option<i32>,
 
     #[opg(optional)]
     pub proposer: Option<String>,
@@ -57,11 +57,11 @@ impl From<ProposalsRequest> for ProposalsSearch {
 #[serde(rename_all = "camelCase")]
 #[opg("Proposal votes request")]
 pub struct VotesRequest {
-    pub limit: u32,
-    pub offset: u32,
+    pub limit: i32,
+    pub offset: i32,
 
     #[opg(optional)]
-    pub proposal_id: Option<u32>,
+    pub proposal_id: Option<i32>,
 
     #[opg(optional)]
     pub voter: Option<String>,
@@ -93,21 +93,21 @@ impl From<VotesRequest> for VotesSearch {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[opg("Voters request")]
 pub struct VotersRequest {
-    pub limit: u32,
-    pub offset: u32,
+    pub limit: i32,
+    pub offset: i32,
 
     #[opg(optional)]
-    pub start_time_ge: Option<u32>,
+    pub start_time_ge: Option<i32>,
     #[opg(optional)]
-    pub start_time_le: Option<u32>,
+    pub start_time_le: Option<i32>,
 
     #[opg(optional)]
-    pub end_time_ge: Option<u32>,
+    pub end_time_ge: Option<i32>,
     #[opg(optional)]
-    pub end_time_le: Option<u32>,
+    pub end_time_le: Option<i32>,
 
     #[opg(optional)]
-    pub proposal_id: Option<u32>,
+    pub proposal_id: Option<i32>,
 
     #[opg(optional)]
     pub proposer: Option<String>,
@@ -162,8 +162,8 @@ pub struct ProposalsCountRequest {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[opg("Proposals count search request")]
 pub struct ProposalsCountSearchRequest {
-    pub limit: u32,
-    pub offset: u32,
+    pub limit: i32,
+    pub offset: i32,
 
     #[opg(optional)]
     pub voters: Option<Vec<String>>,

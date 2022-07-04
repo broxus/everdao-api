@@ -348,6 +348,6 @@ fn voters_proposals_ordering(ordering: VotersProposalsOrdering) -> &'static str 
     }
 }
 
-fn max_limit(limit: u32) -> u32 {
+fn max_limit(limit: i32) -> i32 {
     std::cmp::min(limit, 100)
 }

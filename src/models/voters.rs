@@ -10,13 +10,13 @@ pub type VotersProposalsCountSearch =
 
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash)]
 pub struct VoterFilters {
-    pub start_time_ge: Option<u32>,
-    pub start_time_le: Option<u32>,
+    pub start_time_ge: Option<i32>,
+    pub start_time_le: Option<i32>,
 
-    pub end_time_ge: Option<u32>,
-    pub end_time_le: Option<u32>,
+    pub end_time_ge: Option<i32>,
+    pub end_time_le: Option<i32>,
 
-    pub proposal_id: Option<u32>,
+    pub proposal_id: Option<i32>,
 
     pub proposer: Option<String>,
 
