@@ -10,7 +10,7 @@ use transaction_consumer::TransactionConsumer;
 use crate::global_cache::*;
 use crate::models::*;
 use crate::sqlx_client::*;
-use crate::ton_contracts::*;
+use crate::everdao_contracts::*;
 use crate::utils::*;
 
 pub async fn parse_proposal_created_event(

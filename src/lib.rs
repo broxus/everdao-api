@@ -10,5 +10,5 @@ pub mod server;
 pub mod services;
 pub mod settings;
 pub mod sqlx_client;
-pub mod ton_contracts;
+pub mod everdao_contracts;
 pub mod utils;
