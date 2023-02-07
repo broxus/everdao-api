@@ -88,3 +88,49 @@ stop:prod-blue:
     APP_CONFIG: blue
   environment:
     name: prod
+
+deploy:prod-sahara-green:
+  only:
+    - prod
+  except:
+    - tags
+  extends: .deploy
+  variables:
+    APP_CONFIG: sahara-green
+  environment:
+    name: prod
+    on_stop: stop:prod-sahara-green
+
+stop:prod-sahara-green:
+  only:
+    - prod
+  except:
+    - tags
+  extends: .stop
+  variables:
+    APP_CONFIG: sahara-green
+  environment:
+    name: prod
+
+deploy:prod-sahara-blue:
+  only:
+    - prod
+  except:
+    - tags
+  extends: .deploy
+  variables:
+    APP_CONFIG: sahara-blue
+  environment:
+    name: prod
+    on_stop: stop:prod-sahara-blue
+
+stop:prod-sahara-blue:
+  only:
+    - prod
+  except:
+    - tags
+  extends: .stop
+  variables:
+    APP_CONFIG: sahara-blue
+  environment:
+    name: prod

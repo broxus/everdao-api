@@ -3,13 +3,13 @@ env:
   SERVER_ADDR: 0.0.0.0:9000
   HEALTHCHECK_ADDR: 0.0.0.0:9001
   DB_POOL_SIZE: "200"
-  DROP_BASE_INDEX: 1
-  STATES_RPC_ENDPOINT: "http://10.1.0.90:8081/rpc"
+  DROP_BASE_INDEX:
+  STATES_RPC_ENDPOINT: "http://10.1.0.20:8081/rpc"
   BROKERS: "kafka-broker-1:9092,kafka-broker-2:9092,kafka-broker-3:9092"
   KAFKA_TOPIC: "mainnet-raw-transactions"
-  KAFKA_GROUP_ID: "mainnet-bridge-green"
-  KAFKA_CLIENT_ID: "mainnet-bridge-green-api"
-  DATABASE_URL: postgresql://$(NAMIB_BRIDGE_INDEXER_DB_USER):$(NAMIB_BRIDGE_INDEXER_DB_PASSWORD)@cloudsqlproxy.default:5432/bridge-indexer-mainnet-green
+  KAFKA_GROUP_ID: "sahara-bridge-blue"
+  KAFKA_CLIENT_ID: "sahara-bridge-blue-api"
+  DATABASE_URL: postgresql://$(SAHARA_BRIDGE_INDEXER_DB_USER):$(SAHARA_BRIDGE_INDEXER_DB_PASSWORD)@cloudsqlproxy.default:5432/sahara-bridge-indexer-blue
   STAKING_ROOT: "0:17e938e733add71af443c73a91321a68e631db20018f8f49ae37df1d26ac60ca"
   DAO_INDEXER_URL: "https://dao.venombridge.com"
   DEX_INDEXER_URL: "https://api.web3.world"
@@ -29,14 +29,14 @@ service:
 ingress:
   enabled: false
   hosts:
-    - host: api-green.venombridge.com
+    - host: api.venombridge.com
       paths:
         - path: /
           pathType: ImplementationSpecific
   tls:
-    - secretName: api-green-venombridge-com-tls
+    - secretName: api-venombridge-com-tls
       hosts:
-        - api-green.venombridge.com
+        - api.venombridge.com
 
 livenessProbe:
   tcpSocket:
@@ -52,14 +52,3 @@ readinessProbe:
 
 sharedSecrets:
   - bridgeIndexer
-
-affinity:
-  podAntiAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-    - labelSelector:
-        matchExpressions:
-        - key: app.kubernetes.io/name
-          operator: In
-          values:
-          - bridge-api-blue
-      topologyKey: kubernetes.io/hostname
