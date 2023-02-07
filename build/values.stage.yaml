@@ -10,11 +10,11 @@ env:
             kafka-broker-2.europe-west1-c.c.broxus.internal:9092,\
             kafka-broker-3.europe-west1-c.c.broxus.internal:9092"
   KAFKA_TOPIC: "mainnet-raw-transactions"
-  KAFKA_GROUP_ID: "dao-blue"
-  KAFKA_CLIENT_ID: "dao-blue-api"
+  KAFKA_GROUP_ID: "dao-stage"
+  KAFKA_CLIENT_ID: "dao-stage-api"
 
   DB_POOL_SIZE: "200"
-  DATABASE_URL: postgresql://$(DAO_API_USER):$(DAO_API_PASSWORD)@cloudsqlproxy.default:5432/dao-api-blue
+  DATABASE_URL: postgresql://$(DAO_API_USER):$(DAO_API_PASSWORD)@cloudsqlproxy.default:5432/dao-api
 
   INDEXER_PROD_URL: "https://api.everdao.net/v1"
   INDEXER_TEST_URL: "https://api-test.everdao.net/v1"
@@ -29,14 +29,14 @@ service:
 ingress:
   enabled: true
   hosts:
-    - host: api-blue.everdao.net
+    - host: api-test.everdao.net
       paths:
         - path: /
           pathType: ImplementationSpecific
   tls:
-    - secretName: api-blue-everdao-net-tls
+    - secretName: api-test-everdao-net-tls
       hosts:
-        - api-blue.everdao.net
+        - api-test.everdao.net
 
 livenessProbe:
   tcpSocket:
